@@ -48,22 +48,23 @@ const tierColor = computed(() =>
 const home = ref<number>(props.prediction?.homeScore ?? 0);
 const away = ref<number>(props.prediction?.awayScore ?? 0);
 const saving = ref(false);
-const message = ref('');
+const ui = useUiStore();
 const clamp = (n: number) => Math.max(0, Math.min(99, n));
 
 async function save() {
   saving.value = true;
-  message.value = '';
   try {
     const saved = await useApi()<Prediction>('/predictions', {
       method: 'POST',
       body: { matchId: props.match.id, homeScore: home.value, awayScore: away.value },
     });
-    message.value = 'Salvo ✓';
+    ui.toast('success', 'Palpite salvo ✓');
     emit('saved', saved);
   } catch (e) {
-    message.value =
-      (e as { data?: { message?: string } })?.data?.message ?? 'Erro ao salvar.';
+    ui.toast(
+      'error',
+      (e as { data?: { message?: string } })?.data?.message ?? 'Erro ao salvar.',
+    );
   } finally {
     saving.value = false;
   }
@@ -136,7 +137,6 @@ const leftLabel = computed(() =>
       <button class="btn btn-gold btn-block save" :disabled="saving" @click="save">
         {{ prediction ? 'Atualizar palpite' : 'Confirmar palpite' }}
       </button>
-      <span v-if="message" class="msg">{{ message }}</span>
     </div>
 
     <!-- locked prediction -->
