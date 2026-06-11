@@ -20,6 +20,14 @@ const leader = ref<{ name: string; points: number } | null>(null);
 const participants = ref(0);
 const menuSearch = ref('');
 const dateFilter = ref(''); // yyyy-mm-dd in account tz; '' = all dates
+const settingsOpen = ref(false); // collapsible "Configurações" area
+
+const STATUS_LABEL: Record<string, string> = {
+  SCHEDULED: 'Agendada', LIVE: 'Ao vivo', FINISHED: 'Encerrada', CANCELLED: 'Cancelada',
+};
+const STATUS_COLOR: Record<string, string> = {
+  SCHEDULED: 'var(--azure)', LIVE: 'var(--scarlet)', FINISHED: 'var(--muted)', CANCELLED: 'var(--muted)',
+};
 
 function localDateKey(iso: string) {
   return new Intl.DateTimeFormat('en-CA', {
@@ -225,6 +233,46 @@ onMounted(async () => {
 
       <!-- board -->
       <div v-if="selected" class="board">
+        <!-- 1) Configurações — colapsável -->
+        <div class="card settings">
+          <button class="set-head" @click="settingsOpen = !settingsOpen">
+            <span class="set-title">Configurações</span>
+            <span v-if="!settingsOpen" class="set-summary">
+              <span class="chip" :style="{ color: STATUS_COLOR[selected.status], borderColor: STATUS_COLOR[selected.status] }">{{ STATUS_LABEL[selected.status] }}</span>
+              <span class="chip" :class="predEffectiveOpen ? 'ok' : 'no'">Palpites {{ predEffectiveOpen ? 'abertos' : 'fechados' }}</span>
+              <span class="chip" :class="selected.autoManaged ? 'ok' : 'no'">Placar {{ selected.autoManaged ? 'auto' : 'manual' }}</span>
+            </span>
+            <span class="set-chev">{{ settingsOpen ? '▲' : '▼' }}</span>
+          </button>
+          <div v-if="settingsOpen" class="set-body">
+            <div class="set-group">
+              <div class="set-lbl">Status da partida</div>
+              <div class="set-actions">
+                <button v-if="selected.status !== 'LIVE'" class="sb live" @click="patch({ status: 'LIVE' }, 'Partida ao vivo', 'success')">● Ao vivo</button>
+                <button v-else class="sb live on" @click="patch({ status: 'SCHEDULED' }, 'Partida voltou para agendada', 'info')">↩ Tirar do ao vivo</button>
+                <button class="sb" :class="{ on: selected.status === 'FINISHED' }" @click="patch({ status: 'FINISHED' }, 'Partida encerrada', 'success')">Encerrar</button>
+                <button class="sb danger" :class="{ on: selected.status === 'CANCELLED' }" @click="patch({ status: 'CANCELLED' }, 'Partida cancelada')">Cancelar</button>
+              </div>
+            </div>
+            <div class="set-group">
+              <div class="set-lbl">Placar <span class="set-sub">{{ selected.autoManaged ? '· o robô ESPN atualiza' : '· você controla nos botões +/−' }}</span></div>
+              <div class="set-actions">
+                <button class="sb" :class="{ on: selected.autoManaged }" @click="setAuto(true)">Automático</button>
+                <button class="sb" :class="{ on: !selected.autoManaged }" @click="setAuto(false)">Manual</button>
+              </div>
+            </div>
+            <div class="set-group">
+              <div class="set-lbl">Palpites <span class="set-sub">· {{ predEffectiveOpen ? 'abertos' : 'fechados' }} ({{ predIsManual ? 'manual' : 'automático' }})</span></div>
+              <div class="set-actions">
+                <button class="sb ok" :class="{ on: selected.predictionsOpen === true }" @click="setPredictions(true)">Abrir</button>
+                <button class="sb danger" :class="{ on: selected.predictionsOpen === false }" @click="setPredictions(false)">Fechar</button>
+                <button class="sb" :class="{ on: selected.predictionsOpen == null }" @click="setPredictions(null)">Automático</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2) Informações + placar -->
         <div class="card scoreboard">
           <div class="bmeta">
             <span class="bt">{{ selected.phaseLabel }}<template v-if="selected.groupName"> · Grupo {{ selected.groupName }}</template></span>
@@ -235,13 +283,6 @@ onMounted(async () => {
               · {{ participants }} palpite(s)
               <template v-if="leader"> · líder: <b>{{ leader.name }}</b> ({{ leader.points }} pts)</template>
             </span>
-          </div>
-          <div class="autorow">
-            <span class="auto-state" :class="selected.autoManaged ? 'on' : 'off'">
-              <span class="auto-dot" />{{ selected.autoManaged ? 'Placar automático · ESPN' : 'Placar manual' }}
-            </span>
-            <button v-if="selected.autoManaged" class="auto-btn" @click="setAuto(false)">Assumir manual</button>
-            <button v-else class="auto-btn on" @click="setAuto(true)">Voltar ao automático</button>
           </div>
           <div class="sides">
             <div class="bside">
@@ -263,30 +304,7 @@ onMounted(async () => {
               </div>
             </div>
           </div>
-          <div class="statusbtns">
-            <button v-if="selected.status !== 'LIVE'" class="sb live" @click="patch({ status: 'LIVE' }, 'Partida ao vivo', 'success')">● Ao vivo</button>
-            <button v-else class="sb live on" @click="patch({ status: 'SCHEDULED' }, 'Partida voltou para agendada', 'info')">↩ Tirar do ao vivo</button>
-            <button class="sb" :class="{ on: selected.status === 'FINISHED' }" @click="patch({ status: 'FINISHED' }, 'Partida encerrada', 'success')">Encerrar</button>
-            <button class="sb danger" :class="{ on: selected.status === 'CANCELLED' }" @click="patch({ status: 'CANCELLED' }, 'Partida cancelada')">Cancelar</button>
-          </div>
-        </div>
-
-        <div class="card predbox">
-          <div class="pb-head">
-            <span class="pb-title">Palpites</span>
-            <span class="pb-state" :class="predEffectiveOpen ? 'open' : 'closed'">
-              <span class="pb-dot" />{{ predEffectiveOpen ? 'Abertos' : 'Fechados' }}
-              <span class="pb-src">· {{ predIsManual ? 'manual' : 'automático' }}</span>
-            </span>
-          </div>
-          <p class="pb-note">
-            Sobrepõe a regra automática (aberto enquanto agendada e antes do horário). Funciona mesmo com a partida ao vivo.
-          </p>
-          <div class="pb-btns">
-            <button class="pbtn open" :class="{ on: selected.predictionsOpen === true }" @click="setPredictions(true)">Abrir</button>
-            <button class="pbtn closed" :class="{ on: selected.predictionsOpen === false }" @click="setPredictions(false)">Fechar</button>
-            <button class="pbtn" :class="{ on: selected.predictionsOpen == null }" @click="setPredictions(null)">Automático</button>
-          </div>
+          <p v-if="selected.autoManaged" class="auto-note">Placar automático — atualizado pelo robô ESPN. Em <b>Configurações → Placar → Manual</b> você assume o controle.</p>
         </div>
 
         <div v-if="engagement && engagement.totalPredictions" class="card engage">
@@ -342,13 +360,19 @@ onMounted(async () => {
 .bv { font-size: 12px; font-weight: 600; color: var(--muted); }
 .bstats { font-size: 11.5px; font-weight: 600; color: var(--muted); }
 .bstats b { color: var(--text); }
-.autorow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
-.auto-state { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
-.auto-state.on { color: var(--emerald); }
-.auto-state.off { color: var(--gold); }
-.auto-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.auto-btn { padding: 7px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 12px; cursor: pointer; }
-.auto-btn.on { border-color: color-mix(in srgb, var(--emerald) 55%, var(--border)); color: var(--emerald); }
+.settings { padding: 0; overflow: hidden; }
+.set-head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 16px; background: none; border: none; cursor: pointer; color: var(--text); text-align: left; }
+.set-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); flex: 0 0 auto; }
+.set-summary { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 0; }
+.chip { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; color: var(--muted); white-space: nowrap; }
+.chip.ok { color: var(--emerald); border-color: color-mix(in srgb, var(--emerald) 45%, var(--border)); }
+.chip.no { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
+.set-chev { margin-left: auto; font-size: 10px; color: var(--muted); flex: 0 0 auto; }
+.set-body { display: flex; flex-direction: column; gap: 15px; padding: 2px 16px 16px; border-top: 1px solid var(--border); }
+.set-group { display: flex; flex-direction: column; gap: 8px; }
+.set-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.set-sub { font-weight: 600; text-transform: none; letter-spacing: 0; }
+.set-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 520px; margin: 0 auto; }
 .bside { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .bn { font-size: 13px; font-weight: 700; }
@@ -356,25 +380,13 @@ onMounted(async () => {
 .steppers { display: flex; gap: 10px; }
 .step { width: 52px; height: 52px; border-radius: 15px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-size: 26px; line-height: 1; cursor: pointer; }
 .step.plus { border: none; background: var(--emerald); color: #fff; box-shadow: 0 8px 20px -8px var(--emerald); }
-.statusbtns { display: flex; flex-wrap: wrap; gap: 10px; max-width: 520px; margin: 22px auto 0; }
-.sb { flex: 1; min-width: 120px; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13.5px; cursor: pointer; }
+.sb { flex: 1; min-width: 108px; padding: 11px; border-radius: 11px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13px; cursor: pointer; }
 .sb.live.on { background: var(--scarlet); color: #fff; border-color: transparent; }
 .sb.on { background: var(--grad-pitch); color: #fff; border-color: transparent; }
-.sb.danger.on { background: var(--muted); }
-.predbox { padding: 16px 18px; }
-.pb-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.pb-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
-.pb-state { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; }
-.pb-state.open { color: var(--emerald); }
-.pb-state.closed { color: var(--scarlet); }
-.pb-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.pb-src { color: var(--muted); font-weight: 700; }
-.pb-note { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 8px 0 12px; }
-.pb-btns { display: flex; gap: 8px; }
-.pbtn { flex: 1; padding: 11px; border-radius: 11px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13px; cursor: pointer; }
-.pbtn.open.on { background: var(--emerald); color: #fff; border-color: transparent; }
-.pbtn.closed.on { background: var(--scarlet); color: #fff; border-color: transparent; }
-.pbtn.on:not(.open):not(.closed) { background: var(--bg-surface); border-color: var(--azure); color: var(--azure); }
+.sb.ok.on { background: var(--emerald); color: #fff; border-color: transparent; }
+.sb.danger.on { background: var(--scarlet); color: #fff; border-color: transparent; }
+.auto-note { max-width: 520px; margin: 18px auto 0; text-align: center; font-size: 11.5px; line-height: 1.5; color: var(--muted); }
+.auto-note b { color: var(--text); }
 .engage { padding: 18px; }
 .eh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .eh h4 { font-weight: 600; font-size: 15px; text-transform: uppercase; }
