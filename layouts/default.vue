@@ -4,6 +4,9 @@
     <main class="container main">
       <slot />
     </main>
+    <AppBottomNav />
+    <ToastHost />
+    <ConfirmDialog />
   </div>
 </template>
 
@@ -13,6 +16,6 @@
 }
 .main {
   padding-top: 1.25rem;
-  padding-bottom: 3rem;
+  padding-bottom: 5rem;
 }
 </style>

@@ -63,6 +63,7 @@ function logout() {
               </div>
               <div class="sep" />
               <NuxtLink to="/predictions" class="row" @click="menuOpen = false">Meus palpites</NuxtLink>
+              <NuxtLink v-if="auth.isAdmin" to="/admin" class="row" @click="menuOpen = false">Área admin</NuxtLink>
               <button class="row danger" @click="logout">Sair</button>
             </div>
           </div>
