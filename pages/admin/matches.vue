@@ -138,7 +138,8 @@ onMounted(async () => {
         </select>
       </div>
 
-      <div class="rows">
+      <SkeletonList v-if="!data" variant="row" :count="8" />
+      <div v-else class="rows">
         <div class="rhead"><span>Partida</span><span>Fase · Data</span><span>Estádio</span><span>Status</span><span class="ar">Ações</span></div>
         <div v-for="m in data?.data ?? []" :key="m.id" class="row">
           <span class="mt">

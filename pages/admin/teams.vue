@@ -104,7 +104,8 @@ onMounted(load);
         </select>
       </div>
 
-      <div class="rows">
+      <SkeletonList v-if="!data" variant="row" :count="8" />
+      <div v-else class="rows">
         <div class="rhead"><span>Time</span><span>Sigla</span><span>Tipo</span><span>Local</span><span class="ar">Ações</span></div>
         <div v-for="t in data?.data ?? []" :key="t.id" class="row">
           <span class="tn"><TeamBadge :team="t" :size="26" /><span class="nm">{{ t.name }}</span></span>

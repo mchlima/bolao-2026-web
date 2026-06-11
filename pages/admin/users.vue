@@ -79,7 +79,8 @@ onMounted(load);
         </div>
       </div>
 
-      <div class="rows">
+      <SkeletonList v-if="!data" variant="row" :count="8" />
+      <div v-else class="rows">
         <div class="rhead"><span>Usuário</span><span>Papel</span><span>Acesso</span><span class="ar">Ações</span></div>
         <div v-for="u in data?.data ?? []" :key="u.id" class="row">
           <span class="who">

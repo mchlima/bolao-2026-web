@@ -101,7 +101,8 @@ onMounted(() => {
       </div>
       <input v-model="search" class="input search" placeholder="Buscar torneio..." />
 
-      <div class="rows">
+      <SkeletonList v-if="!data" variant="row" :count="8" />
+      <div v-else class="rows">
         <div class="rhead">
           <span>Torneio</span><span>Período</span><span>Status</span><span class="ar">Ações</span>
         </div>

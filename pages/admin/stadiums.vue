@@ -67,7 +67,8 @@ onMounted(load);
       </div>
       <input v-model="search" class="input search" placeholder="Buscar estádio, cidade, país..." />
 
-      <div class="rows">
+      <SkeletonList v-if="!data" variant="row" :count="8" />
+      <div v-else class="rows">
         <div class="rhead"><span>Estádio</span><span>Local</span><span class="ar">Ações</span></div>
         <div v-for="s in data?.data ?? []" :key="s.id" class="row">
           <span class="nm">{{ s.name }}</span>
