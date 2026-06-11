@@ -132,8 +132,8 @@ onMounted(() => {
           <div><label>Início</label><input v-model="form.startDate" type="date" class="input" /></div>
           <div><label>Fim</label><input v-model="form.endDate" type="date" class="input" /></div>
         </div>
-        <label>Logo (URL)</label>
-        <input v-model="form.logoUrl" class="input" placeholder="https://..." />
+        <label>Logo</label>
+        <ImageUploadField v-model="form.logoUrl" prefix="tournaments" />
       </div>
       <template #footer>
         <button class="btn" @click="modalOpen = false">Cancelar</button>

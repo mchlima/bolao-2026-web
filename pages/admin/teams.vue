@@ -142,7 +142,7 @@ onMounted(load);
         </template>
         <template v-else>
           <label>País</label><input v-model="form.country" class="input" />
-          <label>Logo (URL)</label><input v-model="form.logoUrl" class="input" placeholder="https://..." />
+          <label>Escudo</label><ImageUploadField v-model="form.logoUrl" prefix="teams" />
         </template>
       </div>
       <template #footer>
