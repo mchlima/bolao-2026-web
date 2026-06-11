@@ -11,13 +11,17 @@ const isCancelled = computed(() => props.match.status === 'CANCELLED');
 const hasResult = computed(
   () => props.match.homeScore !== null && props.match.awayScore !== null,
 );
-const isOpen = computed(
-  () =>
-    props.match.status === 'SCHEDULED' &&
-    !!props.match.homeTeam &&
-    !!props.match.awayTeam &&
-    new Date(props.match.kickoffAt).getTime() > Date.now(),
-);
+// Effective prediction window: admin override (predictionsOpen) wins; otherwise
+// the automatic rule (SCHEDULED + before kickoff). Terminal states never open.
+// Mirrors the backend PredictionsService.acceptsPredictions.
+const isOpen = computed(() => {
+  const m = props.match;
+  if (!m.homeTeam || !m.awayTeam) return false;
+  if (m.status === 'FINISHED' || m.status === 'CANCELLED') return false;
+  const auto =
+    m.status === 'SCHEDULED' && new Date(m.kickoffAt).getTime() > Date.now();
+  return m.predictionsOpen ?? auto;
+});
 const editable = computed(() => isOpen.value && auth.isAuthenticated);
 
 const statusMeta = computed(() => {

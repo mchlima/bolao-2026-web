@@ -71,6 +71,7 @@ export interface Match {
   phaseLabel: string | null;
   groupName: string | null;
   matchNumber: number | null;
+  predictionsOpen: boolean | null; // manual override; null = automatic rule
 }
 
 export interface ScoreResult {

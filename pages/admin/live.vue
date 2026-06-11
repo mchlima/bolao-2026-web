@@ -130,6 +130,21 @@ function reopen() {
   );
 }
 
+// Prediction window for the selected match (mirrors backend acceptsPredictions).
+const predEffectiveOpen = computed(() => {
+  const m = selected.value;
+  if (!m) return false;
+  if (m.status === 'FINISHED' || m.status === 'CANCELLED') return false;
+  const auto = m.status === 'SCHEDULED' && new Date(m.kickoffAt).getTime() > Date.now();
+  return m.predictionsOpen ?? auto;
+});
+const predIsManual = computed(() => selected.value?.predictionsOpen != null);
+
+function setPredictions(open: boolean | null) {
+  if (open === null) patch({ predictionsOpen: null }, 'Palpites voltaram ao automático');
+  else patch({ predictionsOpen: open }, open ? 'Palpites abertos' : 'Palpites fechados', open ? 'success' : 'info');
+}
+
 const clamp = (n: number) => Math.max(0, n);
 function bump(side: 'home' | 'away', delta: number) {
   if (!selected.value) return;
@@ -253,6 +268,24 @@ onMounted(async () => {
           </div>
         </div>
 
+        <div class="card predbox">
+          <div class="pb-head">
+            <span class="pb-title">Palpites</span>
+            <span class="pb-state" :class="predEffectiveOpen ? 'open' : 'closed'">
+              <span class="pb-dot" />{{ predEffectiveOpen ? 'Abertos' : 'Fechados' }}
+              <span class="pb-src">· {{ predIsManual ? 'manual' : 'automático' }}</span>
+            </span>
+          </div>
+          <p class="pb-note">
+            Sobrepõe a regra automática (aberto enquanto agendada e antes do horário). Funciona mesmo com a partida ao vivo.
+          </p>
+          <div class="pb-btns">
+            <button class="pbtn open" :class="{ on: selected.predictionsOpen === true }" @click="setPredictions(true)">Abrir</button>
+            <button class="pbtn closed" :class="{ on: selected.predictionsOpen === false }" @click="setPredictions(false)">Fechar</button>
+            <button class="pbtn" :class="{ on: selected.predictionsOpen == null }" @click="setPredictions(null)">Automático</button>
+          </div>
+        </div>
+
         <div v-if="engagement && engagement.totalPredictions" class="card engage">
           <div class="eh">
             <h4 class="font-display">Engajamento do bolão</h4>
@@ -319,6 +352,20 @@ onMounted(async () => {
 .sb.live.on { background: var(--scarlet); color: #fff; border-color: transparent; }
 .sb.on { background: var(--grad-pitch); color: #fff; border-color: transparent; }
 .sb.danger.on { background: var(--muted); }
+.predbox { padding: 16px 18px; }
+.pb-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pb-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.pb-state { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; }
+.pb-state.open { color: var(--emerald); }
+.pb-state.closed { color: var(--scarlet); }
+.pb-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.pb-src { color: var(--muted); font-weight: 700; }
+.pb-note { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin: 8px 0 12px; }
+.pb-btns { display: flex; gap: 8px; }
+.pbtn { flex: 1; padding: 11px; border-radius: 11px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13px; cursor: pointer; }
+.pbtn.open.on { background: var(--emerald); color: #fff; border-color: transparent; }
+.pbtn.closed.on { background: var(--scarlet); color: #fff; border-color: transparent; }
+.pbtn.on:not(.open):not(.closed) { background: var(--bg-surface); border-color: var(--azure); color: var(--azure); }
 .engage { padding: 18px; }
 .eh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .eh h4 { font-weight: 600; font-size: 15px; text-transform: uppercase; }
