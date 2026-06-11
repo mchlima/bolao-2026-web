@@ -131,6 +131,13 @@ function setPredictions(open: boolean | null) {
   else patch({ predictionsOpen: open }, open ? 'Palpites abertos' : 'Palpites fechados', open ? 'success' : 'info');
 }
 
+function setAuto(on: boolean) {
+  patch(
+    { autoManaged: on },
+    on ? 'Placar no automático (robô ESPN)' : 'Placar manual — o robô não vai mexer nesta partida',
+  );
+}
+
 const clamp = (n: number) => Math.max(0, n);
 function bump(side: 'home' | 'away', delta: number) {
   if (!selected.value) return;
@@ -246,6 +253,15 @@ onMounted(async () => {
               </div>
             </div>
           </div>
+          <div class="autorow">
+            <span class="auto-lbl">🤖 Placar via ESPN</span>
+            <div class="seg auto-seg">
+              <button class="seg-b" :class="{ on: selected.autoManaged }" @click="setAuto(true)">Automático</button>
+              <button class="seg-b" :class="{ on: !selected.autoManaged }" @click="setAuto(false)">Manual</button>
+            </div>
+          </div>
+          <p v-if="!selected.autoManaged" class="auto-hint muted">Você assumiu o placar — o robô não vai tocar nesta partida. Volte para Automático para devolver o controle a ele.</p>
+
           <div class="statusbtns">
             <button v-if="selected.status !== 'LIVE'" class="sb live" @click="patch({ status: 'LIVE' }, 'Partida ao vivo', 'success')">● Ao vivo</button>
             <button v-else class="sb live on" @click="patch({ status: 'SCHEDULED' }, 'Partida voltou para agendada', 'info')">↩ Tirar do ao vivo</button>
@@ -332,7 +348,12 @@ onMounted(async () => {
 .steppers { display: flex; gap: 10px; }
 .step { width: 52px; height: 52px; border-radius: 15px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-size: 26px; line-height: 1; cursor: pointer; }
 .step.plus { border: none; background: var(--emerald); color: #fff; box-shadow: 0 8px 20px -8px var(--emerald); }
-.statusbtns { display: flex; flex-wrap: wrap; gap: 10px; max-width: 520px; margin: 22px auto 0; }
+.autorow { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 520px; margin: 20px auto 0; }
+.auto-lbl { font-size: 12px; font-weight: 700; color: var(--muted); }
+.auto-seg { flex: 0 0 auto; }
+.auto-seg .seg-b { padding: 7px 13px; font-size: 12px; }
+.auto-hint { max-width: 520px; margin: 8px auto 0; font-size: 11.5px; line-height: 1.45; }
+.statusbtns { display: flex; flex-wrap: wrap; gap: 10px; max-width: 520px; margin: 14px auto 0; }
 .sb { flex: 1; min-width: 120px; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13.5px; cursor: pointer; }
 .sb.live.on { background: var(--scarlet); color: #fff; border-color: transparent; }
 .sb.on { background: var(--grad-pitch); color: #fff; border-color: transparent; }
