@@ -1,19 +1,156 @@
-/* Estádio 26 — design tokens (placeholder). Extrair do protótipo Claude Design. */
+/* ===== Estádio 26 — design tokens =====
+ * NOTA: o protótipo canônico do Claude Design não está acessível por fetch (404).
+ * Esta paleta é uma aproximação on-brief (estádio à noite + verde de gramado) e deve ser
+ * reconciliada com o protótipo quando disponível. */
+
 :root {
-  --color-bg: #ffffff;
-  --color-fg: #0a0a0a;
-  --color-muted: #6b7280;
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --primary: #15803d; /* gramado */
+  --primary-hover: #166534;
+  --primary-contrast: #ffffff;
+  --accent: #f59e0b; /* taça/holofote */
+  --danger: #dc2626;
+  --live: #ef4444;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.05);
+  --header-h: 56px;
 }
 
 .dark {
-  --color-bg: #0a0a0a;
-  --color-fg: #fafafa;
-  --color-muted: #9ca3af;
+  --bg: #0b0f1a;
+  --surface: #131a2a;
+  --surface-2: #0f1626;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: #1e293b;
+  --primary: #22c55e;
+  --primary-hover: #16a34a;
+  --primary-contrast: #052e16;
+  --accent: #fbbf24;
+  --danger: #f87171;
+  --live: #f87171;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html,
 body {
   margin: 0;
-  background: var(--color-bg);
-  color: var(--color-fg);
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+}
+
+.container {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.btn:hover {
+  background: var(--surface-2);
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-contrast);
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+.btn-block {
+  width: 100%;
+}
+
+/* Inputs */
+.input {
+  font: inherit;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.badge-live {
+  color: #fff;
+  background: var(--live);
+  border-color: var(--live);
 }
