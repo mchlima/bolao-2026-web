@@ -15,6 +15,9 @@ const statusPick = ref<'LIVE' | 'SCHEDULED'>('LIVE');
 const menu = ref<Match[]>([]);
 const selected = ref<Match | null>(null);
 const engagement = ref<Engagement | null>(null);
+const tz = useTz();
+const leader = ref<{ name: string; points: number } | null>(null);
+const participants = ref(0);
 
 async function loadMenu() {
   const q = new URLSearchParams({ pageSize: '100', status: statusPick.value });
@@ -34,11 +37,20 @@ async function refreshSelected() {
 }
 async function loadEngagement() {
   if (!selected.value) return;
+  const id = selected.value.id;
   try {
-    engagement.value = await useApi()<Engagement>(`/admin/matches/${selected.value.id}/engagement`);
+    engagement.value = await useApi()<Engagement>(`/admin/matches/${id}/engagement`);
   } catch {
     engagement.value = null;
   }
+  const rk = await useApi()<{
+    entries: Array<{ user: { name: string }; points: number }>;
+    totalParticipants: number;
+  }>(`/matches/${id}/ranking`).catch(() => null);
+  leader.value = rk?.entries?.[0]
+    ? { name: rk.entries[0].user.name, points: rk.entries[0].points }
+    : null;
+  participants.value = rk?.totalParticipants ?? 0;
 }
 
 async function patch(body: Record<string, unknown>, msg: string, type: 'success' | 'info' = 'info') {
@@ -119,6 +131,12 @@ onMounted(async () => {
           <div class="bmeta">
             <span class="bt">{{ selected.phaseLabel }}<template v-if="selected.groupName"> · Grupo {{ selected.groupName }}</template></span>
             <span v-if="selected.stadium" class="bv">{{ selected.stadium.name }} · {{ selected.stadium.city }}</span>
+            <span class="bstats">
+              {{ formatKickoff(selected.kickoffAt, tz) }}
+              <template v-if="selected.matchNumber"> · Jogo {{ selected.matchNumber }}</template>
+              · {{ participants }} palpite(s)
+              <template v-if="leader"> · líder: <b>{{ leader.name }}</b> ({{ leader.points }} pts)</template>
+            </span>
           </div>
           <div class="sides">
             <div class="bside">
@@ -188,6 +206,8 @@ onMounted(async () => {
 .bmeta { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 18px; text-align: center; }
 .bt { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold); }
 .bv { font-size: 12px; font-weight: 600; color: var(--muted); }
+.bstats { font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.bstats b { color: var(--text); }
 .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 520px; margin: 0 auto; }
 .bside { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .bn { font-size: 13px; font-weight: 700; }

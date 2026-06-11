@@ -10,6 +10,8 @@ export function useAdminList<T>(path: string, extraQuery: () => string = () => '
 
   async function load() {
     loading.value = true;
+    const indicator = import.meta.client ? useLoadingIndicator() : null;
+    indicator?.start();
     try {
       const q = new URLSearchParams({
         page: String(page.value),
@@ -22,6 +24,7 @@ export function useAdminList<T>(path: string, extraQuery: () => string = () => '
       );
     } finally {
       loading.value = false;
+      indicator?.finish();
     }
   }
 

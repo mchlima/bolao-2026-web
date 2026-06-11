@@ -52,6 +52,7 @@ function logout() {
       </NuxtLink>
 
       <div class="actions">
+        <NuxtLink to="/howto" class="howto-link">Como funciona</NuxtLink>
         <template v-if="auth.isAuthenticated">
           <div class="menu">
             <button class="avatar" @click="menuOpen = !menuOpen">{{ initials }}</button>
@@ -82,6 +83,7 @@ function logout() {
                 </select>
               </div>
               <div class="sep" />
+              <NuxtLink to="/howto" class="row" @click="menuOpen = false">Como funciona</NuxtLink>
               <NuxtLink to="/predictions" class="row" @click="menuOpen = false">Meus palpites</NuxtLink>
               <NuxtLink v-if="auth.isAdmin" to="/admin" class="row" @click="menuOpen = false">Área admin</NuxtLink>
               <button class="row danger" @click="logout">Sair</button>
@@ -148,6 +150,22 @@ function logout() {
 }
 .actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.howto-link {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.howto-link:hover {
+  color: var(--text);
+}
+@media (max-width: 560px) {
+  .howto-link {
+    display: none;
+  }
 }
 .menu {
   position: relative;
