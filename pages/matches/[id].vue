@@ -4,7 +4,7 @@ import type { Match, MatchRankingResponse } from '~/types/api';
 const route = useRoute();
 const id = route.params.id as string;
 
-const { data, pending, error, refresh } = await useAsyncData(
+const { data, pending, error } = await useAsyncData(
   `match-${id}`,
   async () => {
     const api = useApi();
@@ -15,10 +15,6 @@ const { data, pending, error, refresh } = await useAsyncData(
     return { match, ranking };
   },
 );
-
-// Live polling: refresh score + provisional ranking while the match is LIVE.
-const isLiveMatch = computed(() => data.value?.match?.status === 'LIVE');
-useLivePolling(refresh, isLiveMatch, LIVE_POLL_MS);
 
 const TIER_COLOR: Record<string, string> = {
   EXACT: 'var(--emerald)',
