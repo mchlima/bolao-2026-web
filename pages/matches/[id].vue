@@ -4,7 +4,7 @@ import type { Match, MatchRankingResponse } from '~/types/api';
 const route = useRoute();
 const id = route.params.id as string;
 
-const { data, pending, error } = await useAsyncData(
+const { data, pending, error, refresh } = await useAsyncData(
   `match-${id}`,
   async () => {
     const api = useApi();
@@ -25,6 +25,8 @@ const TIER_COLOR: Record<string, string> = {
 };
 const MEDALS = ['var(--gold)', '#C2CAD6', '#CD7F45'];
 const HEIGHTS = ['66px', '50px', '40px'];
+
+useRealtime(() => [`match:${id}`], () => refresh());
 
 const match = computed(() => data.value?.match ?? null);
 // LIVE/FINISHED show a numeric scoreline (null side = 0); otherwise an em dash.

@@ -4,9 +4,10 @@ import type { RankingEntry, RankingResponse } from '~/types/api';
 const route = useRoute();
 const id = route.params.id as string;
 
-const { data, pending, error } = await useAsyncData(`ranking-${id}`, () =>
+const { data, pending, error, refresh } = await useAsyncData(`ranking-${id}`, () =>
   useApi()<RankingResponse>(`/tournaments/${id}/ranking`),
 );
+useRealtime(() => [`tournament:${id}`], () => refresh());
 
 const me = computed(() => data.value?.currentUser ?? null);
 const entries = computed(() => data.value?.entries ?? []);

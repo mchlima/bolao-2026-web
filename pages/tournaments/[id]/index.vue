@@ -5,7 +5,7 @@ const route = useRoute();
 const auth = useAuthStore();
 const id = route.params.id as string;
 
-const { data, pending, error } = await useAsyncData(
+const { data, pending, error, refresh } = await useAsyncData(
   `tournament-${id}`,
   async () => {
     const api = useApi();
@@ -32,6 +32,8 @@ watchEffect(() => {
 function onSaved(p: Prediction) {
   predMap.value = { ...predMap.value, [p.matchId]: p };
 }
+
+useRealtime(() => [`tournament:${id}`], () => refresh());
 
 const sections = computed(() => {
   const out: Array<{ title: string; matches: Match[] }> = [];

@@ -162,6 +162,16 @@ const maxCount = computed(() =>
   Math.max(1, ...(engagement.value?.distribution ?? []).map((d) => d.count)),
 );
 
+useRealtime(
+  () => {
+    const r: string[] = [];
+    if (tournamentId.value) r.push(`tournament:${tournamentId.value}`);
+    if (selected.value) r.push(`match:${selected.value.id}`);
+    return r;
+  },
+  () => (selected.value ? refreshSelected() : loadMenu()),
+);
+
 watch([tournamentId, statusPick], loadMenu);
 onMounted(async () => {
   const tt = await useApi()<Paginated<Tournament>>('/tournaments?pageSize=100');
