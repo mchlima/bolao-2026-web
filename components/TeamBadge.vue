@@ -1,84 +1,50 @@
 <script setup lang="ts">
-import * as flags from 'country-flag-icons/string/3x2';
 import type { Team } from '~/types/api';
 
-const props = defineProps<{
-  team?: Team | null;
-  placeholder?: string | null;
-  align?: 'left' | 'right';
-}>();
-
-const flagSvg = computed(() => {
-  const cc = props.team?.countryCode;
-  if (!cc) return null;
-  return (flags as unknown as Record<string, string>)[cc] ?? null;
-});
-
-const initials = computed(() => {
-  const base = props.team?.shortName || props.team?.name || props.placeholder || '?';
-  return base.slice(0, 3).toUpperCase();
-});
-
-const displayName = computed(
-  () => props.team?.name ?? props.placeholder ?? 'A definir',
+const props = withDefaults(
+  defineProps<{ team?: Team | null; placeholder?: string | null; size?: number }>(),
+  { size: 50 },
 );
+
+const flag = computed(() => teamFlag(props.team));
+const abbr = computed(() => teamAbbr(props.team, props.placeholder));
+const color = computed(() => teamColor(props.team));
 </script>
 
 <template>
-  <div class="team" :class="align === 'right' ? 'right' : 'left'">
-    <span class="emblem">
-      <span v-if="flagSvg" class="flag" v-html="flagSvg" />
-      <img
-        v-else-if="team?.logoUrl"
-        :src="team.logoUrl"
-        :alt="displayName"
-        class="logo"
-      />
-      <span v-else class="initials">{{ initials }}</span>
-    </span>
-    <span class="name">{{ displayName }}</span>
+  <div
+    class="emblem"
+    :style="{ width: `${size}px`, height: `${size}px`, background: color }"
+  >
+    <span class="abbr" :style="{ fontSize: `${Math.round(size * 0.26)}px` }">{{ abbr }}</span>
+    <span v-if="flag" class="flag" v-html="flag" />
   </div>
 </template>
 
 <style scoped>
-.team {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-.team.right {
-  flex-direction: row-reverse;
-  text-align: right;
-}
 .emblem {
-  flex: 0 0 auto;
-  width: 28px;
-  height: 20px;
-  border-radius: 3px;
+  position: relative;
+  border-radius: 50%;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--border);
+  flex: 0 0 auto;
 }
-.flag :deep(svg),
-.logo {
+.abbr {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.flag {
+  position: absolute;
+  inset: 0;
+}
+.flag :deep(svg) {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-}
-.initials {
-  font-size: 0.62rem;
-  font-weight: 800;
-  color: var(--muted);
-}
-.name {
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 </style>

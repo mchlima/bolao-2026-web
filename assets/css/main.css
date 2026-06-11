@@ -1,156 +1,241 @@
-/* ===== Estádio 26 — design tokens =====
- * NOTA: o protótipo canônico do Claude Design não está acessível por fetch (404).
- * Esta paleta é uma aproximação on-brief (estádio à noite + verde de gramado) e deve ser
- * reconciliada com o protótipo quando disponível. */
-
-:root {
-  --bg: #f1f5f9;
-  --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --text: #0f172a;
-  --muted: #64748b;
-  --border: #e2e8f0;
-  --primary: #15803d; /* gramado */
-  --primary-hover: #166534;
-  --primary-contrast: #ffffff;
-  --accent: #f59e0b; /* taça/holofote */
-  --danger: #dc2626;
-  --live: #ef4444;
-  --radius: 12px;
-  --radius-sm: 8px;
-  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.05);
-  --header-h: 56px;
-}
-
-.dark {
-  --bg: #0b0f1a;
-  --surface: #131a2a;
-  --surface-2: #0f1626;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --border: #1e293b;
-  --primary: #22c55e;
-  --primary-hover: #16a34a;
-  --primary-contrast: #052e16;
-  --accent: #fbbf24;
-  --danger: #f87171;
-  --live: #f87171;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.35);
-}
+/* ===== Estádio 26 — design system (from Claude Design handoff: "Amigos do Bolão") ===== */
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+:root {
+  --gold: #f4b81e;
+  --emerald: #0fb36b;
+  --azure: #1e7ff0;
+  --magenta: #e0218a;
+  --scarlet: #e8362b;
+  --grad-pitch: linear-gradient(135deg, #0fb36b, #1e7ff0);
+  --grad-trophy: linear-gradient(135deg, #f4b81e, #e0218a);
+  --grad-live: linear-gradient(135deg, #e8362b, #e0218a);
+
+  /* default (light) so unstyled SSR isn't dark */
+  --bg-base: #f4f6fa;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --border: #dde3ec;
+  --text: #0f1620;
+  --muted: #5b6675;
+  --shadow: 0 16px 40px -16px rgba(15, 22, 32, 0.18);
+  --ring: rgba(15, 22, 32, 0.02);
+}
+
+html[data-theme='dark'] {
+  --bg-base: #0a0e14;
+  --bg-surface: #121823;
+  --bg-elevated: #1b2433;
+  --border: #26303f;
+  --text: #f5f7fa;
+  --muted: #8a97a8;
+  --shadow: 0 16px 50px -12px rgba(0, 0, 0, 0.65);
+  --ring: rgba(255, 255, 255, 0.04);
+  color-scheme: dark;
+}
+
+html[data-theme='light'] {
+  --bg-base: #f4f6fa;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --border: #dde3ec;
+  --text: #0f1620;
+  --muted: #5b6675;
+  --shadow: 0 16px 40px -16px rgba(15, 22, 32, 0.18);
+  --ring: rgba(15, 22, 32, 0.02);
+  color-scheme: light;
 }
 
 html,
 body {
-  margin: 0;
-  padding: 0;
-  background: var(--bg);
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  background: var(--bg-base);
   color: var(--text);
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 15px;
   line-height: 1.45;
-  -webkit-font-smoothing: antialiased;
 }
 
 a {
   color: inherit;
   text-decoration: none;
 }
-
-h1,
-h2,
-h3 {
-  margin: 0 0 0.5rem;
-  line-height: 1.2;
+input,
+button,
+select {
+  font-family: inherit;
+}
+::placeholder {
+  color: var(--muted);
+  opacity: 0.8;
 }
 
+.font-display {
+  font-family: 'Oswald', sans-serif;
+}
+.font-numeric {
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+/* ===== animations ===== */
+@keyframes livePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 54, 43, 0.55), 0 0 18px 2px rgba(232, 54, 43, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(232, 54, 43, 0), 0 0 26px 6px rgba(232, 54, 43, 0.65);
+  }
+}
+@keyframes liveDot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+}
+@keyframes ignite {
+  0% {
+    transform: scale(0.85);
+    filter: brightness(0.7);
+  }
+  55% {
+    transform: scale(1.12);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+@keyframes toastIn {
+  0% {
+    transform: translateY(14px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes spotShift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(4%, 3%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ===== layout helpers ===== */
 .container {
   width: 100%;
-  max-width: 720px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 16px;
 }
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
 .muted {
   color: var(--muted);
 }
 
-/* Buttons */
+/* ===== reusable atoms (mirror prototype) ===== */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   font: inherit;
-  font-weight: 600;
-  padding: 0.55rem 1rem;
-  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 18px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--bg-base);
   color: var(--text);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+  transition: transform 0.05s, border-color 0.15s, background 0.15s, opacity 0.15s;
 }
 .btn:hover {
-  background: var(--surface-2);
+  border-color: color-mix(in srgb, var(--emerald) 45%, var(--border));
 }
 .btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 .btn-primary {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-contrast);
+  border: none;
+  background: var(--grad-pitch);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 0 10px 26px -12px rgba(15, 179, 107, 0.7);
 }
-.btn-primary:hover {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
+.btn-gold {
+  border: none;
+  background: var(--gold);
+  color: #0a0e14;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  box-shadow: 0 10px 24px -12px rgba(244, 184, 30, 0.7);
 }
 .btn-block {
   width: 100%;
 }
 
-/* Inputs */
 .input {
   font: inherit;
   width: 100%;
-  padding: 0.55rem 0.7rem;
-  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--surface-2);
+  background: var(--bg-base);
   color: var(--text);
 }
 .input:focus {
-  outline: 2px solid var(--primary);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--emerald);
+  box-shadow: 0 0 0 3px rgba(15, 179, 107, 0.18);
 }
 
-.badge {
+.pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.72rem;
-  font-weight: 700;
+  gap: 0.35rem;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 0.15rem 0.45rem;
+  padding: 4px 9px;
   border-radius: 999px;
-  background: var(--surface-2);
   border: 1px solid var(--border);
   color: var(--muted);
-}
-.badge-live {
-  color: #fff;
-  background: var(--live);
-  border-color: var(--live);
+  background: var(--bg-surface);
 }

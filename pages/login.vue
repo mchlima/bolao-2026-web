@@ -13,12 +13,10 @@ async function submit() {
   error.value = '';
   try {
     await auth.login(email.value, password.value);
-    const back = (route.query.redirect as string) || '/';
-    router.push(back);
+    router.push((route.query.redirect as string) || '/');
   } catch (e) {
     error.value =
-      (e as { data?: { message?: string } })?.data?.message ??
-      'Não foi possível entrar.';
+      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível entrar.';
   } finally {
     loading.value = false;
   }
@@ -26,68 +24,119 @@ async function submit() {
 </script>
 
 <template>
-  <section class="auth">
-    <div class="card box">
-      <h1>Entrar</h1>
-      <form @submit.prevent="submit">
-        <label>E-mail</label>
-        <input v-model="email" type="email" class="input" autocomplete="email" required />
-        <label>Senha</label>
-        <input
-          v-model="password"
-          type="password"
-          class="input"
-          autocomplete="current-password"
-          required
-        />
-        <p v-if="error" class="err">{{ error }}</p>
-        <button class="btn btn-primary btn-block" :disabled="loading" type="submit">
-          {{ loading ? 'Entrando…' : 'Entrar' }}
-        </button>
-      </form>
-      <p class="muted alt">
-        Não tem conta? <NuxtLink to="/register">Cadastre-se</NuxtLink>
-      </p>
+  <div class="auth">
+    <div class="wrap">
+      <div class="brand">
+        <span class="logo">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0A0E14" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>
+        </span>
+        <h1 class="font-display">Amigos do Bolão</h1>
+        <p class="tag">Entre na disputa da Copa 2026</p>
+      </div>
+
+      <div class="card box">
+        <div class="tabs">
+          <span class="tab on">Entrar</span>
+          <NuxtLink to="/register" class="tab">Criar conta</NuxtLink>
+        </div>
+        <form @submit.prevent="submit">
+          <label>E-mail</label>
+          <input v-model="email" type="email" class="input" placeholder="voce@email.com" autocomplete="email" required />
+          <label>Senha</label>
+          <input v-model="password" type="password" class="input" placeholder="••••••••" autocomplete="current-password" required />
+          <p v-if="error" class="err">{{ error }}</p>
+          <button class="btn btn-primary btn-block submit" :disabled="loading" type="submit">
+            {{ loading ? 'Entrando…' : 'Entrar' }}
+          </button>
+        </form>
+      </div>
     </div>
-  </section>
+  </div>
 </template>
 
 <style scoped>
 .auth {
-  display: flex;
-  justify-content: center;
-  padding-top: 1.5rem;
+  min-height: calc(100vh - var(--header-h, 62px));
+  display: grid;
+  place-items: center;
+  padding: 24px 0;
+}
+.wrap {
+  width: 100%;
+  max-width: 412px;
+}
+.brand {
+  text-align: center;
+  margin-bottom: 26px;
+}
+.logo {
+  width: 62px;
+  height: 62px;
+  border-radius: 18px;
+  background: var(--grad-trophy);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+  box-shadow: 0 14px 36px -10px rgba(224, 33, 138, 0.7);
+}
+.brand h1 {
+  font-weight: 700;
+  font-size: 30px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.tag {
+  color: var(--muted);
+  margin-top: 8px;
+  font-size: 14px;
 }
 .box {
-  width: 100%;
-  max-width: 360px;
-  padding: 1.5rem;
+  border-radius: 20px;
+  padding: 22px;
+}
+.tabs {
+  display: flex;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+.tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-radius: 9px;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab.on {
+  background: var(--bg-surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
 }
 form {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.3rem;
 }
 label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  margin-top: 0.5rem;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 0.6rem;
+  color: var(--muted);
 }
-.btn-block {
+.submit {
   margin-top: 1rem;
+  padding: 14px;
+  font-size: 16px;
 }
 .err {
-  color: var(--danger);
-  font-size: 0.85rem;
-  margin: 0.5rem 0 0;
-}
-.alt {
-  text-align: center;
-  margin-top: 1rem;
-  font-size: 0.88rem;
-}
-.alt a {
-  color: var(--primary);
+  color: var(--scarlet);
+  font-size: 12px;
   font-weight: 600;
+  margin: 0.5rem 0 0;
 }
 </style>

@@ -10,66 +10,113 @@ const predictions = computed(() => data.value ?? []);
 const totalPoints = computed(() =>
   predictions.value.reduce((s, p) => s + (p.score?.points ?? 0), 0),
 );
+
+const TIER_COLOR: Record<string, string> = {
+  EXACT: 'var(--emerald)',
+  ONE_TEAM_SCORE: 'var(--azure)',
+  GOAL_DIFF: 'var(--gold)',
+  OUTCOME: 'var(--magenta)',
+  NONE: 'var(--muted)',
+};
 </script>
 
 <template>
-  <section>
-    <h1>Meus palpites</h1>
-    <p class="muted">
-      Total de pontos: <strong class="pts">{{ totalPoints }}</strong>
-    </p>
-    <p v-if="pending" class="muted">Carregando…</p>
-    <p v-else-if="!predictions.length" class="muted">
-      Você ainda não fez palpites.
-    </p>
-    <div v-else class="list">
-      <div v-for="p in predictions" :key="p.id" class="card row">
-        <div class="teams">
-          <TeamBadge :team="p.match.homeTeam" :placeholder="p.match.homeSourceLabel" />
-          <span class="guess">{{ p.homeScore }}×{{ p.awayScore }}</span>
-          <TeamBadge
-            :team="p.match.awayTeam"
-            :placeholder="p.match.awaySourceLabel"
-            align="right"
-          />
-        </div>
-        <div class="foot muted">
-          <span>{{ formatKickoff(p.match.kickoffAt) }}</span>
-          <span v-if="p.score">
-            {{ tierLabel(p.score.tier) }} <strong class="pts">+{{ p.score.points }}</strong>
-          </span>
-        </div>
+  <div class="page">
+    <div class="head">
+      <h1 class="font-display">Meus palpites</h1>
+      <div class="total card">
+        <span class="font-numeric">{{ totalPoints }}</span>
+        <span class="cap">pontos</span>
       </div>
     </div>
-  </section>
+
+    <p v-if="pending" class="muted">Carregando…</p>
+    <p v-else-if="!predictions.length" class="muted">Você ainda não fez palpites.</p>
+    <div v-else class="list">
+      <div v-for="p in predictions" :key="p.id" class="card row">
+        <TeamBadge :team="p.match.homeTeam" :placeholder="p.match.homeSourceLabel" :size="40" />
+        <div class="mid">
+          <div class="font-numeric guess">{{ p.homeScore }} : {{ p.awayScore }}</div>
+          <div class="when">{{ formatKickoff(p.match.kickoffAt) }}</div>
+        </div>
+        <TeamBadge :team="p.match.awayTeam" :placeholder="p.match.awaySourceLabel" :size="40" />
+        <span
+          v-if="p.score"
+          class="tier"
+          :style="{ color: TIER_COLOR[p.score.tier], borderColor: TIER_COLOR[p.score.tier] }"
+        >
+          +{{ p.score.points }}
+        </span>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
+.page {
+  padding: 18px 0 40px;
+}
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.head h1 {
+  font-weight: 700;
+  font-size: 24px;
+  text-transform: uppercase;
+}
+.total {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 14px;
+}
+.total .font-numeric {
+  font-size: 30px;
+  color: var(--gold);
+}
+.cap {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
 .list {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 10px;
 }
 .row {
-  padding: 0.75rem 0.85rem;
-}
-.teams {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 40px 1fr 40px auto;
   align-items: center;
-  gap: 0.5rem;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+.mid {
+  text-align: center;
 }
 .guess {
-  font-weight: 800;
-  white-space: nowrap;
+  font-size: 28px;
+  line-height: 0.9;
 }
-.foot {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
+.when {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 2px;
 }
-.pts {
-  color: var(--primary);
+.tier {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 2px 10px;
 }
 </style>

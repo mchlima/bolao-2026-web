@@ -5,17 +5,18 @@ export default defineNuxtConfig({
 
   modules: ['@nuxtjs/color-mode', '@pinia/nuxt'],
 
-  // dark / light / system theme (toggle in the avatar menu, persisted)
+  // dark / light / system theme — writes <html data-theme="..."> so the design
+  // system's html[data-theme] selectors apply (Claude Design handoff).
   colorMode: {
-    classSuffix: '',
     preference: 'system',
     fallback: 'light',
+    dataValue: 'theme',
+    classSuffix: '',
     storageKey: 'bolao-color-mode',
   },
 
   runtimeConfig: {
     public: {
-      // Override in Vercel: NUXT_PUBLIC_API_BASE=https://api-bolao2026.kratinho.com.br
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api',
     },
   },
@@ -30,6 +31,18 @@ export default defineNuxtConfig({
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       ],
+      link: [
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        {
+          rel: 'preconnect',
+          href: 'https://fonts.gstatic.com',
+          crossorigin: '',
+        },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap',
+        },
+      ],
     },
   },
-})
+});

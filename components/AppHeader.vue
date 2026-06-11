@@ -1,7 +1,21 @@
 <script setup lang="ts">
 const auth = useAuthStore();
 const router = useRouter();
+const colorMode = useColorMode();
 const menuOpen = ref(false);
+
+const initials = computed(() => {
+  const n = auth.user?.name?.trim();
+  if (!n) return 'VC';
+  const parts = n.split(/\s+/);
+  return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
+});
+
+const themes = [
+  { key: 'system', title: 'Sistema' },
+  { key: 'light', title: 'Claro' },
+  { key: 'dark', title: 'Escuro' },
+] as const;
 
 function logout() {
   auth.logout();
@@ -14,32 +28,47 @@ function logout() {
   <header class="header">
     <div class="container bar">
       <NuxtLink to="/" class="brand">
-        <span class="ball" aria-hidden="true">⚽</span>
-        <span>Amigos do Bolão</span>
+        <span class="logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A0E14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>
+        </span>
+        <span class="title">
+          <span class="name">Amigos do Bolão</span>
+          <span class="sub">Copa 2026</span>
+        </span>
       </NuxtLink>
 
       <div class="actions">
-        <ThemeToggle />
-
         <template v-if="auth.isAuthenticated">
           <div class="menu">
-            <button class="btn avatar" @click="menuOpen = !menuOpen">
-              {{ (auth.user?.name ?? '?').slice(0, 1).toUpperCase() }}
-            </button>
-            <div v-if="menuOpen" class="dropdown card">
+            <button class="avatar" @click="menuOpen = !menuOpen">{{ initials }}</button>
+            <div v-if="menuOpen" class="dropdown" @click.stop>
               <div class="who">
-                <strong>{{ auth.user?.name }}</strong>
-                <span class="muted">{{ auth.user?.email }}</span>
+                <div class="who-name">{{ auth.user?.name }}</div>
+                <div class="who-email">{{ auth.user?.email }}</div>
               </div>
-              <NuxtLink to="/predictions" class="item" @click="menuOpen = false">
-                Meus palpites
-              </NuxtLink>
-              <button class="item" @click="logout">Sair</button>
+              <div class="theme-block">
+                <div class="theme-lbl">Tema</div>
+                <div class="seg">
+                  <button
+                    v-for="t in themes"
+                    :key="t.key"
+                    class="seg-btn"
+                    :class="{ on: colorMode.preference === t.key }"
+                    :title="t.title"
+                    @click="colorMode.preference = t.key"
+                  >
+                    {{ t.title }}
+                  </button>
+                </div>
+              </div>
+              <div class="sep" />
+              <NuxtLink to="/predictions" class="row" @click="menuOpen = false">Meus palpites</NuxtLink>
+              <button class="row danger" @click="logout">Sair</button>
             </div>
           </div>
         </template>
         <template v-else>
-          <NuxtLink to="/login" class="btn btn-primary">Entrar</NuxtLink>
+          <NuxtLink to="/login" class="btn btn-gold">Entrar</NuxtLink>
         </template>
       </div>
     </div>
@@ -50,73 +79,154 @@ function logout() {
 .header {
   position: sticky;
   top: 0;
-  z-index: 20;
-  height: var(--header-h);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  backdrop-filter: blur(8px);
+  z-index: 40;
+  backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--bg-base) 82%, transparent);
   border-bottom: 1px solid var(--border);
 }
 .bar {
-  height: var(--header-h);
+  height: 62px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 18px;
 }
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 800;
-  font-size: 1.02rem;
+  gap: 11px;
 }
-.ball {
-  font-size: 1.2rem;
+.logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--grad-trophy);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 6px 18px -6px rgba(224, 33, 138, 0.6);
+}
+.title {
+  line-height: 1;
+}
+.name {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.sub {
+  display: block;
+  font-size: 10.5px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 2px;
 }
 .actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.avatar {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border-radius: 999px;
-  font-weight: 800;
+  margin-left: auto;
 }
 .menu {
   position: relative;
 }
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--grad-pitch);
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
 .dropdown {
   position: absolute;
   right: 0;
-  top: calc(100% + 8px);
-  width: 220px;
-  padding: 0.4rem;
-  display: flex;
-  flex-direction: column;
+  top: 46px;
+  width: 224px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 8px;
+  z-index: 60;
 }
 .who {
+  padding: 8px 10px 10px;
+}
+.who-name {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+}
+.who-email {
+  font-size: 12px;
+  color: var(--muted);
+}
+.theme-block {
+  padding: 8px 10px 4px;
+}
+.theme-lbl {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 7px;
+}
+.seg {
   display: flex;
-  flex-direction: column;
-  padding: 0.5rem 0.6rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 0.3rem;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
 }
-.who .muted {
-  font-size: 0.8rem;
-}
-.item {
-  text-align: left;
-  background: none;
+.seg-btn {
+  flex: 1;
+  padding: 7px 2px;
   border: none;
-  color: inherit;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  background: transparent;
+}
+.seg-btn.on {
+  color: #0a0e14;
+  background: var(--gold);
+}
+.sep {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 6px;
+}
+.row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border: none;
+  background: none;
+  color: var(--text);
   font: inherit;
-  padding: 0.55rem 0.6rem;
-  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 9px;
   cursor: pointer;
 }
-.item:hover {
-  background: var(--surface-2);
+.row:hover {
+  background: var(--bg-base);
+}
+.row.danger {
+  color: var(--scarlet);
+  font-weight: 700;
 }
 </style>
