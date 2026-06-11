@@ -166,6 +166,17 @@ const leftLabel = computed(() =>
     <NuxtLink v-else-if="isOpen" to="/login" class="btn btn-block login-cta">
       Entre para palpitar →
     </NuxtLink>
+
+    <!-- match ranking link (teams defined) -->
+    <NuxtLink
+      v-if="match.homeTeam && match.awayTeam"
+      :to="`/matches/${match.id}`"
+      class="rank-btn"
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>
+      Ranking da partida
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </NuxtLink>
   </div>
 </template>
 
@@ -388,5 +399,23 @@ const leftLabel = computed(() =>
 .login-cta {
   margin-top: 12px;
   font-size: 12.5px;
+}
+.rank-btn {
+  margin-top: 11px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  color: var(--text);
+  border-radius: 11px;
+  font-weight: 700;
+  font-size: 12.5px;
+}
+.rank-btn:hover {
+  border-color: color-mix(in srgb, var(--gold) 50%, var(--border));
 }
 </style>

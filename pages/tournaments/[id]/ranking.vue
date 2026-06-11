@@ -10,8 +10,13 @@ const { data, pending, error } = await useAsyncData(`ranking-${id}`, () =>
 
 const me = computed(() => data.value?.currentUser ?? null);
 const entries = computed(() => data.value?.entries ?? []);
-const top3 = computed(() => entries.value.slice(0, 3));
-const rest = computed(() => entries.value.slice(3));
+// Podium only with at least 3 participants (decision #5).
+const top3 = computed(() =>
+  entries.value.length >= 3 ? entries.value.slice(0, 3) : [],
+);
+const rest = computed(() =>
+  top3.value.length ? entries.value.slice(3) : entries.value,
+);
 const inTop = computed(
   () => !!me.value && entries.value.some((e) => e.user.id === me.value!.user.id),
 );

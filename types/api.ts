@@ -103,6 +103,8 @@ export interface RankingEntry {
   points: number;
   exactCount: number;
   scoredCount: number;
+  prediction?: { home: number; away: number }; // match ranking only
+  tier?: ScoreTier; // match ranking only
 }
 
 export interface RankingResponse {
