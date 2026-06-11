@@ -1,19 +1,24 @@
-export function formatDate(iso?: string | null): string {
+// UTC is stored; times are rendered in the account timezone (default Brasília).
+export const DEFAULT_TZ = 'America/Sao_Paulo';
+
+export function formatDate(iso?: string | null, tz: string = DEFAULT_TZ): string {
   if (!iso) return '';
   return new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    timeZone: tz,
   }).format(new Date(iso));
 }
 
-export function formatKickoff(iso: string): string {
+export function formatKickoff(iso: string, tz: string = DEFAULT_TZ): string {
   return new Intl.DateTimeFormat('pt-BR', {
     weekday: 'short',
     day: '2-digit',
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: tz,
   }).format(new Date(iso));
 }
 

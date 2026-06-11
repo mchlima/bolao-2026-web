@@ -11,6 +11,20 @@ const initials = computed(() => {
   return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
 });
 
+const ui = useUiStore();
+const ZONES = [
+  { v: 'America/Sao_Paulo', label: 'Brasília (GMT-3)' },
+  { v: 'America/Manaus', label: 'Manaus (GMT-4)' },
+  { v: 'America/Mexico_City', label: 'Cidade do México (GMT-6)' },
+  { v: 'America/New_York', label: 'Nova York (GMT-4)' },
+  { v: 'Europe/Lisbon', label: 'Lisboa (GMT+1)' },
+  { v: 'UTC', label: 'UTC' },
+];
+async function setTz(e: Event) {
+  await auth.setTimezone((e.target as HTMLSelectElement).value);
+  ui.toast('success', 'Fuso horário atualizado');
+}
+
 const themes = [
   { key: 'system', title: 'Sistema' },
   { key: 'light', title: 'Claro' },
@@ -60,6 +74,12 @@ function logout() {
                     {{ t.title }}
                   </button>
                 </div>
+              </div>
+              <div class="theme-block">
+                <div class="theme-lbl">Fuso horário</div>
+                <select class="tz-select" :value="auth.user?.timezone" @change="setTz">
+                  <option v-for="z in ZONES" :key="z.v" :value="z.v">{{ z.label }}</option>
+                </select>
               </div>
               <div class="sep" />
               <NuxtLink to="/predictions" class="row" @click="menuOpen = false">Meus palpites</NuxtLink>
@@ -203,6 +223,17 @@ function logout() {
 .seg-btn.on {
   color: #0a0e14;
   background: var(--gold);
+}
+.tz-select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
 }
 .sep {
   height: 1px;

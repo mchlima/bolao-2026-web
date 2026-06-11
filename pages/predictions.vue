@@ -2,6 +2,7 @@
 import type { Prediction } from '~/types/api';
 
 definePageMeta({ middleware: 'auth' });
+const tz = useTz();
 
 const { data, pending } = await useAsyncData('my-predictions', () =>
   useApi()<Prediction[]>('/predictions/me'),
@@ -37,7 +38,7 @@ const TIER_COLOR: Record<string, string> = {
         <TeamBadge :team="p.match.homeTeam" :placeholder="p.match.homeSourceLabel" :size="40" />
         <div class="mid">
           <div class="font-numeric guess">{{ p.homeScore }} : {{ p.awayScore }}</div>
-          <div class="when">{{ formatKickoff(p.match.kickoffAt) }}</div>
+          <div class="when">{{ formatKickoff(p.match.kickoffAt, tz) }}</div>
         </div>
         <TeamBadge :team="p.match.awayTeam" :placeholder="p.match.awaySourceLabel" :size="40" />
         <span

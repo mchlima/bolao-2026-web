@@ -42,10 +42,17 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function setTimezone(timezone: string): Promise<void> {
+    user.value = await useApi()<User>('/auth/me', {
+      method: 'PATCH',
+      body: { timezone },
+    });
+  }
+
   function logout(): void {
     token.value = null;
     user.value = null;
   }
 
-  return { token, user, isAuthenticated, isAdmin, login, register, fetchMe, logout };
+  return { token, user, isAuthenticated, isAdmin, login, register, fetchMe, setTimezone, logout };
 });

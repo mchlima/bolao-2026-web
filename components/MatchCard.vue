@@ -4,6 +4,7 @@ import type { Match, Prediction } from '~/types/api';
 const props = defineProps<{ match: Match; prediction?: Prediction | null }>();
 const emit = defineEmits<{ saved: [Prediction] }>();
 const auth = useAuthStore();
+const tz = useTz();
 
 const isLive = computed(() => props.match.status === 'LIVE');
 const isCancelled = computed(() => props.match.status === 'CANCELLED');
@@ -80,7 +81,7 @@ const leftLabel = computed(() =>
     <div v-if="isLive" aria-hidden="true" class="live-glow" />
 
     <div class="top">
-      <span class="lbl">{{ leftLabel }} · {{ formatKickoff(match.kickoffAt) }}</span>
+      <span class="lbl">{{ leftLabel }} · {{ formatKickoff(match.kickoffAt, tz) }}</span>
       <span
         class="status"
         :class="{ pulse: statusMeta.live }"

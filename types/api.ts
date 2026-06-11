@@ -17,6 +17,7 @@ export interface User {
   email: string;
   role: UserRole;
   isActive: boolean;
+  timezone: string;
   createdAt: string;
   updatedAt: string;
 }
