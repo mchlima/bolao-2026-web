@@ -273,18 +273,21 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- 2) Informações + placar -->
-        <div class="card scoreboard">
-          <div class="bmeta">
-            <span class="bt">{{ selected.phaseLabel }}<template v-if="selected.groupName"> · Grupo {{ selected.groupName }}</template></span>
-            <span v-if="selected.stadium" class="bv">{{ selected.stadium.name }} · {{ selected.stadium.city }}</span>
-            <span class="bstats">
-              {{ formatKickoff(selected.kickoffAt, tz) }}
-              <template v-if="selected.matchNumber"> · Jogo {{ selected.matchNumber }}</template>
-              · {{ participants }} palpite(s)
-              <template v-if="leader"> · líder: <b>{{ leader.name }}</b> ({{ leader.points }} pts)</template>
-            </span>
+        <!-- 2) Informações -->
+        <div class="card infocard">
+          <div class="ic-head">
+            <span v-if="selected.tournament" class="ic-tour">{{ selected.tournament.name }}</span>
+            <span class="ic-phase">{{ selected.phaseLabel }}<template v-if="selected.groupName"> · Grupo {{ selected.groupName }}</template></span>
           </div>
+          <div class="ic-rows">
+            <div class="ic-row"><span class="ic-k">Data</span><span class="ic-v">{{ formatKickoff(selected.kickoffAt, tz) }}<template v-if="selected.matchNumber"> · Jogo {{ selected.matchNumber }}</template></span></div>
+            <div v-if="selected.stadium" class="ic-row"><span class="ic-k">Estádio</span><span class="ic-v">{{ selected.stadium.name }} · {{ selected.stadium.city }}</span></div>
+            <div class="ic-row"><span class="ic-k">Palpites</span><span class="ic-v">{{ participants }}<template v-if="leader"> · líder <b>{{ leader.name }}</b> ({{ leader.points }} pts)</template></span></div>
+          </div>
+        </div>
+
+        <!-- 3) Placar -->
+        <div class="card scoreboard">
           <div class="sides">
             <div class="bside">
               <TeamBadge :team="selected.homeTeam" :size="58" />
@@ -361,6 +364,15 @@ onMounted(async () => {
 .hint { padding: 10px 6px; font-size: 12px; line-height: 1.5; }
 .board { display: flex; flex-direction: column; gap: 14px; }
 .scoreboard { padding: clamp(16px, 4vw, 28px); border-color: rgba(232, 54, 43, 0.4); background: linear-gradient(180deg, rgba(232, 54, 43, 0.1), transparent), var(--bg-surface); }
+.infocard { padding: 16px 18px; }
+.ic-head { display: flex; flex-direction: column; gap: 3px; margin-bottom: 12px; }
+.ic-tour { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
+.ic-phase { font-size: 13px; font-weight: 800; }
+.ic-rows { display: flex; flex-direction: column; gap: 7px; }
+.ic-row { display: grid; grid-template-columns: 72px 1fr; gap: 10px; align-items: baseline; }
+.ic-k { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.ic-v { font-size: 12.5px; font-weight: 600; color: var(--text); min-width: 0; }
+.ic-v b { font-weight: 800; }
 .bmeta { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 18px; text-align: center; }
 .bt { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold); }
 .bv { font-size: 12px; font-weight: 600; color: var(--muted); }
