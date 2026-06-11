@@ -143,7 +143,7 @@ onMounted(async () => {
         <div v-for="m in data?.data ?? []" :key="m.id" class="row">
           <span class="mt">
             <TeamBadge :team="m.homeTeam" :placeholder="m.homeSourceLabel" :size="22" />
-            <span class="vs">{{ teamAbbr(m.homeTeam, m.homeSourceLabel) }} × {{ teamAbbr(m.awayTeam, m.awaySourceLabel) }}</span>
+            <span class="vs">{{ teamAbbr(m.homeTeam, m.homeSourceLabel) }} <b v-if="m.homeScore != null" class="scr">{{ m.homeScore }}-{{ m.awayScore }}</b><template v-else> × </template> {{ teamAbbr(m.awayTeam, m.awaySourceLabel) }}</span>
             <TeamBadge :team="m.awayTeam" :placeholder="m.awaySourceLabel" :size="22" />
           </span>
           <span class="dt">{{ m.phaseLabel }}<template v-if="m.groupName"> {{ m.groupName }}</template> · {{ formatKickoff(m.kickoffAt) }}</span>
