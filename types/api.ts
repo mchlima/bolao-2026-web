@@ -72,7 +72,7 @@ export interface Match {
   groupName: string | null;
   matchNumber: number | null;
   predictionsOpen: boolean | null; // manual override; null = automatic rule
-  autoManaged: boolean; // false = admin took over; ESPN robot skips the match
+  autoManaged: boolean; // true = ESPN robot drives score/status; false = admin took over
 }
 
 export interface ScoreResult {

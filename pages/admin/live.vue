@@ -131,10 +131,13 @@ function setPredictions(open: boolean | null) {
   else patch({ predictionsOpen: open }, open ? 'Palpites abertos' : 'Palpites fechados', open ? 'success' : 'info');
 }
 
+// Score source: when automático, the ESPN robot drives score/status and the
+// +/- steppers are hidden; "assumir manual" lets the admin take over.
 function setAuto(on: boolean) {
   patch(
     { autoManaged: on },
-    on ? 'Placar no automático (robô ESPN)' : 'Placar manual — o robô não vai mexer nesta partida',
+    on ? 'Placar automático (robô ESPN)' : 'Você assumiu o placar manual',
+    on ? 'info' : 'success',
   );
 }
 
@@ -233,12 +236,19 @@ onMounted(async () => {
               <template v-if="leader"> · líder: <b>{{ leader.name }}</b> ({{ leader.points }} pts)</template>
             </span>
           </div>
+          <div class="autorow">
+            <span class="auto-state" :class="selected.autoManaged ? 'on' : 'off'">
+              <span class="auto-dot" />{{ selected.autoManaged ? 'Placar automático · ESPN' : 'Placar manual' }}
+            </span>
+            <button v-if="selected.autoManaged" class="auto-btn" @click="setAuto(false)">Assumir manual</button>
+            <button v-else class="auto-btn on" @click="setAuto(true)">Voltar ao automático</button>
+          </div>
           <div class="sides">
             <div class="bside">
               <TeamBadge :team="selected.homeTeam" :size="58" />
               <span class="bn">{{ selected.homeTeam?.name }}</span>
               <div class="huge font-numeric">{{ selected.homeScore ?? 0 }}</div>
-              <div class="steppers">
+              <div v-if="!selected.autoManaged" class="steppers">
                 <button class="step minus" @click="bump('home', -1)">−</button>
                 <button class="step plus" @click="bump('home', 1)">+</button>
               </div>
@@ -247,21 +257,12 @@ onMounted(async () => {
               <TeamBadge :team="selected.awayTeam" :size="58" />
               <span class="bn">{{ selected.awayTeam?.name }}</span>
               <div class="huge font-numeric">{{ selected.awayScore ?? 0 }}</div>
-              <div class="steppers">
+              <div v-if="!selected.autoManaged" class="steppers">
                 <button class="step minus" @click="bump('away', -1)">−</button>
                 <button class="step plus" @click="bump('away', 1)">+</button>
               </div>
             </div>
           </div>
-          <div class="autorow">
-            <span class="auto-lbl">🤖 Placar via ESPN</span>
-            <div class="seg auto-seg">
-              <button class="seg-b" :class="{ on: selected.autoManaged }" @click="setAuto(true)">Automático</button>
-              <button class="seg-b" :class="{ on: !selected.autoManaged }" @click="setAuto(false)">Manual</button>
-            </div>
-          </div>
-          <p v-if="!selected.autoManaged" class="auto-hint muted">Você assumiu o placar — o robô não vai tocar nesta partida. Volte para Automático para devolver o controle a ele.</p>
-
           <div class="statusbtns">
             <button v-if="selected.status !== 'LIVE'" class="sb live" @click="patch({ status: 'LIVE' }, 'Partida ao vivo', 'success')">● Ao vivo</button>
             <button v-else class="sb live on" @click="patch({ status: 'SCHEDULED' }, 'Partida voltou para agendada', 'info')">↩ Tirar do ao vivo</button>
@@ -341,6 +342,13 @@ onMounted(async () => {
 .bv { font-size: 12px; font-weight: 600; color: var(--muted); }
 .bstats { font-size: 11.5px; font-weight: 600; color: var(--muted); }
 .bstats b { color: var(--text); }
+.autorow { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.auto-state { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.auto-state.on { color: var(--emerald); }
+.auto-state.off { color: var(--gold); }
+.auto-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.auto-btn { padding: 7px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 12px; cursor: pointer; }
+.auto-btn.on { border-color: color-mix(in srgb, var(--emerald) 55%, var(--border)); color: var(--emerald); }
 .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 520px; margin: 0 auto; }
 .bside { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .bn { font-size: 13px; font-weight: 700; }
@@ -348,12 +356,7 @@ onMounted(async () => {
 .steppers { display: flex; gap: 10px; }
 .step { width: 52px; height: 52px; border-radius: 15px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-size: 26px; line-height: 1; cursor: pointer; }
 .step.plus { border: none; background: var(--emerald); color: #fff; box-shadow: 0 8px 20px -8px var(--emerald); }
-.autorow { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 520px; margin: 20px auto 0; }
-.auto-lbl { font-size: 12px; font-weight: 700; color: var(--muted); }
-.auto-seg { flex: 0 0 auto; }
-.auto-seg .seg-b { padding: 7px 13px; font-size: 12px; }
-.auto-hint { max-width: 520px; margin: 8px auto 0; font-size: 11.5px; line-height: 1.45; }
-.statusbtns { display: flex; flex-wrap: wrap; gap: 10px; max-width: 520px; margin: 14px auto 0; }
+.statusbtns { display: flex; flex-wrap: wrap; gap: 10px; max-width: 520px; margin: 22px auto 0; }
 .sb { flex: 1; min-width: 120px; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13.5px; cursor: pointer; }
 .sb.live.on { background: var(--scarlet); color: #fff; border-color: transparent; }
 .sb.on { background: var(--grad-pitch); color: #fff; border-color: transparent; }
