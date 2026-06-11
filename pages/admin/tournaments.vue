@@ -14,6 +14,11 @@ const STATUS_LABEL: Record<string, string> = {
   FINISHED: 'Encerrado',
 };
 
+function badge(name: string): string {
+  const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
+  return ((w[0]?.[0] ?? '') + (w[1]?.[0] ?? '')).toUpperCase();
+}
+
 const modalOpen = ref(false);
 const editing = ref<Tournament | null>(null);
 const form = reactive({
@@ -104,11 +109,18 @@ onMounted(() => {
       <SkeletonList v-if="!data" variant="row" :count="8" />
       <div v-else class="rows">
         <div class="rhead">
-          <span>Torneio</span><span>Período</span><span>Status</span><span class="ar">Ações</span>
+          <span>Torneio</span><span>Período</span><span>Partidas</span><span>Status</span><span class="ar">Ações</span>
         </div>
         <div v-for="t in data?.data ?? []" :key="t.id" class="row">
-          <span class="nm">{{ t.name }}</span>
+          <span class="tn">
+            <span class="logo">
+              <img v-if="t.logoUrl" :src="t.logoUrl" :alt="t.name" />
+              <span v-else class="logo-fb font-display">{{ badge(t.name) }}</span>
+            </span>
+            <span class="nm">{{ t.name }}</span>
+          </span>
           <span class="dt">{{ t.startDate ? formatDate(t.startDate) : '—' }}<template v-if="t.endDate"> → {{ formatDate(t.endDate) }}</template></span>
+          <span class="mc"><b class="font-numeric">{{ t.matchCount ?? 0 }}</b> partida(s)</span>
           <span><span class="st">{{ STATUS_LABEL[t.status] ?? t.status }}</span></span>
           <span class="acts">
             <button class="ic" title="Editar" @click="openEdit(t)">✎</button>
@@ -172,7 +184,7 @@ onMounted(() => {
 .rhead,
 .row {
   display: grid;
-  grid-template-columns: 1fr 220px 130px 90px;
+  grid-template-columns: minmax(0, 1fr) 200px 130px 120px 84px;
   gap: 10px;
   padding: 11px 14px;
   align-items: center;
@@ -191,14 +203,54 @@ onMounted(() => {
 .ar {
   text-align: right;
 }
+.tn {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+.logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+}
+.logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.logo-fb {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--muted);
+}
 .nm {
   font-weight: 700;
   font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .dt {
   font-size: 12.5px;
   color: var(--muted);
   font-weight: 600;
+}
+.mc {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.mc b {
+  color: var(--text);
+  font-size: 14px;
+  margin-right: 3px;
 }
 .st {
   font-size: 10px;
@@ -252,16 +304,20 @@ onMounted(() => {
   }
   .row {
     grid-template-columns: 1fr auto;
-    grid-template-areas: 'nm acts' 'dt st';
+    grid-template-areas: 'tn acts' 'dt st';
   }
-  .nm {
-    grid-area: nm;
+  .tn {
+    grid-area: tn;
   }
   .dt {
     grid-area: dt;
   }
-  .row > span:nth-child(3) {
+  .mc {
+    display: none;
+  }
+  .row > span:nth-child(4) {
     grid-area: st;
+    justify-self: start;
   }
   .acts {
     grid-area: acts;

@@ -53,6 +53,7 @@ export interface Tournament {
   startDate: string | null;
   endDate: string | null;
   status: TournamentStatus;
+  matchCount?: number; // present on list responses (GET /tournaments)
 }
 
 export interface Match {

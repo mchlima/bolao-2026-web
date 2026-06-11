@@ -2,21 +2,23 @@
 const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
+const ui = useUiStore();
 
 const email = ref('');
 const password = ref('');
-const error = ref('');
 const loading = ref(false);
 
 async function submit() {
   loading.value = true;
-  error.value = '';
   try {
     await auth.login(email.value, password.value);
+    ui.toast('success', 'Bem-vindo de volta!');
     router.push((route.query.redirect as string) || '/');
   } catch (e) {
-    error.value =
-      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível entrar.';
+    ui.toast(
+      'error',
+      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível entrar.',
+    );
   } finally {
     loading.value = false;
   }
@@ -44,7 +46,6 @@ async function submit() {
           <input v-model="email" type="email" class="input" placeholder="voce@email.com" autocomplete="email" required />
           <label>Senha</label>
           <input v-model="password" type="password" class="input" placeholder="••••••••" autocomplete="current-password" required />
-          <p v-if="error" class="err">{{ error }}</p>
           <button class="btn btn-primary btn-block submit" :disabled="loading" type="submit">
             {{ loading ? 'Entrando…' : 'Entrar' }}
           </button>
@@ -132,11 +133,5 @@ label {
   margin-top: 1rem;
   padding: 14px;
   font-size: 16px;
-}
-.err {
-  color: var(--scarlet);
-  font-size: 12px;
-  font-weight: 600;
-  margin: 0.5rem 0 0;
 }
 </style>

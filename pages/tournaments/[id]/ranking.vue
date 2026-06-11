@@ -46,7 +46,7 @@ function rowEntry(e: RankingEntry) {
 
 <template>
   <div class="page">
-    <p v-if="pending" class="muted load">Carregando…</p>
+    <SkeletonList v-if="pending" variant="row" :count="8" />
     <p v-else-if="error || !data" class="muted load">Ranking indisponível.</p>
     <template v-else>
       <NuxtLink :to="`/tournaments/${id}`" class="back">← Voltar às partidas</NuxtLink>

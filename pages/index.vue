@@ -18,7 +18,7 @@ function tBadge(name: string): string {
   return (words[0]?.[0] ?? '') + (words[1]?.[0] ?? '');
 }
 
-const { data } = await useAsyncData('home', async () => {
+const { data, pending } = await useAsyncData('home', async () => {
   const api = useApi();
   const list = await api<Paginated<Tournament>>('/tournaments');
   const tournaments = list.data;
@@ -70,7 +70,8 @@ const { data } = await useAsyncData('home', async () => {
     <div class="sec-head">
       <h2 class="font-display">Em andamento</h2>
     </div>
-    <div class="grid">
+    <SkeletonList v-if="pending && !data" variant="card" :count="3" />
+    <div v-else class="grid">
       <NuxtLink
         v-for="(t, i) in data?.tournaments ?? []"
         :key="t.id"

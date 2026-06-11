@@ -31,7 +31,7 @@ const TIER_COLOR: Record<string, string> = {
       </div>
     </div>
 
-    <p v-if="pending" class="muted">Carregando…</p>
+    <SkeletonList v-if="pending" variant="row" :count="6" />
     <p v-else-if="!predictions.length" class="muted">Você ainda não fez palpites.</p>
     <div v-else class="list">
       <div v-for="p in predictions" :key="p.id" class="card row">

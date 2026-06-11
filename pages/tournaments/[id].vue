@@ -63,7 +63,7 @@ function badge(name: string): string {
 
 <template>
   <div class="page">
-    <p v-if="pending" class="muted load">Carregando…</p>
+    <SkeletonList v-if="pending" variant="match" :count="6" />
     <p v-else-if="error || !data" class="muted load">Torneio não encontrado.</p>
     <template v-else>
       <div class="thead">

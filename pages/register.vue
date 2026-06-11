@@ -1,12 +1,12 @@
 <script setup lang="ts">
 const auth = useAuthStore();
 const router = useRouter();
+const ui = useUiStore();
 
 const name = ref('');
 const email = ref('');
 const password = ref('');
 const password2 = ref('');
-const error = ref('');
 const loading = ref(false);
 
 const matchState = computed(() => {
@@ -16,17 +16,19 @@ const matchState = computed(() => {
 
 async function submit() {
   if (matchState.value === false) {
-    error.value = 'As senhas não coincidem.';
+    ui.toast('error', 'As senhas não coincidem.');
     return;
   }
   loading.value = true;
-  error.value = '';
   try {
     await auth.register(name.value, email.value, password.value);
+    ui.toast('success', 'Conta criada! Boa sorte nos palpites.');
     router.push('/');
   } catch (e) {
-    error.value =
-      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível cadastrar.';
+    ui.toast(
+      'error',
+      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível cadastrar.',
+    );
   } finally {
     loading.value = false;
   }
@@ -60,7 +62,6 @@ async function submit() {
           <input v-model="password2" type="password" class="input" placeholder="••••••••" autocomplete="new-password" required />
           <p v-if="matchState === false" class="err">As senhas não coincidem</p>
           <p v-else-if="matchState === true" class="ok">Senhas conferem ✓</p>
-          <p v-if="error" class="err">{{ error }}</p>
           <button class="btn btn-primary btn-block submit" :disabled="loading" type="submit">
             {{ loading ? 'Cadastrando…' : 'Criar conta' }}
           </button>

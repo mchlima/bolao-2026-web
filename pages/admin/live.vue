@@ -19,10 +19,42 @@ const tz = useTz();
 const leader = ref<{ name: string; points: number } | null>(null);
 const participants = ref(0);
 const menuSearch = ref('');
+const dateFilter = ref(''); // yyyy-mm-dd in account tz; '' = all dates
+
+function localDateKey(iso: string) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz.value, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date(iso));
+}
+function timeOnly(iso: string) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: tz.value, hour: '2-digit', minute: '2-digit',
+  }).format(new Date(iso));
+}
+function dayLabel(iso: string) {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: tz.value, weekday: 'short', day: '2-digit', month: 'short',
+  }).format(new Date(iso));
+}
+
+// Distinct match dates present in the menu, for the dedicated date picker.
+const dates = computed(() => {
+  const map = new Map<string, string>();
+  for (const m of menu.value) {
+    const key = localDateKey(m.kickoffAt);
+    if (!map.has(key)) map.set(key, dayLabel(m.kickoffAt));
+  }
+  return [...map.entries()]
+    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+    .map(([key, label]) => ({ key, label }));
+});
+
 const filteredMenu = computed(() => {
+  let list = menu.value;
+  if (dateFilter.value) list = list.filter((m) => localDateKey(m.kickoffAt) === dateFilter.value);
   const q = menuSearch.value.trim().toLowerCase();
-  if (!q) return menu.value;
-  return menu.value.filter((m) =>
+  if (!q) return list;
+  return list.filter((m) =>
     [
       m.homeTeam?.name, m.homeTeam?.shortName, m.awayTeam?.name, m.awayTeam?.shortName,
       m.phaseLabel, m.groupName, m.stadium?.name, m.stadium?.city,
@@ -40,6 +72,10 @@ async function loadMenu() {
   if (tournamentId.value) q.set('tournamentId', tournamentId.value);
   const res = await useApi()<Paginated<Match>>(`/matches?${q.toString()}`);
   menu.value = res.data.filter((m) => m.homeTeam && m.awayTeam);
+  // Drop a stale date selection that no longer matches the reloaded list.
+  if (dateFilter.value && !menu.value.some((m) => localDateKey(m.kickoffAt) === dateFilter.value)) {
+    dateFilter.value = '';
+  }
 }
 
 async function select(m: Match) {
@@ -121,24 +157,43 @@ onMounted(async () => {
           </div>
           <input v-model="menuSearch" class="input sm" placeholder="Buscar time, fase, data…" />
         </div>
+        <div v-if="dates.length > 1" class="dates">
+          <button class="date-b" :class="{ on: dateFilter === '' }" @click="dateFilter = ''">Todas</button>
+          <button
+            v-for="d in dates"
+            :key="d.key"
+            class="date-b"
+            :class="{ on: dateFilter === d.key }"
+            @click="dateFilter = d.key"
+          >{{ d.label }}</button>
+        </div>
         <div class="menu-list">
           <button
             v-for="m in filteredMenu"
             :key="m.id"
             class="mitem"
             :class="{ active: selected?.id === m.id }"
-            :title="`${m.homeTeam?.name} × ${m.awayTeam?.name} · ${m.phaseLabel}${m.groupName ? ' ' + m.groupName : ''} · ${formatKickoff(m.kickoffAt, tz)}${m.stadium ? ' · ' + m.stadium.name : ''}`"
             @click="select(m)"
           >
-            <span v-if="m.status === 'LIVE'" class="ld" />
-            <TeamBadge :team="m.homeTeam" :size="22" />
-            <span class="ab">{{ teamAbbr(m.homeTeam) }}</span>
-            <span class="sc font-numeric">{{ m.homeScore ?? 0 }} - {{ m.awayScore ?? 0 }}</span>
-            <span class="ab">{{ teamAbbr(m.awayTeam) }}</span>
-            <TeamBadge :team="m.awayTeam" :size="22" />
+            <div class="mi-meta">
+              <span v-if="m.status === 'LIVE'" class="ld" />
+              <span class="mi-time font-numeric">{{ timeOnly(m.kickoffAt) }}</span>
+              <span class="mi-phase">{{ m.phaseLabel }}<template v-if="m.groupName"> · {{ m.groupName }}</template></span>
+              <span class="mi-day">{{ dayLabel(m.kickoffAt) }}</span>
+            </div>
+            <div class="mi-teams">
+              <TeamBadge :team="m.homeTeam" :size="22" />
+              <span class="mi-name r">{{ m.homeTeam?.name }}</span>
+              <span class="sc font-numeric">{{ m.homeScore ?? 0 }}-{{ m.awayScore ?? 0 }}</span>
+              <span class="mi-name l">{{ m.awayTeam?.name }}</span>
+              <TeamBadge :team="m.awayTeam" :size="22" />
+            </div>
           </button>
           <p v-if="!menu.length" class="muted hint">
             Nenhuma partida {{ statusPick === 'LIVE' ? 'ao vivo' : 'agendada' }}. Selecione uma agendada e clique em "Ao vivo" para iniciar.
+          </p>
+          <p v-else-if="!filteredMenu.length" class="muted hint">
+            Nenhuma partida nesta data ou busca.
           </p>
         </div>
       </div>
@@ -212,12 +267,22 @@ onMounted(async () => {
 .seg { display: flex; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
 .seg-b { flex: 1; padding: 8px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 700; font-size: 12.5px; cursor: pointer; }
 .seg-b.on { background: var(--bg-surface); color: var(--text); box-shadow: var(--shadow); }
+.dates { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; scrollbar-width: thin; }
+.date-b { flex: 0 0 auto; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: 11.5px; cursor: pointer; white-space: nowrap; text-transform: capitalize; }
+.date-b.on { background: var(--scarlet); color: #fff; border-color: transparent; }
 .menu-list { display: flex; flex-direction: column; gap: 7px; max-height: 70vh; overflow: auto; }
-.mitem { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); cursor: pointer; }
+.mitem { display: flex; flex-direction: column; gap: 7px; padding: 10px 11px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); cursor: pointer; text-align: left; }
 .mitem.active { border: 1.5px solid var(--scarlet); background: color-mix(in srgb, var(--scarlet) 14%, transparent); box-shadow: inset 4px 0 0 0 var(--scarlet); }
+.mi-meta { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.mi-time { font-size: 12.5px; font-weight: 700; color: var(--text); flex: 0 0 auto; }
+.mi-phase { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mi-day { margin-left: auto; font-size: 10.5px; font-weight: 600; color: var(--muted); white-space: nowrap; text-transform: capitalize; flex: 0 0 auto; }
+.mi-teams { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr) auto; align-items: center; gap: 7px; }
+.mi-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mi-name.r { text-align: right; }
+.mi-name.l { text-align: left; }
 .ld { width: 7px; height: 7px; border-radius: 50%; background: var(--scarlet); animation: liveDot 1.2s infinite; flex: 0 0 auto; }
-.ab { font-size: 12px; font-weight: 700; }
-.sc { font-size: 18px; flex: 1; text-align: center; }
+.sc { font-size: 16px; text-align: center; flex: 0 0 auto; }
 .hint { padding: 10px 6px; font-size: 12px; line-height: 1.5; }
 .board { display: flex; flex-direction: column; gap: 14px; }
 .scoreboard { padding: clamp(16px, 4vw, 28px); border-color: rgba(232, 54, 43, 0.4); background: linear-gradient(180deg, rgba(232, 54, 43, 0.1), transparent), var(--bg-surface); }

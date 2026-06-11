@@ -22,6 +22,9 @@ function color(id: string) {
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360;
   return `hsl(${h} 52% 42%)`;
 }
+function tzLabel(tz: string) {
+  return (tz?.split('/').pop() ?? tz)?.replace(/_/g, ' ') || '—';
+}
 function err(e: unknown) {
   ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro');
 }
@@ -81,7 +84,7 @@ onMounted(load);
 
       <SkeletonList v-if="!data" variant="row" :count="8" />
       <div v-else class="rows">
-        <div class="rhead"><span>Usuário</span><span>Papel</span><span>Acesso</span><span class="ar">Ações</span></div>
+        <div class="rhead"><span>Usuário</span><span>Papel</span><span>Acesso</span><span>Membro desde</span><span class="ar">Ações</span></div>
         <div v-for="u in data?.data ?? []" :key="u.id" class="row">
           <span class="who">
             <span class="av" :style="{ background: color(u.id), opacity: u.isActive ? 1 : 0.5 }">{{ initials(u.name) }}</span>
@@ -89,6 +92,7 @@ onMounted(load);
           </span>
           <span><span v-if="u.role === 'ADMIN'" class="adm">Admin</span><span v-else class="comum">Comum</span></span>
           <span class="acc" :style="{ color: u.isActive ? 'var(--emerald)' : 'var(--scarlet)' }"><span class="d" :style="{ background: u.isActive ? 'var(--emerald)' : 'var(--scarlet)' }" />{{ u.isActive ? 'Ativo' : 'Inativo' }}</span>
+          <span class="since">{{ formatDate(u.createdAt) }}<span class="tz">🕘 {{ tzLabel(u.timezone) }}</span></span>
           <span class="acts">
             <button class="ic" :style="{ color: u.role === 'ADMIN' ? 'var(--gold)' : 'var(--muted)' }" :title="u.role === 'ADMIN' ? 'Remover admin' : 'Promover a admin'" @click="toggleRole(u)">★</button>
             <button class="ic" style="color: var(--azure)" title="Gerar nova senha" @click="resetPassword(u)">⟳</button>
@@ -120,7 +124,7 @@ onMounted(load);
 .chip { padding: 8px 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: 12.5px; cursor: pointer; }
 .chip.on { background: var(--gold); color: #0a0e14; border-color: transparent; }
 .rows { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }
-.rhead, .row { display: grid; grid-template-columns: 1fr 110px 120px 130px; gap: 10px; padding: 10px 14px; align-items: center; }
+.rhead, .row { display: grid; grid-template-columns: minmax(0, 1fr) 96px 104px 150px 120px; gap: 10px; padding: 10px 14px; align-items: center; }
 .rhead { background: var(--bg-base); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
 .row { border-top: 1px solid var(--border); }
 .ar { text-align: right; }
@@ -134,10 +138,12 @@ onMounted(load);
 .comum { font-size: 12px; color: var(--muted); font-weight: 600; }
 .acc { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; }
 .d { width: 7px; height: 7px; border-radius: 50%; }
+.since { display: flex; flex-direction: column; gap: 2px; font-size: 12px; font-weight: 600; color: var(--text); }
+.tz { font-size: 10.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acts { display: flex; gap: 5px; justify-content: flex-end; }
 .ic { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-base); cursor: pointer; font-size: 14px; }
 .empty { padding: 18px; text-align: center; }
 .tp-msg { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
 .tp-box { font-size: 28px; letter-spacing: 0.1em; text-align: center; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
-@media (max-width: 720px) { .rhead { display: none; } .row { grid-template-columns: 1fr auto; } .row > span:nth-child(2), .row > span:nth-child(3) { display: none; } }
+@media (max-width: 720px) { .rhead { display: none; } .row { grid-template-columns: 1fr auto; } .row > span:nth-child(2), .row > span:nth-child(3), .since { display: none; } }
 </style>

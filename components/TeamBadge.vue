@@ -9,27 +9,50 @@ const props = withDefaults(
 const flag = computed(() => teamFlag(props.team));
 const abbr = computed(() => teamAbbr(props.team, props.placeholder));
 const color = computed(() => teamColor(props.team));
+
+// Flags render as a standard rectangle (3:2) with lightly rounded corners.
+// Clubs / unknown opponents keep the round, colored abbr emblem.
+const box = computed(() => {
+  if (flag.value) {
+    const h = Math.round(props.size * 0.68);
+    return {
+      width: `${props.size}px`,
+      height: `${h}px`,
+      borderRadius: `${Math.max(3, Math.round(props.size * 0.1))}px`,
+    };
+  }
+  return {
+    width: `${props.size}px`,
+    height: `${props.size}px`,
+    borderRadius: '50%',
+    background: color.value,
+  };
+});
 </script>
 
 <template>
-  <div
-    class="emblem"
-    :style="{ width: `${size}px`, height: `${size}px`, background: color }"
-  >
-    <span class="abbr" :style="{ fontSize: `${Math.round(size * 0.26)}px` }">{{ abbr }}</span>
-    <span v-if="flag" class="flag" v-html="flag" />
+  <div class="emblem" :class="{ flagged: !!flag }" :style="box">
+    <span
+      v-if="!flag"
+      class="abbr"
+      :style="{ fontSize: `${Math.round(size * 0.26)}px` }"
+      >{{ abbr }}</span
+    >
+    <span v-else class="flag" v-html="flag" />
   </div>
 </template>
 
 <style scoped>
 .emblem {
   position: relative;
-  border-radius: 50%;
   overflow: hidden;
   display: grid;
   place-items: center;
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
   flex: 0 0 auto;
+}
+.emblem:not(.flagged) {
+  border-width: 2px;
 }
 .abbr {
   font-family: 'Oswald', sans-serif;

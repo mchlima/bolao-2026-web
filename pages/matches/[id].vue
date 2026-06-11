@@ -77,7 +77,7 @@ function guess(e: { prediction?: { home: number; away: number } }): string {
 
 <template>
   <div class="page">
-    <p v-if="pending" class="muted load">Carregando…</p>
+    <SkeletonList v-if="pending" variant="match" :count="1" />
     <p v-else-if="error || !match" class="muted load">Partida não encontrada.</p>
     <template v-else>
       <NuxtLink :to="`/tournaments/${match.tournamentId}`" class="back">← Voltar às partidas</NuxtLink>
