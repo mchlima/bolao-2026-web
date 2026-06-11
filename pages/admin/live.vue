@@ -18,6 +18,22 @@ const engagement = ref<Engagement | null>(null);
 const tz = useTz();
 const leader = ref<{ name: string; points: number } | null>(null);
 const participants = ref(0);
+const menuSearch = ref('');
+const filteredMenu = computed(() => {
+  const q = menuSearch.value.trim().toLowerCase();
+  if (!q) return menu.value;
+  return menu.value.filter((m) =>
+    [
+      m.homeTeam?.name, m.homeTeam?.shortName, m.awayTeam?.name, m.awayTeam?.shortName,
+      m.phaseLabel, m.groupName, m.stadium?.name, m.stadium?.city,
+      formatKickoff(m.kickoffAt, tz.value),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .includes(q),
+  );
+});
 
 async function loadMenu() {
   const q = new URLSearchParams({ pageSize: '100', status: statusPick.value });
@@ -103,13 +119,15 @@ onMounted(async () => {
             <button class="seg-b" :class="{ on: statusPick === 'LIVE' }" @click="statusPick = 'LIVE'">Ao vivo</button>
             <button class="seg-b" :class="{ on: statusPick === 'SCHEDULED' }" @click="statusPick = 'SCHEDULED'">Agendadas</button>
           </div>
+          <input v-model="menuSearch" class="input sm" placeholder="Buscar time, fase, data…" />
         </div>
         <div class="menu-list">
           <button
-            v-for="m in menu"
+            v-for="m in filteredMenu"
             :key="m.id"
             class="mitem"
             :class="{ active: selected?.id === m.id }"
+            :title="`${m.homeTeam?.name} × ${m.awayTeam?.name} · ${m.phaseLabel}${m.groupName ? ' ' + m.groupName : ''} · ${formatKickoff(m.kickoffAt, tz)}${m.stadium ? ' · ' + m.stadium.name : ''}`"
             @click="select(m)"
           >
             <span v-if="m.status === 'LIVE'" class="ld" />
