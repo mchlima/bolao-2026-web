@@ -116,20 +116,6 @@ async function patch(body: Record<string, unknown>, msg: string, type: 'success'
   }
 }
 
-// Revert a match out of LIVE/FINISHED back to SCHEDULED. Predictions actually
-// reopen only if we're still before kickoff (backend rule); message reflects that.
-function reopen() {
-  if (!selected.value) return;
-  const open = new Date(selected.value.kickoffAt).getTime() > Date.now();
-  patch(
-    { status: 'SCHEDULED' },
-    open
-      ? 'Partida reaberta — palpites abertos novamente'
-      : 'Partida voltou para agendada (após o horário, palpites seguem fechados)',
-    open ? 'success' : 'info',
-  );
-}
-
 // Prediction window for the selected match (mirrors backend acceptsPredictions).
 const predEffectiveOpen = computed(() => {
   const m = selected.value;
@@ -261,8 +247,8 @@ onMounted(async () => {
             </div>
           </div>
           <div class="statusbtns">
-            <button class="sb live" :class="{ on: selected.status === 'LIVE' }" @click="patch({ status: 'LIVE' }, 'Partida ao vivo', 'success')">● Ao vivo</button>
-            <button v-if="selected.status !== 'SCHEDULED'" class="sb reopen" @click="reopen">↩ Reabrir</button>
+            <button v-if="selected.status !== 'LIVE'" class="sb live" @click="patch({ status: 'LIVE' }, 'Partida ao vivo', 'success')">● Ao vivo</button>
+            <button v-else class="sb live on" @click="patch({ status: 'SCHEDULED' }, 'Partida voltou para agendada', 'info')">↩ Tirar do ao vivo</button>
             <button class="sb" :class="{ on: selected.status === 'FINISHED' }" @click="patch({ status: 'FINISHED' }, 'Partida encerrada', 'success')">Encerrar</button>
             <button class="sb danger" :class="{ on: selected.status === 'CANCELLED' }" @click="patch({ status: 'CANCELLED' }, 'Partida cancelada')">Cancelar</button>
           </div>
@@ -348,7 +334,6 @@ onMounted(async () => {
 .step.plus { border: none; background: var(--emerald); color: #fff; box-shadow: 0 8px 20px -8px var(--emerald); }
 .statusbtns { display: flex; flex-wrap: wrap; gap: 10px; max-width: 520px; margin: 22px auto 0; }
 .sb { flex: 1; min-width: 120px; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13.5px; cursor: pointer; }
-.sb.reopen { border-color: color-mix(in srgb, var(--azure) 55%, var(--border)); color: var(--azure); }
 .sb.live.on { background: var(--scarlet); color: #fff; border-color: transparent; }
 .sb.on { background: var(--grad-pitch); color: #fff; border-color: transparent; }
 .sb.danger.on { background: var(--muted); }
