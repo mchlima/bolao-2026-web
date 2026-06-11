@@ -26,7 +26,8 @@ const tz = useTz();
 const leader = ref<{ name: string; points: number } | null>(null);
 const participants = ref(0);
 const menuSearch = ref('');
-const dateFilter = ref(''); // yyyy-mm-dd in account tz; '' = all dates
+const startDate = ref(''); // yyyy-mm-dd; '' = open-ended
+const endDate = ref('');
 const settingsOpen = ref(false); // collapsible "Configurações" area
 
 const STATUS_LABEL: Record<string, string> = {
@@ -52,21 +53,11 @@ function dayLabel(iso: string) {
   }).format(new Date(iso));
 }
 
-// Distinct match dates present in the menu, for the dedicated date picker.
-const dates = computed(() => {
-  const map = new Map<string, string>();
-  for (const m of menu.value) {
-    const key = localDateKey(m.kickoffAt);
-    if (!map.has(key)) map.set(key, dayLabel(m.kickoffAt));
-  }
-  return [...map.entries()]
-    .sort((a, b) => (a[0] < b[0] ? -1 : 1))
-    .map(([key, label]) => ({ key, label }));
-});
-
 const filteredMenu = computed(() => {
   let list = menu.value;
-  if (dateFilter.value) list = list.filter((m) => localDateKey(m.kickoffAt) === dateFilter.value);
+  // Range filter on the match's local date (yyyy-mm-dd strings compare safely).
+  if (startDate.value) list = list.filter((m) => localDateKey(m.kickoffAt) >= startDate.value);
+  if (endDate.value) list = list.filter((m) => localDateKey(m.kickoffAt) <= endDate.value);
   const q = menuSearch.value.trim().toLowerCase();
   if (!q) return list;
   return list.filter((m) =>
@@ -87,10 +78,6 @@ async function loadMenu() {
   if (tournamentId.value) q.set('tournamentId', tournamentId.value);
   const res = await useApi()<Paginated<Match>>(`/matches?${q.toString()}`);
   menu.value = res.data.filter((m) => m.homeTeam && m.awayTeam);
-  // Drop a stale date selection that no longer matches the reloaded list.
-  if (dateFilter.value && !menu.value.some((m) => localDateKey(m.kickoffAt) === dateFilter.value)) {
-    dateFilter.value = '';
-  }
 }
 
 async function select(m: Match) {
@@ -202,17 +189,12 @@ onMounted(async () => {
               @click="statusPick = t.v"
             ><span class="seg-ico" v-html="t.icon" /></button>
           </div>
-          <input v-model="menuSearch" class="input sm" placeholder="Buscar time, fase, data…" />
-        </div>
-        <div v-if="dates.length > 1" class="dates">
-          <button class="date-b" :class="{ on: dateFilter === '' }" @click="dateFilter = ''">Todas</button>
-          <button
-            v-for="d in dates"
-            :key="d.key"
-            class="date-b"
-            :class="{ on: dateFilter === d.key }"
-            @click="dateFilter = d.key"
-          >{{ d.label }}</button>
+          <input v-model="menuSearch" class="input sm" placeholder="Buscar time, fase…" />
+          <div class="drange">
+            <label class="dr-f"><span>De</span><input v-model="startDate" type="date" :max="endDate || undefined" class="input sm" /></label>
+            <label class="dr-f"><span>Até</span><input v-model="endDate" type="date" :min="startDate || undefined" class="input sm" /></label>
+            <button v-if="startDate || endDate" class="dr-clear" title="Limpar datas" @click="startDate = ''; endDate = ''">✕</button>
+          </div>
         </div>
         <div class="menu-list">
           <button
@@ -352,9 +334,11 @@ onMounted(async () => {
 .seg-ico { display: inline-flex; }
 .seg-ico :deep(svg) { display: block; }
 .seg-b.on { background: var(--bg-surface); color: var(--text); box-shadow: var(--shadow); }
-.dates { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; scrollbar-width: thin; }
-.date-b { flex: 0 0 auto; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: 11.5px; cursor: pointer; white-space: nowrap; text-transform: capitalize; }
-.date-b.on { background: var(--scarlet); color: #fff; border-color: transparent; }
+.drange { display: flex; align-items: flex-end; gap: 8px; }
+.dr-f { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.dr-f span { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding-left: 2px; }
+.dr-f .input.sm { width: 100%; }
+.dr-clear { flex: 0 0 auto; height: 34px; width: 32px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); cursor: pointer; font-size: 12px; }
 .menu-list { display: flex; flex-direction: column; gap: 7px; max-height: 70vh; overflow: auto; }
 .mitem { display: flex; flex-direction: column; gap: 7px; padding: 10px 11px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); cursor: pointer; text-align: left; }
 .mitem.active { border: 1.5px solid var(--scarlet); background: color-mix(in srgb, var(--scarlet) 14%, transparent); box-shadow: inset 4px 0 0 0 var(--scarlet); }
