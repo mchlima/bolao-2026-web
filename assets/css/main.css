@@ -1,0 +1,19 @@
+/* Estádio 26 — design tokens (placeholder). Extrair do protótipo Claude Design. */
+:root {
+  --color-bg: #ffffff;
+  --color-fg: #0a0a0a;
+  --color-muted: #6b7280;
+}
+
+.dark {
+  --color-bg: #0a0a0a;
+  --color-fg: #fafafa;
+  --color-muted: #9ca3af;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-fg);
+}

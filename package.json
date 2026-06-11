@@ -1,0 +1,25 @@
+{
+  "name": "bolao-2026-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev --port 3001",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "country-flag-icons": "^1.5.13",
+    "nuxt": "^3.14.0",
+    "vue": "^3.5.0",
+    "vue-router": "^4.4.0"
+  },
+  "devDependencies": {
+    "@nuxtjs/color-mode": "^3.5.2",
+    "@pinia/nuxt": "^0.7.0",
+    "pinia": "^2.2.0",
+    "vue-tsc": "^2.1.0"
+  }
+}
