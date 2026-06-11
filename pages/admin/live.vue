@@ -208,6 +208,7 @@ onMounted(async () => {
             :class="{ active: selected?.id === m.id }"
             @click="select(m)"
           >
+            <div v-if="m.tournament" class="mi-tour">{{ m.tournament.name }}</div>
             <div class="mi-meta">
               <span v-if="m.status === 'LIVE'" class="ld" />
               <span class="mi-time font-numeric">{{ timeOnly(m.kickoffAt) }}</span>
@@ -346,6 +347,7 @@ onMounted(async () => {
 .menu-list { display: flex; flex-direction: column; gap: 7px; max-height: 70vh; overflow: auto; }
 .mitem { display: flex; flex-direction: column; gap: 7px; padding: 10px 11px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); cursor: pointer; text-align: left; }
 .mitem.active { border: 1.5px solid var(--scarlet); background: color-mix(in srgb, var(--scarlet) 14%, transparent); box-shadow: inset 4px 0 0 0 var(--scarlet); }
+.mi-tour { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--azure); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mi-meta { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .mi-time { font-size: 12.5px; font-weight: 700; color: var(--text); flex: 0 0 auto; }
 .mi-phase { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

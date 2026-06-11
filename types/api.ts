@@ -59,6 +59,7 @@ export interface Tournament {
 export interface Match {
   id: string;
   tournamentId: string;
+  tournament?: { id: string; name: string; status: TournamentStatus } | null;
   homeTeam: Team | null;
   awayTeam: Team | null;
   homeSourceLabel: string | null;
