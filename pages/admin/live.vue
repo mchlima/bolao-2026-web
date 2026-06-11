@@ -26,8 +26,12 @@ const tz = useTz();
 const leader = ref<{ name: string; points: number } | null>(null);
 const participants = ref(0);
 const menuSearch = ref('');
-const startDate = ref(''); // yyyy-mm-dd; '' = open-ended
-const endDate = ref('');
+// Default the range to today (account tz); both bounds remain clearable.
+const todayKey = new Intl.DateTimeFormat('en-CA', {
+  timeZone: tz.value, year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(new Date());
+const startDate = ref(todayKey); // yyyy-mm-dd; '' = open-ended
+const endDate = ref(todayKey);
 const settingsOpen = ref(false); // collapsible "Configurações" area
 
 const STATUS_LABEL: Record<string, string> = {
