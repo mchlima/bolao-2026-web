@@ -25,7 +25,7 @@ export function formatKickoff(iso: string, tz: string = DEFAULT_TZ): string {
 const TIER_LABEL: Record<string, string> = {
   EXACT: 'Cravou',
   ONE_TEAM_SCORE: 'Acertou um placar',
-  GOAL_DIFF: 'Acertou o saldo',
+  CLOSE: 'Quase',
   OUTCOME: 'Acertou o vencedor',
   NONE: 'Não pontuou',
 };

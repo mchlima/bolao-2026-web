@@ -19,7 +19,7 @@ const { data, pending, error } = await useAsyncData(
 const TIER_COLOR: Record<string, string> = {
   EXACT: 'var(--emerald)',
   ONE_TEAM_SCORE: 'var(--azure)',
-  GOAL_DIFF: 'var(--gold)',
+  CLOSE: 'var(--gold)',
   OUTCOME: 'var(--magenta)',
   NONE: 'var(--muted)',
 };

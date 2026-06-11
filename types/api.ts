@@ -7,7 +7,7 @@ export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED';
 export type ScoreTier =
   | 'EXACT'
   | 'ONE_TEAM_SCORE'
-  | 'GOAL_DIFF'
+  | 'CLOSE'
   | 'OUTCOME'
   | 'NONE';
 

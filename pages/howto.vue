@@ -1,10 +1,10 @@
 <script setup lang="ts">
 const tiers = [
-  { label: 'Cravou o placar', desc: 'Acertou o placar exato (mandante e visitante).', pts: 10, color: 'var(--emerald)' },
-  { label: 'Acertou os gols de um time', desc: 'Acertou o número de gols de um dos times.', pts: 5, color: 'var(--azure)' },
-  { label: 'Acertou o saldo de gols', desc: 'Mesmo vencedor e mesma diferença, sem cravar.', pts: 4, color: 'var(--gold)' },
-  { label: 'Acertou o vencedor', desc: 'Acertou só quem ganhou (ou o empate).', pts: 3, color: 'var(--magenta)' },
-  { label: 'Não pontuou', desc: 'O palpite não se encaixou em nenhum critério.', pts: 0, color: 'var(--muted)' },
+  { label: 'Cravou o placar', desc: 'Acertou o placar exato (mandante e visitante).', pts: '10', color: 'var(--emerald)' },
+  { label: 'Acertou um placar', desc: 'Cravou os gols de um dos times (e o vencedor).', pts: '7–8', color: 'var(--azure)' },
+  { label: 'Quase', desc: 'Acertou o vencedor e errou cada time por só 1 gol.', pts: '6', color: 'var(--gold)' },
+  { label: 'Acertou o vencedor', desc: 'Acertou quem ganhou (ou o empate), placar mais longe.', pts: '4–5', color: 'var(--magenta)' },
+  { label: 'Não pontuou', desc: 'Errou quem venceu.', pts: '0', color: 'var(--muted)' },
 ];
 </script>
 
@@ -19,8 +19,8 @@ const tiers = [
       </div>
     </section>
 
-    <h2 class="font-display sec">Pontuação em camadas</h2>
-    <p class="lead">Para cada partida vale <b>apenas o critério mais alto atingido</b> — os pontos não se somam. Tudo é calculado <b>só sobre o palpite de placar</b>.</p>
+    <h2 class="font-display sec">Pontuação por proximidade</h2>
+    <p class="lead">Acertar <b>quem venceu</b> (ou o empate) vale uma <b>base de 4 pts</b>. A partir daí, cada time soma pela proximidade: <b>+3</b> se você cravou os gols dele, <b>+1</b> se errou por 1. Cravar o placar inteiro dá <b>10</b>. Errou o vencedor: <b>0</b>.</p>
 
     <div class="tiers">
       <div v-for="t in tiers" :key="t.label" class="tier" :style="{ borderColor: t.color, background: `color-mix(in srgb, ${t.color} 9%, var(--bg-surface))` }">
@@ -41,8 +41,8 @@ const tiers = [
       </div>
       <div class="ex-res">
         <span class="ck">✓</span>
-        <div class="ex-txt">Acertou os gols de um time <span class="muted">— você cravou o 2 do mandante, mas não o placar exato.</span></div>
-        <span class="font-numeric ex-pts">+5</span>
+        <div class="ex-txt">Acertou um placar <span class="muted">— base 4 + cravou o 2 do mandante (+3) + errou o fora por 1 (+1).</span></div>
+        <span class="font-numeric ex-pts">+8</span>
       </div>
     </div>
 
@@ -50,12 +50,12 @@ const tiers = [
       <div class="card rule">
         <div class="ric azure">◷</div>
         <h3 class="font-display">Quando palpitar</h3>
-        <p>Os palpites só são aceitos enquanto a partida está <b class="azure">agendada</b>. Ao ficar <b class="scarlet">ao vivo</b>, encerrar ou ser cancelada, o palpite é bloqueado. Partidas <b>canceladas não geram pontos</b>.</p>
+        <p>Por padrão os palpites ficam abertos enquanto a partida está <b class="azure">agendada</b> e antes do horário. O organizador pode <b>abrir ou fechar</b> manualmente quando quiser. Partidas <b>canceladas não geram pontos</b>.</p>
       </div>
       <div class="card rule">
         <div class="ric gold">🏆</div>
         <h3 class="font-display">Dois rankings</h3>
-        <p><b>Ranking do torneio:</b> soma dos seus pontos no torneio (top 100, com pódio). <b>Ranking da partida:</b> só aquele jogo — <b class="scarlet">provisório</b> ao vivo, <b class="emerald">final</b> ao encerrar.</p>
+        <p><b>Ranking do torneio:</b> soma dos seus pontos (top 100, com pódio). <b>Ranking da partida:</b> só aquele jogo — <b class="scarlet">provisório</b> ao vivo, <b class="emerald">final</b> ao encerrar. <b>Empate?</b> quem palpitou primeiro fica na frente.</p>
       </div>
       <div class="card rule">
         <div class="ric magenta">👁</div>
