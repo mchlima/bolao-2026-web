@@ -59,6 +59,13 @@ body {
   color: var(--text);
   font-size: 15px;
   line-height: 1.45;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media (max-width: 420px) {
+  .container {
+    padding: 0 13px;
+  }
 }
 
 a {
@@ -181,6 +188,19 @@ select {
 }
 .btn:hover {
   border-color: color-mix(in srgb, var(--emerald) 45%, var(--border));
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Accessible keyboard focus across the app */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--azure);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 .btn:disabled {
   opacity: 0.55;
