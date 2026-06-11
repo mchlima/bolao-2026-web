@@ -5,7 +5,7 @@ const route = useRoute();
 const auth = useAuthStore();
 const id = route.params.id as string;
 
-const { data, pending, error, refresh } = await useAsyncData(
+const { data, pending, error } = await useAsyncData(
   `tournament-${id}`,
   async () => {
     const api = useApi();
@@ -32,12 +32,6 @@ watchEffect(() => {
 function onSaved(p: Prediction) {
   predMap.value = { ...predMap.value, [p.matchId]: p };
 }
-
-// Live polling: refresh scores while any match in the tournament is LIVE.
-const hasLive = computed(() =>
-  (data.value?.matches ?? []).some((m) => m.status === 'LIVE'),
-);
-useLivePolling(refresh, hasLive, LIVE_POLL_MS);
 
 const sections = computed(() => {
   const out: Array<{ title: string; matches: Match[] }> = [];
