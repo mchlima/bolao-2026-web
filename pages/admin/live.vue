@@ -11,7 +11,14 @@ interface Engagement {
 
 const tournaments = ref<Tournament[]>([]);
 const tournamentId = ref('');
-const statusPick = ref<'LIVE' | 'SCHEDULED'>('LIVE');
+type MatchStatusFilter = 'LIVE' | 'SCHEDULED' | 'FINISHED' | 'CANCELLED';
+const statusPick = ref<MatchStatusFilter>('LIVE');
+const STATUS_TABS: Array<{ v: MatchStatusFilter; label: string; icon: string }> = [
+  { v: 'LIVE', label: 'Ao vivo', icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="8.5"/></svg>' },
+  { v: 'SCHEDULED', label: 'Agendadas', icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4.2l3 1.8"/></svg>' },
+  { v: 'FINISHED', label: 'Encerradas', icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4.5h13l-2.5 4 2.5 4H5"/></svg>' },
+  { v: 'CANCELLED', label: 'Canceladas', icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9 9l6 6M15 9l-6 6"/></svg>' },
+];
 const menu = ref<Match[]>([]);
 const selected = ref<Match | null>(null);
 const engagement = ref<Engagement | null>(null);
@@ -185,8 +192,15 @@ onMounted(async () => {
             <option v-for="t in tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
           </select>
           <div class="seg">
-            <button class="seg-b" :class="{ on: statusPick === 'LIVE' }" @click="statusPick = 'LIVE'">Ao vivo</button>
-            <button class="seg-b" :class="{ on: statusPick === 'SCHEDULED' }" @click="statusPick = 'SCHEDULED'">Agendadas</button>
+            <button
+              v-for="t in STATUS_TABS"
+              :key="t.v"
+              class="seg-b"
+              :class="{ on: statusPick === t.v }"
+              :title="t.label"
+              :aria-label="t.label"
+              @click="statusPick = t.v"
+            ><span class="seg-ico" v-html="t.icon" /></button>
           </div>
           <input v-model="menuSearch" class="input sm" placeholder="Buscar time, fase, data…" />
         </div>
@@ -223,7 +237,7 @@ onMounted(async () => {
             </div>
           </button>
           <p v-if="!menu.length" class="muted hint">
-            Nenhuma partida {{ statusPick === 'LIVE' ? 'ao vivo' : 'agendada' }}. Selecione uma agendada e clique em "Ao vivo" para iniciar.
+            Nenhuma partida {{ STATUS_TABS.find((t) => t.v === statusPick)?.label.toLowerCase() }}.<template v-if="statusPick === 'SCHEDULED'"> Selecione uma e marque "Ao vivo" para iniciar.</template>
           </p>
           <p v-else-if="!filteredMenu.length" class="muted hint">
             Nenhuma partida nesta data ou busca.
@@ -333,8 +347,10 @@ onMounted(async () => {
 .menu-head { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); padding: 4px 6px 10px; }
 .picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 .input.sm { padding: 9px 11px; font-size: 13px; }
-.seg { display: flex; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
-.seg-b { flex: 1; padding: 8px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 700; font-size: 12.5px; cursor: pointer; }
+.seg { display: flex; gap: 2px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
+.seg-b { flex: 1; display: grid; place-items: center; padding: 8px; border: none; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
+.seg-ico { display: inline-flex; }
+.seg-ico :deep(svg) { display: block; }
 .seg-b.on { background: var(--bg-surface); color: var(--text); box-shadow: var(--shadow); }
 .dates { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; scrollbar-width: thin; }
 .date-b { flex: 0 0 auto; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: 11.5px; cursor: pointer; white-space: nowrap; text-transform: capitalize; }
