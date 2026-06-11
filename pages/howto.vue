@@ -1,10 +1,14 @@
 <script setup lang="ts">
-const tiers = [
-  { label: 'Cravou o placar', desc: 'Acertou o placar exato (mandante e visitante).', pts: '10', color: 'var(--emerald)' },
-  { label: 'Acertou um placar', desc: 'Cravou os gols de um dos times (e o vencedor).', pts: '7–8', color: 'var(--azure)' },
-  { label: 'Quase', desc: 'Acertou o vencedor e errou cada time por só 1 gol.', pts: '6', color: 'var(--gold)' },
-  { label: 'Acertou o vencedor', desc: 'Acertou quem ganhou (ou o empate), placar mais longe.', pts: '4–5', color: 'var(--magenta)' },
-  { label: 'Não pontuou', desc: 'Errou quem venceu.', pts: '0', color: 'var(--muted)' },
+// Each case is a worked example against the same real result (2 × 1), so the
+// gradient from "cravou" to "errou" is easy to compare.
+const cases = [
+  { label: 'Cravou o placar', guess: '2-1', why: 'Placar exato: base 4 + cravou os dois times (+3 e +3).', pts: '10', color: 'var(--emerald)' },
+  { label: 'Acertou um placar', guess: '2-0', why: 'Base 4 + cravou o 2 do mandante (+3) + errou o fora por 1 (+1).', pts: '8', color: 'var(--azure)' },
+  { label: 'Acertou um placar', guess: '3-1', why: 'Base 4 + cravou o 1 do visitante (+3) + errou o mando por 1 (+1).', pts: '8', color: 'var(--azure)' },
+  { label: 'Quase', guess: '3-2', why: 'Vencedor certo; cada time ficou a 1 gol (+1 e +1).', pts: '6', color: 'var(--gold)' },
+  { label: 'Acertou o vencedor', guess: '4-0', why: 'Acertou quem venceu; o visitante ficou a 1 gol (+1), o mando longe.', pts: '5', color: 'var(--magenta)' },
+  { label: 'Acertou o vencedor', guess: '5-3', why: 'Só o vencedor: os dois times ficaram a 2+ gols. Piso da base.', pts: '4', color: 'var(--magenta)' },
+  { label: 'Não pontuou', guess: '1-2', why: 'Previu o visitante vencendo — errou quem ganhou.', pts: '0', color: 'var(--muted)' },
 ];
 </script>
 
@@ -15,52 +19,67 @@ const tiers = [
       <div class="hero-in">
         <span class="kicker">Guia do bolão</span>
         <h1 class="font-display">Como funciona</h1>
-        <p class="sub">Você palpita o placar de cada partida. Quanto mais perto do resultado real, mais pontos. Veja as regras abaixo.</p>
+        <p class="sub">Você palpita o placar de cada partida antes dela começar. Quanto mais perto do resultado real, mais pontos. Veja as regras abaixo.</p>
       </div>
     </section>
 
     <h2 class="font-display sec">Pontuação por proximidade</h2>
-    <p class="lead">Acertar <b>quem venceu</b> (ou o empate) vale uma <b>base de 4 pts</b>. A partir daí, cada time soma pela proximidade: <b>+3</b> se você cravou os gols dele, <b>+1</b> se errou por 1. Cravar o placar inteiro dá <b>10</b>. Errou o vencedor: <b>0</b>.</p>
+    <p class="lead">Primeiro, é preciso <b>acertar quem venceu</b> (ou o empate) — isso vale uma <b>base de 4 pontos</b>. A partir daí, <b>cada time</b> soma pela proximidade do seu palpite:</p>
 
-    <div class="tiers">
-      <div v-for="t in tiers" :key="t.label" class="tier" :style="{ borderColor: t.color, background: `color-mix(in srgb, ${t.color} 9%, var(--bg-surface))` }">
-        <span class="dot" :style="{ background: t.color }" />
-        <div class="ti">
-          <div class="tl">{{ t.label }}</div>
-          <div class="td">{{ t.desc }}</div>
+    <div class="formula">
+      <div class="fr"><span class="fk">Acertou o vencedor / empate</span><span class="fv">+4 base</span></div>
+      <div class="fr"><span class="fk">Cravou os gols de um time</span><span class="fv gold">+3 por time</span></div>
+      <div class="fr"><span class="fk">Errou um time por 1 gol</span><span class="fv gold">+1 por time</span></div>
+      <div class="fr"><span class="fk">Errou quem venceu</span><span class="fv muted">0 — zerou a partida</span></div>
+    </div>
+    <p class="note">Cravar o placar inteiro dá o máximo: <b class="emerald">10 pontos</b> (4 + 3 + 3).</p>
+
+    <h2 class="font-display sec2">Um exemplo de cada caso</h2>
+    <p class="lead">Todos com o mesmo resultado real — <b>mandante 2 × 1 visitante</b> — variando só o seu palpite:</p>
+
+    <div class="cases">
+      <div
+        v-for="(c, i) in cases"
+        :key="i"
+        class="case"
+        :style="{ borderColor: c.color, background: `color-mix(in srgb, ${c.color} 8%, var(--bg-surface))` }"
+      >
+        <div class="cg">
+          <span class="cg-cap">palpite</span>
+          <span class="font-numeric cg-sc">{{ c.guess.replace('-', ' : ') }}</span>
         </div>
-        <div class="tp"><span class="font-numeric" :style="{ color: t.color }">{{ t.pts }}</span><div class="pl">pts</div></div>
+        <div class="ci">
+          <div class="cl" :style="{ color: c.color }">{{ c.label }}</div>
+          <div class="cw">{{ c.why }}</div>
+        </div>
+        <div class="cp">
+          <span class="font-numeric" :style="{ color: c.color }">{{ c.pts === '0' ? '0' : '+' + c.pts }}</span>
+          <span class="cp-l">pts</span>
+        </div>
       </div>
     </div>
 
-    <div class="card example">
-      <div class="ex-h">Exemplo</div>
-      <div class="ex-grid">
-        <div class="ex-box"><div class="ex-cap">Seu palpite</div><div class="font-numeric ex-sc">2 : 1</div></div>
-        <div class="ex-box"><div class="ex-cap">Resultado</div><div class="font-numeric ex-sc">2 : 0</div></div>
-      </div>
-      <div class="ex-res">
-        <span class="ck">✓</span>
-        <div class="ex-txt">Acertou um placar <span class="muted">— base 4 + cravou o 2 do mandante (+3) + errou o fora por 1 (+1).</span></div>
-        <span class="font-numeric ex-pts">+8</span>
-      </div>
-    </div>
-
+    <h2 class="font-display sec2">As regras</h2>
     <div class="cards">
       <div class="card rule">
         <div class="ric azure">◷</div>
         <h3 class="font-display">Quando palpitar</h3>
-        <p>Por padrão os palpites ficam abertos enquanto a partida está <b class="azure">agendada</b> e antes do horário. O organizador pode <b>abrir ou fechar</b> manualmente quando quiser. Partidas <b>canceladas não geram pontos</b>.</p>
+        <p>Por padrão os palpites ficam abertos enquanto a partida está <b class="azure">agendada</b> e antes do horário do apito. Depois disso fecham automaticamente. O <b>organizador</b> também pode abrir ou fechar os palpites de uma partida na mão — inclusive reabrir um jogo já <b class="scarlet">ao vivo</b>, se decidir.</p>
+      </div>
+      <div class="card rule">
+        <div class="ric scarlet">●</div>
+        <h3 class="font-display">Ao vivo é provisório</h3>
+        <p>Enquanto a partida rola, o ranking dela mostra <b class="scarlet">quanto cada um está ganhando até o momento</b>, calculado pelo placar parcial (um 1 × 0 já conta como 1 a 0). Os pontos <b>mudam a cada gol</b> e só viram <b class="emerald">definitivos</b> quando o jogo é encerrado.</p>
       </div>
       <div class="card rule">
         <div class="ric gold">🏆</div>
         <h3 class="font-display">Dois rankings</h3>
-        <p><b>Ranking do torneio:</b> soma dos seus pontos (top 100, com pódio). <b>Ranking da partida:</b> só aquele jogo — <b class="scarlet">provisório</b> ao vivo, <b class="emerald">final</b> ao encerrar. <b>Empate?</b> quem palpitou primeiro fica na frente.</p>
+        <p><b>Do torneio:</b> a soma dos seus pontos em todas as partidas (top 100, com pódio). <b>Da partida:</b> só aquele jogo. <b>Empate?</b> quem <b class="gold">palpitou primeiro</b> fica na frente — no torneio vale o seu palpite mais antigo.</p>
       </div>
       <div class="card rule">
         <div class="ric magenta">👁</div>
         <h3 class="font-display">Palpites à mostra</h3>
-        <p>Os palpites são <b>visíveis para todos</b>. Dá pra ver o que cada amigo apostou em cada partida — e quem cravou.</p>
+        <p>Os palpites são <b>visíveis para todos</b>. Dá pra ver o que cada amigo apostou em cada partida — e quem cravou. Partidas <b>canceladas</b> não geram pontos para ninguém.</p>
       </div>
     </div>
 
@@ -79,31 +98,39 @@ const tiers = [
 .hero-in h1 { font-weight: 700; font-size: clamp(28px, 5vw, 40px); text-transform: uppercase; line-height: 1; }
 .sub { color: var(--muted); margin-top: 10px; font-size: 14.5px; max-width: 520px; }
 .sec { font-weight: 600; font-size: 19px; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 6px; }
-.lead { color: var(--muted); font-size: 13.5px; line-height: 1.55; margin-bottom: 16px; }
+.sec2 { font-weight: 600; font-size: 19px; text-transform: uppercase; letter-spacing: 0.02em; margin: 30px 0 6px; }
+.lead { color: var(--muted); font-size: 13.5px; line-height: 1.55; margin-bottom: 14px; }
 .lead b, .rule p b { color: var(--text); }
-.tiers { display: flex; flex-direction: column; gap: 9px; margin-bottom: 18px; }
-.tier { display: flex; align-items: center; gap: 13px; padding: 14px; border-radius: 14px; border: 1px solid; }
-.dot { width: 11px; height: 11px; border-radius: 50%; flex: 0 0 auto; }
-.ti { flex: 1; min-width: 0; }
-.tl { font-size: 14.5px; font-weight: 800; }
-.td { font-size: 12px; color: var(--muted); font-weight: 500; }
-.tp { text-align: right; }
-.tp .font-numeric { font-size: 30px; line-height: 0.8; }
-.pl { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.example { padding: 18px; margin-bottom: 26px; }
-.ex-h { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--gold); margin-bottom: 14px; }
-.ex-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.ex-box { text-align: center; background: var(--bg-base); border: 1px solid var(--border); border-radius: 13px; padding: 14px; }
-.ex-cap { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
-.ex-sc { font-size: 40px; line-height: 0.85; }
-.ex-res { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--emerald); background: color-mix(in srgb, var(--emerald) 14%, transparent); }
-.ck { color: var(--emerald); font-weight: 900; }
-.ex-txt { flex: 1; font-size: 13px; font-weight: 700; color: var(--emerald); }
-.ex-pts { font-size: 26px; color: var(--emerald); }
+.note { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+
+/* formula */
+.formula { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.fr { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 15px; border-top: 1px solid var(--border); }
+.fr:first-child { border-top: none; }
+.fk { font-size: 13.5px; font-weight: 600; }
+.fv { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; white-space: nowrap; }
+.fv.gold { color: var(--gold); }
+.fv.muted { color: var(--muted); }
+
+/* example cases */
+.cases { display: flex; flex-direction: column; gap: 9px; }
+.case { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; border: 1px solid; }
+.cg { text-align: center; flex: 0 0 auto; }
+.cg-cap { display: block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.cg-sc { font-size: 24px; line-height: 1; letter-spacing: 0.02em; }
+.ci { flex: 1; min-width: 0; }
+.cl { font-size: 14px; font-weight: 800; }
+.cw { font-size: 12px; color: var(--muted); font-weight: 500; line-height: 1.4; margin-top: 2px; }
+.cp { text-align: right; flex: 0 0 auto; }
+.cp .font-numeric { font-size: 28px; line-height: 0.8; }
+.cp-l { display: block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+
+/* rules */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; }
 .rule { padding: 18px; }
 .ric { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 12px; font-size: 18px; }
 .ric.azure { color: var(--azure); background: color-mix(in srgb, var(--azure) 14%, transparent); }
+.ric.scarlet { color: var(--scarlet); background: color-mix(in srgb, var(--scarlet) 14%, transparent); }
 .ric.gold { color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, transparent); }
 .ric.magenta { color: var(--magenta); background: color-mix(in srgb, var(--magenta) 14%, transparent); }
 .rule h3 { font-weight: 600; font-size: 16px; text-transform: uppercase; margin-bottom: 7px; }
@@ -111,5 +138,6 @@ const tiers = [
 .azure { color: var(--azure); }
 .scarlet { color: var(--scarlet); }
 .emerald { color: var(--emerald); }
+.gold { color: var(--gold); }
 .cta-wrap { display: flex; justify-content: center; margin-top: 26px; }
 </style>
