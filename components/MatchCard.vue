@@ -26,6 +26,9 @@ const isOpen = computed(() => {
   return m.predictionsOpen ?? auto;
 });
 const editable = computed(() => isOpen.value && auth.isAuthenticated);
+// Visual state: already predicted vs still pending (open + logged in + no guess).
+const hasPrediction = computed(() => !!props.prediction);
+const needsPrediction = computed(() => editable.value && !props.prediction);
 
 const statusMeta = computed(() => {
   switch (props.match.status) {
@@ -85,7 +88,7 @@ const leftLabel = computed(() =>
 </script>
 
 <template>
-  <div class="match" :class="{ live: isLive }">
+  <div class="match" :class="{ live: isLive, predicted: hasPrediction, pending: needsPrediction }">
     <div v-if="isLive" aria-hidden="true" class="live-glow" />
 
     <div class="top">
@@ -203,6 +206,17 @@ const leftLabel = computed(() =>
 }
 .match.live {
   border-color: rgba(232, 54, 43, 0.55);
+}
+/* Already predicted: calm green left accent. */
+.match.predicted {
+  box-shadow: inset 4px 0 0 0 var(--emerald), var(--shadow);
+  border-color: color-mix(in srgb, var(--emerald) 32%, var(--border));
+}
+/* Open and not predicted yet: gold accent + faint tint to draw the eye. */
+.match.pending {
+  box-shadow: inset 4px 0 0 0 var(--gold), var(--shadow);
+  border-color: color-mix(in srgb, var(--gold) 42%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 7%, transparent), transparent), var(--bg-surface);
 }
 .live-glow {
   position: absolute;
