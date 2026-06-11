@@ -8,9 +8,12 @@ const tz = useTz();
 
 const isLive = computed(() => props.match.status === 'LIVE');
 const isCancelled = computed(() => props.match.status === 'CANCELLED');
+// LIVE/FINISHED show a scoreline; a null side counts as 0 (e.g. 1-0 mid-match).
 const hasResult = computed(
-  () => props.match.homeScore !== null && props.match.awayScore !== null,
+  () => props.match.status === 'LIVE' || props.match.status === 'FINISHED',
 );
+const shownHome = computed(() => props.match.homeScore ?? 0);
+const shownAway = computed(() => props.match.awayScore ?? 0);
 // Effective prediction window: admin override (predictionsOpen) wins; otherwise
 // the automatic rule (SCHEDULED + before kickoff). Terminal states never open.
 // Mirrors the backend PredictionsService.acceptsPredictions.
@@ -103,7 +106,7 @@ const leftLabel = computed(() =>
       </div>
       <div class="center">
         <div v-if="hasResult" class="score">
-          <span>{{ match.homeScore }}</span><span class="colon">:</span><span>{{ match.awayScore }}</span>
+          <span>{{ shownHome }}</span><span class="colon">:</span><span>{{ shownAway }}</span>
         </div>
         <div v-else-if="isCancelled" class="score off">— : —</div>
         <div v-else class="vs">×</div>

@@ -27,6 +27,16 @@ const MEDALS = ['var(--gold)', '#C2CAD6', '#CD7F45'];
 const HEIGHTS = ['66px', '50px', '40px'];
 
 const match = computed(() => data.value?.match ?? null);
+// LIVE/FINISHED show a numeric scoreline (null side = 0); otherwise an em dash.
+const playing = computed(
+  () => match.value?.status === 'LIVE' || match.value?.status === 'FINISHED',
+);
+const shownHome = computed(() =>
+  playing.value ? (match.value?.homeScore ?? 0) : (match.value?.homeScore ?? '–'),
+);
+const shownAway = computed(() =>
+  playing.value ? (match.value?.awayScore ?? 0) : (match.value?.awayScore ?? '–'),
+);
 const ranking = computed(() => data.value?.ranking ?? null);
 const me = computed(() => ranking.value?.currentUser ?? null);
 const hasResult = computed(() => !!ranking.value?.result);
@@ -88,9 +98,9 @@ function guess(e: { prediction?: { home: number; away: number } }): string {
               <span class="tname">{{ match.homeTeam?.name ?? match.homeSourceLabel }}</span>
             </div>
             <div class="font-numeric big">
-              <span>{{ match.homeScore ?? '–' }}</span>
+              <span>{{ shownHome }}</span>
               <span class="colon">:</span>
-              <span>{{ match.awayScore ?? '–' }}</span>
+              <span>{{ shownAway }}</span>
             </div>
             <div class="side">
               <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="60" />
