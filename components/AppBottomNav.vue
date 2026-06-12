@@ -3,12 +3,13 @@ const auth = useAuthStore();
 const route = useRoute();
 
 const items = computed(() => {
+  // App-only nav: hidden for logged-out visitors (they only see the landing).
+  if (!auth.isAuthenticated) return [];
   const base = [
     { to: '/', label: 'Torneios', icon: 'home' },
+    { to: '/predictions', label: 'Palpites', icon: 'ticket' },
     { to: '/howto', label: 'Como funciona', icon: 'book' },
   ];
-  if (auth.isAuthenticated)
-    base.splice(1, 0, { to: '/predictions', label: 'Palpites', icon: 'ticket' });
   if (auth.isAdmin) base.push({ to: '/admin', label: 'Admin', icon: 'cog' });
   return base;
 });
@@ -26,7 +27,7 @@ function active(to: string) {
 </script>
 
 <template>
-  <nav class="bnav">
+  <nav v-if="items.length" class="bnav">
     <NuxtLink
       v-for="it in items"
       :key="it.to"

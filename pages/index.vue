@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import type { Paginated, RankingResponse, Tournament } from '~/types/api';
+import type {
+  Match,
+  Paginated,
+  Prediction,
+  RankingResponse,
+  Tournament,
+} from '~/types/api';
 
 const auth = useAuthStore();
 
@@ -18,23 +24,62 @@ function tBadge(name: string): string {
   return (words[0]?.[0] ?? '') + (words[1]?.[0] ?? '');
 }
 
-const { data, pending } = await useAsyncData('home', async () => {
+const { data, pending, refresh } = await useAsyncData('home', async () => {
   const api = useApi();
   const list = await api<Paginated<Tournament>>('/tournaments');
   const tournaments = list.data;
   const primary =
     tournaments.find((t) => t.status === 'ONGOING') ?? tournaments[0] ?? null;
+
   let me: RankingResponse['currentUser'] = null;
-  if (primary && auth.token) {
-    try {
-      const r = await api<RankingResponse>(`/tournaments/${primary.id}/ranking`);
-      me = r.currentUser;
-    } catch {
-      me = null;
-    }
+  let openMatches: Match[] = [];
+  let predictions: Prediction[] = [];
+
+  if (primary) {
+    const [rank, page1] = await Promise.all([
+      api<RankingResponse>(`/tournaments/${primary.id}/ranking`).catch(() => null),
+      api<Paginated<Match>>(`/matches?tournamentId=${primary.id}&page=1&pageSize=100`),
+    ]);
+    me = rank?.currentUser ?? null;
+    predictions = await api<Prediction[]>(
+      `/predictions/me?tournamentId=${primary.id}`,
+    ).catch(() => []);
+    const now = Date.now();
+    openMatches = page1.data
+      .filter(
+        (m) =>
+          m.homeTeam &&
+          m.awayTeam &&
+          m.status === 'SCHEDULED' &&
+          new Date(m.kickoffAt).getTime() > now,
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
+      )
+      .slice(0, 3);
   }
-  return { tournaments, primary, me };
+  return { tournaments, primary, me, openMatches, predictions };
 });
+
+const predMap = ref<Record<string, Prediction>>({});
+watchEffect(() => {
+  const m: Record<string, Prediction> = {};
+  for (const p of data.value?.predictions ?? []) m[p.matchId] = p;
+  predMap.value = m;
+});
+function onSaved(p: Prediction) {
+  predMap.value = { ...predMap.value, [p.matchId]: p };
+}
+
+useRealtime(
+  () => (data.value?.primary ? [`tournament:${data.value.primary.id}`] : []),
+  () => refresh(),
+);
+
+const firstName = computed(
+  () => auth.user?.name?.trim().split(/\s+/)[0] ?? '',
+);
 </script>
 
 <template>
@@ -44,9 +89,10 @@ const { data, pending } = await useAsyncData('home', async () => {
       <div class="glow" aria-hidden="true" />
       <div class="hero-inner">
         <div class="hero-text">
-          <h1 class="font-display title">Copa do Mundo<br />2026</h1>
+          <span v-if="firstName" class="hello">Olá, {{ firstName }} 👋</span>
+          <h1 class="font-display title">{{ data.primary.name }}</h1>
           <p class="sub">
-            48 seleções · EUA · México · Canadá. Faça seus palpites e dispute o topo do ranking.
+            Faça seus palpites e dispute o topo do ranking.
           </p>
           <div class="cta">
             <NuxtLink :to="`/tournaments/${data.primary.id}`" class="btn btn-gold">Ver torneio</NuxtLink>
@@ -66,9 +112,26 @@ const { data, pending } = await useAsyncData('home', async () => {
       </div>
     </section>
 
+    <!-- NEXT MATCHES TO PREDICT -->
+    <template v-if="data?.openMatches?.length">
+      <div class="sec-head">
+        <h2 class="font-display">Próximas partidas</h2>
+        <NuxtLink v-if="data.primary" :to="`/tournaments/${data.primary.id}`" class="see-all">Ver todas ›</NuxtLink>
+      </div>
+      <div class="next">
+        <MatchCard
+          v-for="m in data.openMatches"
+          :key="m.id"
+          :match="m"
+          :prediction="predMap[m.id] ?? null"
+          @saved="onSaved"
+        />
+      </div>
+    </template>
+
     <!-- TOURNAMENTS -->
     <div class="sec-head">
-      <h2 class="font-display">Em andamento</h2>
+      <h2 class="font-display">Torneios</h2>
     </div>
     <SkeletonList v-if="pending && !data" variant="card" :count="3" />
     <div v-else class="grid">
@@ -137,9 +200,17 @@ const { data, pending } = await useAsyncData('home', async () => {
   min-width: 240px;
   flex: 1;
 }
+.hello {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--azure);
+  margin-bottom: 8px;
+}
 .title {
   font-weight: 700;
-  font-size: clamp(28px, 5vw, 44px);
+  font-size: clamp(26px, 5vw, 40px);
   text-transform: uppercase;
   line-height: 0.98;
   letter-spacing: 0.005em;
@@ -183,12 +254,32 @@ const { data, pending } = await useAsyncData('home', async () => {
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
 .sec-head h2 {
   font-weight: 600;
   font-size: 20px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  margin-bottom: 14px;
+}
+.see-all {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.see-all:hover {
+  color: var(--text);
+}
+.next {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
 }
 .grid {
   display: grid;
@@ -248,5 +339,14 @@ const { data, pending } = await useAsyncData('home', async () => {
   margin-top: 16px;
   padding-top: 14px;
   border-top: 1px solid var(--border);
+}
+.pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 4px 11px;
 }
 </style>
