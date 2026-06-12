@@ -23,6 +23,9 @@ const menu = ref<Match[]>([]);
 const selected = ref<Match | null>(null);
 const engagement = ref<Engagement | null>(null);
 const tz = useTz();
+const tzShort = computed(() =>
+  tz.value === 'UTC' ? 'UTC' : (tz.value.split('/').pop() ?? tz.value).replace(/_/g, ' '),
+);
 const leader = ref<{ name: string; points: number } | null>(null);
 const participants = ref(0);
 const menuSearch = ref('');
@@ -208,6 +211,7 @@ onMounted(async () => {
             <label class="dr-f"><span>De</span><input v-model="startDate" type="date" :max="endDate || undefined" class="input sm" /></label>
             <label class="dr-f"><span>Até</span><input v-model="endDate" type="date" :min="startDate || undefined" class="input sm" /></label>
             <button v-if="startDate || endDate" class="dr-clear" title="Limpar datas" @click="startDate = ''; endDate = ''">✕</button>
+            <span class="dr-tz" title="Datas e horários no fuso da sua conta">🌐 {{ tzShort }}</span>
           </div>
         </div>
         <div class="menu-list">
@@ -352,7 +356,8 @@ onMounted(async () => {
 .seg-ico { display: inline-flex; }
 .seg-ico :deep(svg) { display: block; }
 .seg-b.on { background: var(--bg-surface); color: var(--text); box-shadow: var(--shadow); }
-.drange { display: flex; align-items: flex-end; gap: 8px; }
+.drange { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+.dr-tz { font-size: 10.5px; font-weight: 700; color: var(--muted); align-self: center; white-space: nowrap; }
 .dr-f { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .dr-f span { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding-left: 2px; }
 .dr-f .input.sm { width: 100%; }
