@@ -125,7 +125,7 @@ const matchesByDay = computed(() => {
 .game {
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 10px;
   padding: 11px 14px;
@@ -153,6 +153,7 @@ const matchesByDay = computed(() => {
   justify-content: flex-end;
 }
 .g-tn {
+  min-width: 0;
   font-size: 13.5px;
   font-weight: 700;
   white-space: nowrap;
