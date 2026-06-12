@@ -2,6 +2,7 @@ import type {
   PoolDetail,
   PoolInviteView,
   PoolJoinPreview,
+  PoolMatchPredictionsView,
   PoolMemberRole,
   PoolSummary,
   PoolVisibility,
@@ -57,5 +58,9 @@ export function usePools() {
       api(`/pools/${id}/members/${userId}`, { method: 'DELETE' }),
 
     ranking: (id: string) => api<RankingResponse>(`/pools/${id}/ranking`),
+    matchPredictions: (id: string, matchId: string) =>
+      api<PoolMatchPredictionsView>(
+        `/pools/${id}/matches/${matchId}/predictions`,
+      ),
   };
 }

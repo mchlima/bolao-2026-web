@@ -188,3 +188,15 @@ export interface PoolJoinPreview {
   memberCount: number;
   alreadyMember: boolean;
 }
+
+export interface PoolMatchPredictionEntry {
+  user: { id: string; name: string };
+  prediction: { home: number; away: number };
+  points?: number;
+  tier?: ScoreTier;
+}
+
+export interface PoolMatchPredictionsView {
+  revealed: boolean; // false until kickoff — others' predictions are hidden
+  entries: PoolMatchPredictionEntry[];
+}
