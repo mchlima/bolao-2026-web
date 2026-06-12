@@ -7,13 +7,10 @@ const props = defineProps<{ data: RankingResponse }>();
 
 const me = computed(() => props.data.currentUser ?? null);
 const entries = computed(() => props.data.entries ?? []);
-// Podium only with at least 3 participants (decision #5).
-const top3 = computed(() =>
-  entries.value.length >= 3 ? entries.value.slice(0, 3) : [],
-);
-const rest = computed(() =>
-  top3.value.length ? entries.value.slice(3) : entries.value,
-);
+// Podium shows from 1 participant up; it renders only the slots that exist
+// (no empty pedestals), so 1 → just 1st, 2 → 1st+2nd, 3+ → full top 3.
+const top3 = computed(() => entries.value.slice(0, 3));
+const rest = computed(() => entries.value.slice(3));
 const inTop = computed(
   () => !!me.value && entries.value.some((e) => e.user.id === me.value!.user.id),
 );
