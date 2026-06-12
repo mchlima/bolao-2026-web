@@ -57,6 +57,7 @@ function logout() {
 
       <nav v-if="auth.isAuthenticated" class="topnav">
         <NuxtLink to="/tournaments" class="nav-link">Torneios</NuxtLink>
+        <NuxtLink to="/pools" class="nav-link">Bolões</NuxtLink>
         <NuxtLink to="/predictions" class="nav-link">Palpites</NuxtLink>
         <NuxtLink to="/howto" class="nav-link">Como funciona</NuxtLink>
         <NuxtLink v-if="auth.isAdmin" to="/admin" class="nav-link">Admin</NuxtLink>

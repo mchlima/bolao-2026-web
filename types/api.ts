@@ -139,3 +139,52 @@ export interface ApiError {
   message: string;
   details?: unknown;
 }
+
+// ── Pools ("bolões") ──
+export type PoolVisibility = 'PRIVATE' | 'PUBLIC';
+export type PoolMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
+
+export interface PoolTournamentSummary {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+  status: TournamentStatus;
+}
+
+export interface PoolMemberView {
+  user: { id: string; name: string };
+  role: PoolMemberRole;
+  joinedAt: string;
+}
+
+export interface PoolInviteView {
+  id: string;
+  name: string;
+  code: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface PoolSummary {
+  id: string;
+  name: string;
+  visibility: PoolVisibility;
+  tournament: PoolTournamentSummary;
+  myRole: PoolMemberRole;
+  memberCount: number;
+  createdAt: string;
+}
+
+export interface PoolDetail extends PoolSummary {
+  members: PoolMemberView[];
+  invites?: PoolInviteView[]; // present only for owner/admin
+}
+
+export interface PoolJoinPreview {
+  id: string;
+  name: string;
+  visibility: PoolVisibility;
+  tournament: PoolTournamentSummary;
+  memberCount: number;
+  alreadyMember: boolean;
+}
