@@ -45,7 +45,7 @@ function logout() {
 <template>
   <header class="header">
     <div class="container bar">
-      <NuxtLink :to="auth.isAuthenticated ? '/tournaments' : '/'" class="brand">
+      <NuxtLink :to="auth.isAuthenticated ? '/home' : '/'" class="brand">
         <span class="logo">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A0E14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>
         </span>
@@ -56,6 +56,7 @@ function logout() {
       </NuxtLink>
 
       <nav v-if="auth.isAuthenticated" class="topnav">
+        <NuxtLink to="/home" class="nav-link">Início</NuxtLink>
         <NuxtLink to="/tournaments" class="nav-link">Torneios</NuxtLink>
         <NuxtLink to="/pools" class="nav-link">Bolões</NuxtLink>
         <NuxtLink to="/predictions" class="nav-link">Palpites</NuxtLink>
@@ -80,7 +81,7 @@ function logout() {
                 @click="menuOpen = false"
                 >Ranking</NuxtLink
               >
-              <NuxtLink to="/" class="row" @click="menuOpen = false"
+              <NuxtLink to="/home" class="row" @click="menuOpen = false"
                 >Início</NuxtLink
               >
               <div class="sep" />

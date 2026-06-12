@@ -13,7 +13,7 @@ const loading = ref(false);
 // Only allow internal (relative) redirects — never an external URL.
 const redirect = computed(() => {
   const r = route.query.redirect as string | undefined;
-  return r && r.startsWith('/') ? r : '/tournaments';
+  return r && r.startsWith('/') ? r : '/home';
 });
 
 const matchState = computed(() => {
