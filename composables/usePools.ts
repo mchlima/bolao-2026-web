@@ -67,6 +67,8 @@ export function usePools() {
       api(`/pools/${id}/members/${userId}`, { method: 'DELETE' }),
 
     ranking: (id: string) => api<RankingResponse>(`/pools/${id}/ranking`),
+    matchRanking: (id: string, matchId: string) =>
+      api<RankingResponse>(`/pools/${id}/matches/${matchId}/ranking`),
     matchPredictions: (id: string, matchId: string) =>
       api<PoolMatchPredictionsView>(
         `/pools/${id}/matches/${matchId}/predictions`,

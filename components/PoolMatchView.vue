@@ -1,23 +1,27 @@
 <script setup lang="ts">
-import type { Match, PoolMatchPredictionEntry } from '~/types/api';
+import type { Match, RankingEntry, RankingResponse } from '~/types/api';
 
-// Hidden "match" view inside a pool — mirrors the tournament match ranking,
-// scoped to the pool's members. Predictions stay hidden until kickoff (the gate
-// lives in the API: /pools/:id/matches/:matchId/predictions).
+// Pool-scoped match view — mirrors the tournament match page (result card +
+// podium + ranking), but scoped to the pool's members. No prediction form here
+// (predicting stays on the tournament page). Privacy gate lives in the API:
+// before kickoff others' guesses are hidden (revealed=false, entries=[]).
 const props = defineProps<{ poolId: string; matchId: string }>();
 const emit = defineEmits<{ back: [] }>();
 
 const pools = usePools();
+const auth = useAuthStore();
 
 const { data, pending, error, refresh } = await useAsyncData(
   `poolmatch-${props.poolId}-${props.matchId}`,
   async () => {
     const api = useApi();
-    const [match, preds] = await Promise.all([
+    const [match, ranking] = await Promise.all([
       api<Match>(`/matches/${props.matchId}`),
-      pools.matchPredictions(props.poolId, props.matchId),
+      pools
+        .matchRanking(props.poolId, props.matchId)
+        .catch(() => null as RankingResponse | null),
     ]);
-    return { match, preds };
+    return { match, ranking };
   },
 );
 useRealtime(
@@ -32,11 +36,10 @@ const TIER_COLOR: Record<string, string> = {
   OUTCOME: 'var(--magenta)',
   NONE: 'var(--muted)',
 };
+const MEDALS = ['var(--gold)', '#C2CAD6', '#CD7F45'];
+const HEIGHTS = ['66px', '50px', '40px'];
 
-const auth = useAuthStore();
-const tz = useTz();
 const match = computed(() => data.value?.match ?? null);
-const preds = computed(() => data.value?.preds ?? null);
 const playing = computed(
   () => match.value?.status === 'LIVE' || match.value?.status === 'FINISHED',
 );
@@ -47,23 +50,35 @@ const shownAway = computed(() =>
   playing.value ? (match.value?.awayScore ?? 0) : '–',
 );
 
-// Rank the member entries by points (ties share a rank).
-const ranked = computed(() => {
-  if (!preds.value?.revealed) return [];
-  const sorted = [...preds.value.entries].sort(
-    (a, b) => (b.points ?? 0) - (a.points ?? 0),
-  );
-  let lastPts: number | null = null;
-  let lastRank = 0;
-  return sorted.map((e, i) => {
-    const pts = e.points ?? 0;
-    const rank = lastPts !== null && pts === lastPts ? lastRank : i + 1;
-    lastPts = pts;
-    lastRank = rank;
-    return { ...e, rank };
-  });
+const ranking = computed(() => data.value?.ranking ?? null);
+const me = computed(() => ranking.value?.currentUser ?? null);
+const hasResult = computed(() => !!ranking.value?.result);
+const revealed = computed(() => ranking.value?.revealed !== false);
+const entries = computed(() => ranking.value?.entries ?? []);
+
+const stateMeta = computed(() => {
+  if (!ranking.value) return { label: '', color: 'var(--muted)', live: false };
+  if (ranking.value.provisional)
+    return { label: 'Provisório · ao vivo', color: 'var(--scarlet)', live: true };
+  if (ranking.value.result)
+    return { label: 'Resultado final', color: 'var(--emerald)', live: false };
+  return { label: 'Aguardando resultado', color: 'var(--muted)', live: false };
 });
-const ownEntry = computed(() => preds.value?.entries?.[0] ?? null);
+
+const top3 = computed(() =>
+  hasResult.value && entries.value.length >= 3 ? entries.value.slice(0, 3) : [],
+);
+const rest = computed(() =>
+  top3.value.length ? entries.value.slice(3) : entries.value,
+);
+const inTop = computed(
+  () => !!me.value && entries.value.some((e) => e.user.id === me.value!.user.id),
+);
+const podium = computed(() =>
+  [top3.value[1], top3.value[0], top3.value[2]]
+    .map((e, i) => ({ e, slot: [1, 0, 2][i] }))
+    .filter((x) => x.e),
+);
 
 function initials(name: string): string {
   const p = name.trim().split(/\s+/);
@@ -74,84 +89,123 @@ function color(uid: string): string {
   for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) % 360;
   return `hsl(${h} 52% 42%)`;
 }
-function guess(e: PoolMatchPredictionEntry): string {
-  return `${e.prediction.home}:${e.prediction.away}`;
+function guess(e: { prediction?: { home: number; away: number } }): string {
+  return e.prediction ? `${e.prediction.home}:${e.prediction.away}` : '—';
 }
-const isMe = (uid: string) => uid === auth.user?.id;
+const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 </script>
 
 <template>
   <div>
     <button class="back" @click="emit('back')">← Jogos</button>
 
-    <SkeletonList v-if="pending" variant="row" :count="4" />
+    <SkeletonList v-if="pending" variant="match" :count="1" />
     <p v-else-if="error || !match" class="muted load">Partida indisponível.</p>
 
     <template v-else>
-      <!-- result card -->
       <div class="card detail">
-        <div class="rlabel">
-          {{ match.phaseLabel }}<span v-if="match.groupName"> · Grupo {{ match.groupName }}</span>
+        <div class="result-head">
+          <div class="rlabel">
+            {{ match.phaseLabel }}<span v-if="match.groupName"> · Grupo {{ match.groupName }}</span>
+          </div>
+          <div class="result">
+            <div class="side">
+              <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="56" />
+              <span class="tname">{{ match.homeTeam?.name ?? match.homeSourceLabel }}</span>
+            </div>
+            <div class="font-numeric big">
+              <span>{{ shownHome }}</span><span class="colon">:</span><span>{{ shownAway }}</span>
+            </div>
+            <div class="side">
+              <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="56" />
+              <span class="tname">{{ match.awayTeam?.name ?? match.awaySourceLabel }}</span>
+            </div>
+          </div>
+          <div v-if="match.stadium" class="venue">{{ match.stadium.name }} · {{ match.stadium.city }}</div>
         </div>
-        <div class="result">
-          <div class="side">
-            <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="54" />
-            <span class="tname">{{ match.homeTeam?.name ?? match.homeSourceLabel }}</span>
+
+        <div class="body">
+          <!-- read-only own prediction -->
+          <div v-if="me?.prediction" class="mypred">
+            <div class="mp-head">
+              <span class="mp-title">Seu palpite</span>
+              <span
+                v-if="me.tier && hasResult"
+                class="tier"
+                :style="{ color: TIER_COLOR[me.tier], borderColor: TIER_COLOR[me.tier] }"
+              >{{ tierLabel(me.tier) }}</span>
+            </div>
+            <div class="mp-score font-numeric">
+              {{ me.prediction.home }} <span class="colon">:</span> {{ me.prediction.away }}
+            </div>
+            <div v-if="hasResult && me.tier" class="earned">
+              Você fez <span class="font-numeric earned-pts" :style="{ color: TIER_COLOR[me.tier] }">+{{ me.points }}</span> pts nesta partida
+            </div>
           </div>
-          <div class="font-numeric big">
-            <span>{{ shownHome }}</span><span class="colon">:</span><span>{{ shownAway }}</span>
+
+          <!-- ranking -->
+          <div class="mrank">
+            <div class="mr-head">
+              <span class="mr-title">Ranking da partida · membros</span>
+              <span class="state" :class="{ live: stateMeta.live }" :style="{ color: stateMeta.color, borderColor: stateMeta.color }">
+                <span v-if="stateMeta.live" class="dot" />{{ stateMeta.label }}
+              </span>
+            </div>
+            <p class="mr-note">
+              {{ ranking?.totalParticipants ?? 0 }} palpite(s).
+              <template v-if="ranking?.provisional"> Pontuação provisória — muda com o placar.</template>
+            </p>
+
+            <p v-if="ranking && !revealed" class="locknote">
+              🔒 Os palpites dos membros aparecem quando a partida começar.
+            </p>
+
+            <div v-if="podium.length" class="podium">
+              <div v-for="{ e, slot } in podium" :key="e.user.id" class="pcol">
+                <div class="pav" :style="{ background: color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 18px -4px ${MEDALS[slot]}` }">{{ initials(e.user.name) }}</div>
+                <div class="pname">{{ e.user.name }}</div>
+                <div class="font-numeric pscore">{{ guess(e) }}</div>
+                <div class="ppts" :style="{ color: MEDALS[slot] }">+{{ e.points }}</div>
+                <div class="pbar" :style="{ height: HEIGHTS[slot], background: `linear-gradient(180deg, ${MEDALS[slot]}, transparent)` }">
+                  <span class="font-numeric prank">{{ e.rank }}º</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rows">
+              <div v-for="e in rest" :key="e.user.id" class="row" :class="{ me: isMe(e) }">
+                <span class="font-numeric pos">{{ e.rank }}</span>
+                <div class="who">
+                  <span class="av" :style="{ background: color(e.user.id) }">{{ initials(e.user.name) }}</span>
+                  <span class="nm">{{ e.user.name }}</span>
+                  <span v-if="isMe(e)" class="youtag">Você</span>
+                </div>
+                <div class="rscore">
+                  <span class="font-numeric">{{ guess(e) }}</span>
+                  <span v-if="e.tier && hasResult" class="tier sm" :style="{ color: TIER_COLOR[e.tier], borderColor: TIER_COLOR[e.tier] }">{{ tierLabel(e.tier) }}</span>
+                  <span v-if="hasResult" class="rp" :style="{ color: e.tier ? TIER_COLOR[e.tier] : 'var(--muted)' }">+{{ e.points }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="me && !inTop && revealed" class="sticky">
+              <div class="sticky-cap">Sua posição</div>
+              <div class="row me big">
+                <span class="font-numeric pos gold">{{ me.rank }}º</span>
+                <div class="who">
+                  <span class="av pitch">{{ initials(me.user.name) }}</span>
+                  <span class="nm">{{ me.user.name }}</span>
+                  <span class="youtag">Você</span>
+                </div>
+                <div class="rscore">
+                  <span class="font-numeric">{{ guess(me) }}</span>
+                  <span v-if="hasResult" class="rp gold">+{{ me.points }}</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="side">
-            <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="54" />
-            <span class="tname">{{ match.awayTeam?.name ?? match.awaySourceLabel }}</span>
-          </div>
-        </div>
-        <div class="sub">
-          <span v-if="match.status === 'LIVE'" class="chip live">AO VIVO</span>
-          <span v-else-if="match.status === 'FINISHED'" class="chip">Encerrado</span>
-          <span v-else>{{ formatKickoff(match.kickoffAt, tz) }}</span>
-          <template v-if="match.stadium"> · {{ match.stadium.name }}</template>
         </div>
       </div>
-
-      <!-- member ranking -->
-      <div class="mr-head">
-        <span class="mr-title">Ranking da partida · membros</span>
-      </div>
-
-      <!-- hidden until kickoff -->
-      <template v-if="!preds?.revealed">
-        <p class="muted lock">🔒 Os palpites dos membros aparecem quando a partida começar.</p>
-        <div v-if="ownEntry" class="row me">
-          <span class="av pitch">{{ initials(ownEntry.user.name) }}</span>
-          <span class="nm">Seu palpite</span>
-          <span class="font-numeric gs">{{ guess(ownEntry) }}</span>
-        </div>
-        <p v-else class="muted small">Você ainda não palpitou este jogo.</p>
-      </template>
-
-      <!-- revealed -->
-      <template v-else>
-        <p v-if="!ranked.length" class="muted small">Nenhum membro palpitou este jogo.</p>
-        <div class="rows">
-          <div v-for="e in ranked" :key="e.user.id" class="row" :class="{ me: isMe(e.user.id) }">
-            <span class="font-numeric pos">{{ e.rank }}</span>
-            <span class="av" :style="{ background: color(e.user.id) }">{{ initials(e.user.name) }}</span>
-            <span class="nm">
-              {{ e.user.name }}<span v-if="isMe(e.user.id)" class="youtag">Você</span>
-            </span>
-            <span class="font-numeric gs">{{ guess(e) }}</span>
-            <span
-              v-if="e.tier && playing"
-              class="tier"
-              :style="{ color: TIER_COLOR[e.tier], borderColor: TIER_COLOR[e.tier] }"
-            >{{ tierLabel(e.tier) }}</span>
-            <span v-if="playing" class="rp" :style="{ color: e.tier ? TIER_COLOR[e.tier] : 'var(--muted)' }">
-              +{{ e.points ?? 0 }}
-            </span>
-          </div>
-        </div>
-      </template>
     </template>
   </div>
 </template>
@@ -172,10 +226,12 @@ const isMe = (uid: string) => uid === auth.user?.id;
   padding: 2rem 0;
 }
 .detail {
-  border-radius: 18px;
-  padding: 18px;
-  background: linear-gradient(135deg, rgba(15, 179, 107, 0.14), rgba(30, 127, 240, 0.12)), var(--bg-surface);
-  margin-bottom: 18px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.result-head {
+  padding: 22px 20px;
+  background: linear-gradient(135deg, rgba(15, 179, 107, 0.16), rgba(30, 127, 240, 0.14));
 }
 .rlabel {
   text-align: center;
@@ -184,11 +240,11 @@ const isMe = (uid: string) => uid === auth.user?.id;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 .result {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 10px;
 }
@@ -196,47 +252,99 @@ const isMe = (uid: string) => uid === auth.user?.id;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  min-width: 0;
 }
 .tname {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   text-align: center;
 }
 .big {
-  font-size: 44px;
+  font-size: 54px;
   line-height: 0.8;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 .colon {
   color: var(--muted);
 }
-.sub {
+.venue {
   text-align: center;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.body {
+  padding: 20px;
+}
+.mypred {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 12%, var(--bg-base)), var(--bg-base));
+  border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--border));
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 22px;
+}
+.mp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.mp-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+}
+.tier {
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1.5px solid;
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+.tier.sm {
+  font-size: 9.5px;
+  padding: 3px 8px;
+  border-width: 1px;
+}
+.mp-score {
+  text-align: center;
+  font-size: 46px;
+  line-height: 0.85;
+}
+.earned {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid color-mix(in srgb, var(--gold) 22%, var(--border));
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
 }
-.chip {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 8px;
-}
-.chip.live {
-  color: var(--emerald);
-  border-color: var(--emerald);
+.earned-pts {
+  font-size: 36px;
+  line-height: 0.8;
 }
 .mr-head {
-  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 .mr-title {
   font-size: 11px;
@@ -245,13 +353,102 @@ const isMe = (uid: string) => uid === auth.user?.id;
   letter-spacing: 0.07em;
   color: var(--muted);
 }
-.lock {
-  font-weight: 600;
-  font-size: 13px;
-  margin-bottom: 10px;
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
 }
-.small {
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--scarlet);
+  animation: liveDot 1.2s infinite;
+}
+@keyframes liveDot {
+  50% {
+    opacity: 0.3;
+  }
+}
+.mr-note {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.locknote {
   font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+.podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.pcol {
+  flex: 1;
+  max-width: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pav {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  border: 3px solid;
+}
+.pname {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 7px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.pscore {
+  font-size: 18px;
+  letter-spacing: 0.04em;
+}
+.ppts {
+  font-size: 11px;
+  font-weight: 800;
+}
+.pbar {
+  width: 100%;
+  margin-top: 7px;
+  border-radius: 11px 11px 0 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 8px;
+}
+.prank {
+  font-size: 26px;
+  color: #0a0e14;
 }
 .rows {
   display: flex;
@@ -259,7 +456,8 @@ const isMe = (uid: string) => uid === auth.user?.id;
   gap: 7px;
 }
 .row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
@@ -272,11 +470,18 @@ const isMe = (uid: string) => uid === auth.user?.id;
   background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 16%, var(--bg-surface)), var(--bg-surface));
 }
 .pos {
-  font-size: 17px;
+  font-size: 18px;
   color: var(--muted);
-  min-width: 18px;
   text-align: center;
-  flex: 0 0 auto;
+}
+.pos.gold {
+  color: var(--gold);
+}
+.who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 .av {
   width: 30px;
@@ -294,16 +499,11 @@ const isMe = (uid: string) => uid === auth.user?.id;
   background: var(--grad-pitch);
 }
 .nm {
-  flex: 1;
-  min-width: 0;
   font-size: 13.5px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  display: flex;
-  align-items: center;
-  gap: 7px;
 }
 .youtag {
   font-size: 8.5px;
@@ -316,26 +516,41 @@ const isMe = (uid: string) => uid === auth.user?.id;
   padding: 2px 6px;
   flex: 0 0 auto;
 }
-.gs {
-  font-size: 18px;
-  letter-spacing: 0.04em;
+.rscore {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex: 0 0 auto;
 }
-.tier {
-  font-size: 9.5px;
-  font-weight: 800;
-  text-transform: uppercase;
+.rscore .font-numeric {
+  font-size: 19px;
   letter-spacing: 0.04em;
-  border: 1px solid;
-  border-radius: 999px;
-  padding: 3px 8px;
-  flex: 0 0 auto;
 }
 .rp {
   font-size: 12px;
   font-weight: 800;
-  min-width: 34px;
+  min-width: 38px;
   text-align: right;
-  flex: 0 0 auto;
+}
+.rp.gold {
+  color: var(--gold);
+}
+.sticky {
+  position: sticky;
+  bottom: 14px;
+  margin-top: 12px;
+  z-index: 15;
+}
+.sticky-cap {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.row.big {
+  box-shadow: 0 12px 30px -10px rgba(244, 184, 30, 0.5);
 }
 </style>
