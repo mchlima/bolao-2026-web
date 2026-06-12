@@ -114,7 +114,7 @@ const unavailable = computed(() => {
 
 <template>
   <div class="page">
-    <SkeletonList v-if="pending" variant="row" :count="6" />
+    <SkeletonList v-if="pending && !pool" variant="row" :count="6" />
 
     <div v-else-if="error || !pool" class="unavail">
       <div class="ic">🔍</div>

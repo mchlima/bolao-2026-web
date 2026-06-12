@@ -6,7 +6,7 @@ const id = route.params.id as string;
 const ui = useUiStore();
 const tz = useTz();
 
-const { data: pool } = await usePoolDetail(id);
+const pool = usePoolData(id);
 
 const { data: matches, pending } = await useAsyncData(
   `pool-matches-${id}`,

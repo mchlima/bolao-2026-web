@@ -7,7 +7,8 @@ const pools = usePools();
 const ui = useUiStore();
 const auth = useAuthStore();
 
-const { data: pool, refresh } = await usePoolDetail(id);
+const pool = usePoolData(id);
+const refresh = () => refreshPoolData(id);
 
 const ROLE_LABEL: Record<string, string> = {
   OWNER: 'Dono',

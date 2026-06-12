@@ -5,7 +5,7 @@ const route = useRoute();
 const id = route.params.id as string;
 const pools = usePools();
 
-const { data: pool } = await usePoolDetail(id);
+const pool = usePoolData(id);
 const { data: ranking, refresh } = await useAsyncData(`pool-rank-${id}`, () =>
   pools.ranking(id).catch(() => null as RankingResponse | null),
 );

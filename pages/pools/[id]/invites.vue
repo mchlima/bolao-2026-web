@@ -7,7 +7,8 @@ const pools = usePools();
 const ui = useUiStore();
 const origin = useRequestURL().origin;
 
-const { data: pool, refresh } = await usePoolDetail(id);
+const pool = usePoolData(id);
+const refresh = () => refreshPoolData(id);
 
 const canManage = computed(
   () => pool.value?.myRole === 'OWNER' || pool.value?.myRole === 'ADMIN',
