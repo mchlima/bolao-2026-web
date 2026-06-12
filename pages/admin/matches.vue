@@ -4,6 +4,10 @@ import type { Match, Paginated, Stadium, Team, Tournament } from '~/types/api';
 definePageMeta({ middleware: 'admin' });
 const ui = useUiStore();
 const route = useRoute();
+const tz = useTz();
+const tzShort = computed(() =>
+  tz.value === 'UTC' ? 'UTC' : (tz.value.split('/').pop() ?? tz.value).replace(/_/g, ' '),
+);
 
 const tournamentFilter = ref('');
 const statusFilter = ref('');
@@ -46,12 +50,6 @@ const form = reactive<Record<string, string>>({
 });
 const saving = ref(false);
 
-function toLocal(iso: string) {
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 function openNew() {
   editing.value = null;
   Object.assign(form, { tournamentId: tournaments.value[0]?.id ?? '', homeTeamId: '', awayTeamId: '', stadiumId: '', kickoffAt: '', phaseLabel: '', groupName: '', matchNumber: '', status: 'SCHEDULED', homeScore: '', awayScore: '' });
@@ -61,7 +59,7 @@ function openEdit(m: Match) {
   editing.value = m;
   Object.assign(form, {
     tournamentId: m.tournamentId, homeTeamId: m.homeTeam?.id ?? '', awayTeamId: m.awayTeam?.id ?? '',
-    stadiumId: m.stadium?.id ?? '', kickoffAt: toLocal(m.kickoffAt), phaseLabel: m.phaseLabel ?? '',
+    stadiumId: m.stadium?.id ?? '', kickoffAt: utcToZonedInput(m.kickoffAt, tz.value), phaseLabel: m.phaseLabel ?? '',
     groupName: m.groupName ?? '', matchNumber: m.matchNumber?.toString() ?? '', status: m.status,
     homeScore: m.homeScore?.toString() ?? '', awayScore: m.awayScore?.toString() ?? '',
   });
@@ -77,7 +75,7 @@ async function submit() {
     homeTeamId: form.homeTeamId || undefined,
     awayTeamId: form.awayTeamId || undefined,
     stadiumId: form.stadiumId || undefined,
-    kickoffAt: new Date(form.kickoffAt).toISOString(),
+    kickoffAt: zonedInputToUtc(form.kickoffAt, tz.value),
     phaseLabel: form.phaseLabel || undefined,
     groupName: form.groupName || undefined,
     matchNumber: form.matchNumber ? Number(form.matchNumber) : undefined,
@@ -147,7 +145,7 @@ onMounted(async () => {
             <span class="vs">{{ teamAbbr(m.homeTeam, m.homeSourceLabel) }} <b v-if="m.homeScore != null" class="scr">{{ m.homeScore }}-{{ m.awayScore }}</b><template v-else> × </template> {{ teamAbbr(m.awayTeam, m.awaySourceLabel) }}</span>
             <TeamBadge :team="m.awayTeam" :placeholder="m.awaySourceLabel" :size="22" />
           </span>
-          <span class="dt">{{ m.phaseLabel }}<template v-if="m.groupName"> {{ m.groupName }}</template> · {{ formatKickoff(m.kickoffAt) }}</span>
+          <span class="dt">{{ m.phaseLabel }}<template v-if="m.groupName"> {{ m.groupName }}</template> · {{ formatKickoff(m.kickoffAt, tz) }}</span>
           <span class="vn">{{ m.stadium?.name ?? '—' }}</span>
           <span>
             <NuxtLink v-if="m.status === 'LIVE'" to="/admin/live" class="st live"><span class="d" />{{ STATUS_LABEL[m.status] }}</NuxtLink>
@@ -179,7 +177,7 @@ onMounted(async () => {
         </div>
         <label>Estádio</label>
         <select v-model="form.stadiumId" class="input"><option value="">—</option><option v-for="s in stadiums" :key="s.id" :value="s.id">{{ s.name }} · {{ s.city }}</option></select>
-        <label>Data e hora</label>
+        <label>Data e hora <span class="tzhint">(fuso: {{ tzShort }})</span></label>
         <input v-model="form.kickoffAt" type="datetime-local" class="input" />
         <div class="three">
           <div><label>Fase</label><input v-model="form.phaseLabel" class="input" placeholder="Fase de Grupos" /></div>
@@ -223,6 +221,7 @@ onMounted(async () => {
 .empty { padding: 18px; text-align: center; }
 .form { display: flex; flex-direction: column; gap: 4px; }
 .form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 8px; }
+.tzhint { font-weight: 600; text-transform: none; color: var(--muted); }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 @media (max-width: 760px) { .rhead { display: none; } .row { grid-template-columns: 1fr auto; } .dt, .vn, .row > span:nth-child(4) { display: none; } }
