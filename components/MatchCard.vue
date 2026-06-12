@@ -52,12 +52,15 @@ const tierColor = computed(() =>
   props.prediction?.score ? TIER_COLOR[props.prediction.score.tier] : 'var(--muted)',
 );
 
-// Ranking link target — pool-scoped when rendered inside a pool, else global.
-const rankTo = computed(() =>
-  props.poolId
-    ? `/pools/${props.poolId}/matches/${props.match.id}`
-    : `/matches/${props.match.id}`,
-);
+// Ranking link target — opens the match view inside the matching tabbed shell:
+// pool-scoped when in a pool, else tournament-scoped (same behavior). Falls back
+// to the standalone page only if the match has no tournament.
+const rankTo = computed(() => {
+  if (props.poolId) return `/pools/${props.poolId}/matches/${props.match.id}`;
+  if (props.match.tournamentId)
+    return `/tournaments/${props.match.tournamentId}/matches/${props.match.id}`;
+  return `/matches/${props.match.id}`;
+});
 
 // editable prediction state
 const home = ref<number>(props.prediction?.homeScore ?? 0);
