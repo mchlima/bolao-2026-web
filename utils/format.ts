@@ -61,6 +61,7 @@ const TIER_LABEL: Record<string, string> = {
   ONE_TEAM_SCORE: 'Acertou um placar',
   CLOSE: 'Quase',
   OUTCOME: 'Acertou o vencedor',
+  TEAM_GOALS: 'Gols de um time',
   NONE: 'Não pontuou',
 };
 

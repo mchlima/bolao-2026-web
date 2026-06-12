@@ -132,6 +132,7 @@ const TIER_COLOR: Record<string, string> = {
   ONE_TEAM_SCORE: 'var(--azure)',
   CLOSE: 'var(--gold)',
   OUTCOME: 'var(--magenta)',
+  TEAM_GOALS: 'var(--scarlet)',
   NONE: 'var(--muted)',
 };
 const STATUS_META: Record<

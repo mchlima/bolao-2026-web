@@ -9,6 +9,7 @@ export type ScoreTier =
   | 'ONE_TEAM_SCORE'
   | 'CLOSE'
   | 'OUTCOME'
+  | 'TEAM_GOALS'
   | 'NONE';
 
 export interface User {

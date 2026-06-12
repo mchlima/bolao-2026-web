@@ -8,7 +8,8 @@ const cases = [
   { label: 'Quase', guess: '3-2', why: 'Vencedor certo; cada time ficou a 1 gol (+1 e +1).', pts: '6', color: 'var(--gold)' },
   { label: 'Acertou o vencedor', guess: '4-0', why: 'Acertou quem venceu; o visitante ficou a 1 gol (+1), o mando longe.', pts: '5', color: 'var(--magenta)' },
   { label: 'Acertou o vencedor', guess: '5-3', why: 'Só o vencedor: os dois times ficaram a 2+ gols. Piso da base.', pts: '4', color: 'var(--magenta)' },
-  { label: 'Não pontuou', guess: '1-2', why: 'Previu o visitante vencendo — errou quem ganhou.', pts: '0', color: 'var(--muted)' },
+  { label: 'Gols de um time', guess: '2-3', why: 'Errou quem venceu (previu o visitante), mas cravou o 2 do mandante — só a consolação.', pts: '1', color: 'var(--scarlet)' },
+  { label: 'Não pontuou', guess: '1-2', why: 'Previu o visitante vencendo e não cravou os gols de nenhum time.', pts: '0', color: 'var(--muted)' },
 ];
 </script>
 
@@ -30,9 +31,10 @@ const cases = [
       <div class="fr"><span class="fk">Acertou o vencedor / empate</span><span class="fv">+4 base</span></div>
       <div class="fr"><span class="fk">Cravou os gols de um time</span><span class="fv gold">+3 por time</span></div>
       <div class="fr"><span class="fk">Errou um time por 1 gol</span><span class="fv gold">+1 por time</span></div>
-      <div class="fr"><span class="fk">Errou quem venceu</span><span class="fv muted">0 — zerou a partida</span></div>
+      <div class="fr"><span class="fk">Errou quem venceu, mas cravou os gols de um time</span><span class="fv scarlet">+1 consolação</span></div>
+      <div class="fr"><span class="fk">Errou quem venceu (sem cravar nenhum time)</span><span class="fv muted">0 — zerou a partida</span></div>
     </div>
-    <p class="note">Cravar o placar inteiro dá o máximo: <b class="emerald">10 pontos</b> (4 + 3 + 3).</p>
+    <p class="note">Cravar o placar inteiro dá o máximo: <b class="emerald">10 pontos</b> (4 + 3 + 3). Acertar quem venceu sempre vale mais (≥4) do que a consolação de 1 ponto.</p>
 
     <h2 class="font-display sec2">Um exemplo de cada caso</h2>
     <p class="lead">Todos com o mesmo resultado real — <b>mandante 2 × 1 visitante</b> — variando só o seu palpite:</p>

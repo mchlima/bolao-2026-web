@@ -21,6 +21,7 @@ const TIER_COLOR: Record<string, string> = {
   ONE_TEAM_SCORE: 'var(--azure)',
   CLOSE: 'var(--gold)',
   OUTCOME: 'var(--magenta)',
+  TEAM_GOALS: 'var(--scarlet)',
   NONE: 'var(--muted)',
 };
 const MEDALS = ['var(--gold)', '#C2CAD6', '#CD7F45'];
