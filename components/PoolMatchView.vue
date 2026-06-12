@@ -132,7 +132,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   <div>
     <button class="back" @click="emit('back')">← Jogos</button>
 
-    <SkeletonList v-if="pending" variant="match" :count="1" />
+    <SkeletonList v-if="pending && !data" variant="match" :count="1" />
     <p v-else-if="error || !match" class="muted load">Partida indisponível.</p>
 
     <template v-else>

@@ -12,7 +12,7 @@ useRealtime(() => [`tournament:${id}`], () => refresh());
 
 <template>
   <div>
-    <SkeletonList v-if="pending" variant="row" :count="8" />
+    <SkeletonList v-if="pending && !data" variant="row" :count="8" />
     <p v-else-if="error || !data" class="muted load">Ranking indisponível.</p>
     <template v-else>
       <div class="head">

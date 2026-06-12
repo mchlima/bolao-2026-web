@@ -217,7 +217,7 @@ function phaseText(m: Prediction['match']): string {
       </div>
     </div>
 
-    <SkeletonList v-if="pending" variant="row" :count="6" />
+    <SkeletonList v-if="pending && !data" variant="row" :count="6" />
 
     <template v-else>
       <p v-if="!all.length" class="empty muted">Você ainda não fez palpites.</p>

@@ -123,7 +123,7 @@ function clearFilters() {
 
 <template>
   <div>
-    <SkeletonList v-if="pending" variant="match" :count="6" />
+    <SkeletonList v-if="pending && !data" variant="match" :count="6" />
     <p v-else-if="error || !data" class="muted load">Torneio não encontrado.</p>
     <template v-else>
       <!-- filters -->

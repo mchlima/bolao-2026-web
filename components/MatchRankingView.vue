@@ -124,7 +124,7 @@ function guess(e: { prediction?: { home: number; away: number } }): string {
   <div>
     <button class="back" @click="emit('back')">← {{ backLabel }}</button>
 
-    <SkeletonList v-if="pending" variant="match" :count="1" />
+    <SkeletonList v-if="pending && !data" variant="match" :count="1" />
     <p v-else-if="error || !match" class="muted load">Partida não encontrada.</p>
     <template v-else>
       <!-- result card -->
