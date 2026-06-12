@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import type { Match, Prediction } from '~/types/api';
 
-const props = defineProps<{ match: Match; prediction?: Prediction | null }>();
+const props = defineProps<{
+  match: Match;
+  prediction?: Prediction | null;
+  // When inside a pool, the footer "Ranking" link points at the pool-scoped
+  // match view instead of the global one. Predictions stay global (single).
+  poolId?: string;
+}>();
 const emit = defineEmits<{ saved: [Prediction] }>();
 const auth = useAuthStore();
 const tz = useTz();
@@ -39,10 +45,18 @@ const TIER_COLOR: Record<string, string> = {
   ONE_TEAM_SCORE: 'var(--azure)',
   CLOSE: 'var(--gold)',
   OUTCOME: 'var(--magenta)',
+  TEAM_GOALS: 'var(--scarlet)',
   NONE: 'var(--muted)',
 };
 const tierColor = computed(() =>
   props.prediction?.score ? TIER_COLOR[props.prediction.score.tier] : 'var(--muted)',
+);
+
+// Ranking link target — pool-scoped when rendered inside a pool, else global.
+const rankTo = computed(() =>
+  props.poolId
+    ? `/pools/${props.poolId}/matches/${props.match.id}`
+    : `/matches/${props.match.id}`,
 );
 
 // editable prediction state
@@ -204,7 +218,7 @@ const leftLabel = computed(() =>
 
       <NuxtLink
         v-if="match.homeTeam && match.awayTeam"
-        :to="`/matches/${match.id}`"
+        :to="rankTo"
         class="rank-link"
       >
         Ranking

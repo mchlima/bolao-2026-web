@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import type { Match, Paginated } from '~/types/api';
+import type { Match, Paginated, Prediction } from '~/types/api';
 
 const route = useRoute();
 const id = route.params.id as string;
 const ui = useUiStore();
 const tz = useTz();
+const auth = useAuthStore();
 
 const pool = usePoolData(id);
 
-const { data: matches, pending } = await useAsyncData(
+const { data, pending, refresh } = await useAsyncData(
   `pool-matches-${id}`,
   async () => {
-    if (!pool.value) return [] as Match[];
+    const empty = { matches: [] as Match[], predictions: [] as Prediction[] };
+    if (!pool.value) return empty;
     try {
       const api = useApi();
       const tid = pool.value.tournament.id;
@@ -28,31 +30,44 @@ const { data: matches, pending } = await useAsyncData(
         page++;
       } while (page <= totalPages);
       // Chronological — by kickoff (earliest first).
-      return all.sort(
+      all.sort(
         (a, b) =>
           new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
       );
+      // Predictions are global/single — load the user's for this tournament so
+      // the cards can show + edit them right here (same flow as the tournament page).
+      let predictions: Prediction[] = [];
+      if (auth.token) {
+        predictions = await api<Prediction[]>(`/predictions/me?tournamentId=${tid}`);
+      }
+      return { matches: all, predictions };
     } catch (e) {
       ui.toast('error', poolError(e));
-      return [] as Match[];
+      return empty;
     }
   },
 );
 
-function matchPlayed(m: Match): boolean {
-  return m.status === 'LIVE' || m.status === 'FINISHED';
+const predMap = ref<Record<string, Prediction>>({});
+watchEffect(() => {
+  const m: Record<string, Prediction> = {};
+  for (const p of data.value?.predictions ?? []) m[p.matchId] = p;
+  predMap.value = m;
+});
+function onSaved(p: Prediction) {
+  predMap.value = { ...predMap.value, [p.matchId]: p };
 }
-function kickoffTime(iso: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: tz.value,
-  }).format(new Date(iso));
-}
+
+const tid = computed(() => pool.value?.tournament.id);
+useRealtime(
+  () => (tid.value ? [`tournament:${tid.value}`] : []),
+  () => refresh(),
+);
+
 // Group matches by calendar day (in the account tz) for date headers.
 const matchesByDay = computed(() => {
   const out: { day: string; items: Match[] }[] = [];
-  for (const m of matches.value ?? []) {
+  for (const m of data.value?.matches ?? []) {
     const day = formatDate(m.kickoffAt, tz.value);
     const last = out[out.length - 1];
     if (last && last.day === day) last.items.push(m);
@@ -64,35 +79,21 @@ const matchesByDay = computed(() => {
 
 <template>
   <section class="matches">
-    <SkeletonList v-if="pending && !matches?.length" variant="row" :count="6" />
-    <p v-else-if="!matches?.length" class="muted empty">
+    <SkeletonList v-if="pending && !data?.matches?.length" variant="match" :count="6" />
+    <p v-else-if="!data?.matches?.length" class="muted empty">
       Nenhuma partida neste torneio ainda.
     </p>
     <template v-else>
       <div v-for="grp in matchesByDay" :key="grp.day" class="daygrp">
         <div class="dayhd">{{ grp.day }}</div>
-        <NuxtLink
+        <MatchCard
           v-for="m in grp.items"
           :key="m.id"
-          :to="`/pools/${id}/matches/${m.id}`"
-          class="game"
-        >
-          <div class="g-side">
-            <TeamBadge :team="m.homeTeam" :placeholder="m.homeSourceLabel" :size="26" />
-            <span class="g-tn">{{ m.homeTeam?.name ?? m.homeSourceLabel ?? 'A definir' }}</span>
-          </div>
-          <div class="g-mid">
-            <span v-if="matchPlayed(m)" class="g-score font-numeric">
-              {{ m.homeScore }}<span class="x">:</span>{{ m.awayScore }}
-            </span>
-            <span v-else class="g-time">{{ kickoffTime(m.kickoffAt) }}</span>
-            <span v-if="m.status === 'LIVE'" class="g-livedot" />
-          </div>
-          <div class="g-side end">
-            <span class="g-tn end">{{ m.awayTeam?.name ?? m.awaySourceLabel ?? 'A definir' }}</span>
-            <TeamBadge :team="m.awayTeam" :placeholder="m.awaySourceLabel" :size="26" />
-          </div>
-        </NuxtLink>
+          :match="m"
+          :prediction="predMap[m.id] ?? null"
+          :pool-id="id"
+          @saved="onSaved"
+        />
       </div>
     </template>
   </section>
@@ -112,7 +113,7 @@ const matchesByDay = computed(() => {
 .daygrp {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 10px;
 }
 .dayhd {
   font-size: 11px;
@@ -121,75 +122,5 @@ const matchesByDay = computed(() => {
   letter-spacing: 0.06em;
   color: var(--muted);
   padding: 0 2px 2px;
-}
-.game {
-  width: 100%;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  color: var(--text);
-  text-decoration: none;
-  cursor: pointer;
-  transition: border-color 0.15s, transform 0.1s;
-}
-.game:hover {
-  border-color: color-mix(in srgb, var(--emerald) 45%, var(--border));
-}
-.game:active {
-  transform: scale(0.995);
-}
-.g-side {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-width: 0;
-}
-.g-side.end {
-  justify-content: flex-end;
-}
-.g-tn {
-  min-width: 0;
-  font-size: 13.5px;
-  font-weight: 700;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.g-mid {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  flex: 0 0 auto;
-}
-.g-score {
-  font-size: 18px;
-}
-.g-score .x {
-  color: var(--muted);
-  margin: 0 3px;
-}
-.g-time {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.g-livedot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--scarlet);
-  animation: liveDot 1.2s infinite;
-}
-@keyframes liveDot {
-  50% {
-    opacity: 0.3;
-  }
 }
 </style>

@@ -3,6 +3,7 @@ import type { Match, Paginated, Prediction } from '~/types/api';
 
 const route = useRoute();
 const auth = useAuthStore();
+const tz = useTz();
 const id = route.params.id as string;
 
 // The tournament header + tabs live in the layout (tournaments/[id].vue); this
@@ -90,10 +91,15 @@ const filtered = computed(() => {
   });
 });
 
+// Sections are grouped by calendar day (account tz), matches in kickoff order —
+// same shape as the pool matches screen. The phase select stays as a filter.
 const sections = computed(() => {
+  const sorted = [...filtered.value].sort(
+    (a, b) => new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
+  );
   const out: Array<{ title: string; matches: Match[] }> = [];
-  for (const m of filtered.value) {
-    const title = phaseTitle(m);
+  for (const m of sorted) {
+    const title = formatDate(m.kickoffAt, tz.value);
     let s = out[out.length - 1];
     if (!s || s.title !== title) {
       s = { title, matches: [] };
