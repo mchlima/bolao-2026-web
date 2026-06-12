@@ -18,12 +18,18 @@ export function usePools() {
     create: (body: {
       name: string;
       description?: string;
+      inviteDescription?: string;
       tournamentId: string;
       visibility?: PoolVisibility;
     }) => api<PoolDetail>('/pools', { method: 'POST', body }),
     update: (
       id: string,
-      body: { name?: string; description?: string; visibility?: PoolVisibility },
+      body: {
+        name?: string;
+        description?: string;
+        inviteDescription?: string;
+        visibility?: PoolVisibility;
+      },
     ) => api<PoolDetail>(`/pools/${id}`, { method: 'PATCH', body }),
     remove: (id: string) => api(`/pools/${id}`, { method: 'DELETE' }),
     leave: (id: string) => api(`/pools/${id}/leave`, { method: 'POST' }),

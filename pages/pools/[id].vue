@@ -4,7 +4,6 @@ import type {
   Paginated,
   PoolDetail,
   PoolInviteView,
-  PoolMatchPredictionsView,
   PoolMemberView,
   RankingResponse,
 } from '~/types/api';
@@ -35,10 +34,7 @@ const { data: ranking, refresh: refreshRanking } = await useAsyncData(
 
 useRealtime(
   () => (pool.value ? [`tournament:${pool.value.tournament.id}`] : []),
-  () => {
-    refreshRanking();
-    predCache.value = {}; // a kickoff/score event may reveal predictions
-  },
+  () => refreshRanking(),
 );
 
 const myId = computed(() => auth.user?.id);
@@ -48,9 +44,17 @@ const canManage = computed(
 );
 const isOwner = computed(() => myRole.value === 'OWNER');
 
-const tab = ref<'ranking' | 'members' | 'matches' | 'invites'>('ranking');
+// 'match' is a hidden tab — reached by clicking a game in the Jogos list.
+const tab = ref<'ranking' | 'members' | 'matches' | 'invites' | 'match'>(
+  'ranking',
+);
+const selectedMatchId = ref<string | null>(null);
+function openMatch(m: Match) {
+  selectedMatchId.value = m.id;
+  tab.value = 'match';
+}
 
-// ── "Jogos" tab: matches + per-match member predictions (lazy) ──
+// ── "Jogos" tab: the tournament's matches in chronological order ──
 const matches = ref<Match[] | null>(null);
 const matchesLoading = ref(false);
 async function loadMatches() {
@@ -71,10 +75,10 @@ async function loadMatches() {
       totalPages = res.pagination.totalPages;
       page++;
     } while (page <= totalPages);
-    // Most recent first — played games (with revealed predictions) on top.
+    // Chronological — by kickoff (earliest first).
     matches.value = all.sort(
       (a, b) =>
-        new Date(b.kickoffAt).getTime() - new Date(a.kickoffAt).getTime(),
+        new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
     );
   } catch (e) {
     ui.toast('error', apiError(e));
@@ -85,34 +89,27 @@ async function loadMatches() {
 watch(tab, (t) => {
   if (t === 'matches') loadMatches();
 });
-
-const expanded = ref<string | null>(null);
-const predCache = ref<Record<string, PoolMatchPredictionsView>>({});
-const predLoading = ref<string | null>(null);
-async function toggleMatch(m: Match) {
-  if (expanded.value === m.id) {
-    expanded.value = null;
-    return;
-  }
-  expanded.value = m.id;
-  if (!predCache.value[m.id]) {
-    predLoading.value = m.id;
-    try {
-      predCache.value = {
-        ...predCache.value,
-        [m.id]: await pools.matchPredictions(id, m.id),
-      };
-    } catch (e) {
-      ui.toast('error', apiError(e));
-      expanded.value = null;
-    } finally {
-      predLoading.value = null;
-    }
-  }
-}
 function matchPlayed(m: Match): boolean {
   return m.status === 'LIVE' || m.status === 'FINISHED';
 }
+function kickoffTime(iso: string): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: tz.value,
+  }).format(new Date(iso));
+}
+// Group matches by calendar day (in the account tz) for date headers.
+const matchesByDay = computed(() => {
+  const out: { day: string; items: Match[] }[] = [];
+  for (const m of matches.value ?? []) {
+    const day = formatDate(m.kickoffAt, tz.value);
+    const last = out[out.length - 1];
+    if (last && last.day === day) last.items.push(m);
+    else out.push({ day, items: [m] });
+  }
+  return out;
+});
 
 function apiError(e: unknown): string {
   return (e as { data?: { message?: string } })?.data?.message ?? 'Algo deu errado.';
@@ -131,10 +128,12 @@ function color(uid: string): string {
 const editOpen = ref(false);
 const editName = ref('');
 const editDescription = ref('');
+const editInviteDescription = ref('');
 const saving = ref(false);
 function openEdit() {
   editName.value = pool.value?.name ?? '';
   editDescription.value = pool.value?.description ?? '';
+  editInviteDescription.value = pool.value?.inviteDescription ?? '';
   editOpen.value = true;
 }
 async function saveEdit() {
@@ -144,6 +143,7 @@ async function saveEdit() {
     await pools.update(id, {
       name: editName.value.trim(),
       description: editDescription.value.trim(),
+      inviteDescription: editInviteDescription.value.trim(),
     });
     editOpen.value = false;
     await refreshPool();
@@ -386,76 +386,45 @@ const unavailable = computed(() => {
         </div>
       </section>
 
-      <!-- MATCHES (palpites por jogo de cada membro) -->
+      <!-- MATCHES — chronological list; click a game to see the pool's match ranking -->
       <section v-show="tab === 'matches'" class="matches">
         <SkeletonList v-if="matchesLoading && !matches" variant="row" :count="6" />
         <p v-else-if="!matches?.length" class="muted empty">
           Nenhuma partida neste torneio ainda.
         </p>
         <template v-else>
-          <p class="muted hintline">
-            Os palpites dos outros membros aparecem quando a partida começa.
-          </p>
-          <div v-for="m in matches" :key="m.id" class="game">
-            <button class="g-head" @click="toggleMatch(m)">
-              <div class="g-teams">
-                <span class="g-tname">{{ m.homeTeam?.name ?? m.homeSourceLabel ?? 'A definir' }}</span>
-                <span v-if="matchPlayed(m)" class="g-score font-numeric">
-                  {{ m.homeScore }}<span class="x">×</span>{{ m.awayScore }}
-                </span>
-                <span v-else class="g-x">×</span>
-                <span class="g-tname end">{{ m.awayTeam?.name ?? m.awaySourceLabel ?? 'A definir' }}</span>
+          <div v-for="grp in matchesByDay" :key="grp.day" class="daygrp">
+            <div class="dayhd">{{ grp.day }}</div>
+            <button v-for="m in grp.items" :key="m.id" class="game" @click="openMatch(m)">
+              <div class="g-side">
+                <TeamBadge :team="m.homeTeam" :placeholder="m.homeSourceLabel" :size="26" />
+                <span class="g-tn">{{ m.homeTeam?.name ?? m.homeSourceLabel ?? 'A definir' }}</span>
               </div>
-              <div class="g-meta">
-                <span
-                  v-if="m.status === 'LIVE'"
-                  class="g-chip live"
-                >AO VIVO</span>
-                <span v-else-if="m.status === 'FINISHED'" class="g-chip">Encerrado</span>
-                <span v-else-if="m.status === 'CANCELLED'" class="g-chip">Cancelado</span>
-                <span v-else class="g-time">{{ formatKickoff(m.kickoffAt, tz) }}</span>
-                <span class="caret" :class="{ open: expanded === m.id }">▾</span>
+              <div class="g-mid">
+                <span v-if="matchPlayed(m)" class="g-score font-numeric">
+                  {{ m.homeScore }}<span class="x">:</span>{{ m.awayScore }}
+                </span>
+                <span v-else class="g-time">{{ kickoffTime(m.kickoffAt) }}</span>
+                <span v-if="m.status === 'LIVE'" class="g-livedot" />
+              </div>
+              <div class="g-side end">
+                <span class="g-tn end">{{ m.awayTeam?.name ?? m.awaySourceLabel ?? 'A definir' }}</span>
+                <TeamBadge :team="m.awayTeam" :placeholder="m.awaySourceLabel" :size="26" />
               </div>
             </button>
-
-            <div v-if="expanded === m.id" class="g-body">
-              <p v-if="predLoading === m.id" class="muted small">Carregando…</p>
-              <template v-else-if="predCache[m.id]">
-                <!-- revealed: everyone's predictions -->
-                <template v-if="predCache[m.id].revealed">
-                  <p v-if="!predCache[m.id].entries.length" class="muted small">
-                    Nenhum membro palpitou este jogo.
-                  </p>
-                  <div
-                    v-for="e in predCache[m.id].entries"
-                    :key="e.user.id"
-                    class="prow"
-                    :class="{ me: e.user.id === myId }"
-                  >
-                    <span class="av sm" :style="{ background: color(e.user.id) }">{{ initials(e.user.name) }}</span>
-                    <span class="p-name">{{ e.user.name }}</span>
-                    <span class="p-guess font-numeric">{{ e.prediction.home }}–{{ e.prediction.away }}</span>
-                    <span v-if="e.tier" class="p-tier" :class="{ exact: e.tier === 'EXACT' }">
-                      {{ tierLabel(e.tier) }}<template v-if="e.points != null"> · {{ e.points }}</template>
-                    </span>
-                  </div>
-                </template>
-                <!-- hidden until kickoff: only own prediction -->
-                <template v-else>
-                  <p class="muted small lock">🔒 Palpites revelados quando a partida começar.</p>
-                  <div v-if="predCache[m.id].entries.length" class="prow me">
-                    <span class="av sm pitch">{{ initials(predCache[m.id].entries[0].user.name) }}</span>
-                    <span class="p-name">Seu palpite</span>
-                    <span class="p-guess font-numeric">
-                      {{ predCache[m.id].entries[0].prediction.home }}–{{ predCache[m.id].entries[0].prediction.away }}
-                    </span>
-                  </div>
-                  <p v-else class="muted small">Você ainda não palpitou este jogo.</p>
-                </template>
-              </template>
-            </div>
           </div>
         </template>
+      </section>
+
+      <!-- MATCH — hidden tab, opened by clicking a game above -->
+      <section v-show="tab === 'match'">
+        <PoolMatchView
+          v-if="selectedMatchId"
+          :key="selectedMatchId"
+          :pool-id="id"
+          :match-id="selectedMatchId"
+          @back="tab = 'matches'"
+        />
       </section>
 
       <!-- INVITES -->
@@ -495,13 +464,23 @@ const unavailable = computed(() => {
           <input v-model="editName" class="inp" maxlength="60" required />
         </div>
         <div>
-          <label class="lbl">Descrição (opcional)</label>
+          <label class="lbl">Descrição interna (membros)</label>
           <textarea
             v-model="editDescription"
             class="inp area"
             maxlength="500"
-            rows="3"
-            placeholder="Conte do que se trata o bolão, regras combinadas, prêmio…"
+            rows="2"
+            placeholder="Regras combinadas, prêmio…"
+          />
+        </div>
+        <div>
+          <label class="lbl">Mensagem do convite</label>
+          <textarea
+            v-model="editInviteDescription"
+            class="inp area"
+            maxlength="500"
+            rows="2"
+            placeholder="Aparece para quem abrir o link de convite."
           />
         </div>
       </form>
@@ -812,150 +791,89 @@ const unavailable = computed(() => {
 .matches {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 18px;
 }
-.hintline {
-  font-size: 12px;
-  margin-bottom: 4px;
+.daygrp {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.dayhd {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 0 2px 2px;
 }
 .game {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-}
-.g-head {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border: none;
-  background: none;
+  border-radius: 13px;
   color: var(--text);
   font: inherit;
   cursor: pointer;
   text-align: left;
+  transition: border-color 0.15s, transform 0.1s;
 }
-.g-teams {
+.game:hover {
+  border-color: color-mix(in srgb, var(--emerald) 45%, var(--border));
+}
+.game:active {
+  transform: scale(0.995);
+}
+.g-side {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   min-width: 0;
-  flex: 1;
 }
-.g-tname {
+.g-side.end {
+  justify-content: flex-end;
+}
+.g-tn {
   font-size: 13.5px;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
-  min-width: 0;
 }
-.g-tname.end {
-  text-align: right;
+.g-mid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
 }
 .g-score {
-  font-size: 17px;
-  flex: 0 0 auto;
+  font-size: 18px;
 }
-.g-score .x,
-.g-x {
+.g-score .x {
   color: var(--muted);
-  margin: 0 5px;
-  font-weight: 600;
-}
-.g-x {
-  flex: 0 0 auto;
-}
-.g-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
+  margin: 0 3px;
 }
 .g-time {
-  font-size: 11.5px;
-  color: var(--muted);
-  font-weight: 600;
-  white-space: nowrap;
-}
-.g-chip {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 8px;
-}
-.g-chip.live {
-  color: var(--emerald);
-  border-color: var(--emerald);
-}
-.caret {
-  color: var(--muted);
-  transition: transform 0.15s;
-  font-size: 12px;
-}
-.caret.open {
-  transform: rotate(180deg);
-}
-.g-body {
-  padding: 4px 14px 14px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.small {
-  font-size: 12.5px;
-  padding: 8px 0 2px;
-}
-.lock {
-  font-weight: 600;
-}
-.prow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 0;
-}
-.prow.me .p-name {
-  color: var(--text);
-  font-weight: 800;
-}
-.av.sm {
-  width: 28px;
-  height: 28px;
-  font-size: 11px;
-}
-.av.pitch {
-  background: var(--grad-pitch);
-}
-.p-name {
-  flex: 1;
-  min-width: 0;
-  font-size: 13.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.p-guess {
-  font-size: 16px;
-  flex: 0 0 auto;
-}
-.p-tier {
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--muted);
-  flex: 0 0 auto;
+  white-space: nowrap;
 }
-.p-tier.exact {
-  color: var(--gold);
+.g-livedot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--scarlet);
+  animation: liveDot 1.2s infinite;
+}
+@keyframes liveDot {
+  50% {
+    opacity: 0.3;
+  }
 }
 </style>
