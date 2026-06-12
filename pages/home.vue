@@ -124,6 +124,18 @@ const firstName = computed(
           />
         </div>
       </template>
+
+      <!-- HELP CTA — points new users to the rules -->
+      <NuxtLink to="/howto" class="cta-help">
+        <div class="cta-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></svg>
+        </div>
+        <div class="cta-text">
+          <h3 class="font-display cta-title">Novo por aqui?</h3>
+          <p class="cta-sub">Entenda como pontuar e dispute o topo do ranking.</p>
+        </div>
+        <span class="cta-go">Como funciona <span aria-hidden="true">→</span></span>
+      </NuxtLink>
     </template>
   </div>
 </template>
@@ -254,5 +266,63 @@ const firstName = computed(
   flex-direction: column;
   gap: 10px;
   margin-bottom: 30px;
+}
+
+/* help CTA */
+.cta-help {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--gold) 32%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 12%, var(--bg-surface)), var(--bg-surface));
+  box-shadow: var(--shadow);
+  transition: transform 0.15s, border-color 0.15s;
+}
+.cta-help:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+}
+.cta-icon {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: #0a0e14;
+  background: var(--gold);
+}
+.cta-text {
+  flex: 1;
+  min-width: 0;
+}
+.cta-title {
+  font-weight: 700;
+  font-size: 17px;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+.cta-sub {
+  color: var(--muted);
+  font-size: 13.5px;
+  margin-top: 3px;
+}
+.cta-go {
+  flex: 0 0 auto;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.03em;
+  color: var(--gold);
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .cta-go {
+    display: none;
+  }
 }
 </style>
