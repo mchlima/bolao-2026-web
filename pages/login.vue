@@ -13,7 +13,7 @@ async function submit() {
   try {
     await auth.login(email.value, password.value);
     ui.toast('success', 'Bem-vindo de volta!');
-    router.push((route.query.redirect as string) || '/');
+    router.push((route.query.redirect as string) || '/tournaments');
   } catch (e) {
     ui.toast(
       'error',

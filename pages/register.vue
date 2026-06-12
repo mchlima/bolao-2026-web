@@ -23,7 +23,7 @@ async function submit() {
   try {
     await auth.register(name.value, email.value, password.value);
     ui.toast('success', 'Conta criada! Boa sorte nos palpites.');
-    router.push('/');
+    router.push('/tournaments');
   } catch (e) {
     ui.toast(
       'error',

@@ -6,7 +6,7 @@ const items = computed(() => {
   // App-only nav: hidden for logged-out visitors (they only see the landing).
   if (!auth.isAuthenticated) return [];
   const base = [
-    { to: '/', label: 'Torneios', icon: 'home' },
+    { to: '/tournaments', label: 'Torneios', icon: 'home' },
     { to: '/predictions', label: 'Palpites', icon: 'ticket' },
     { to: '/howto', label: 'Como funciona', icon: 'book' },
   ];

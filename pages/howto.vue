@@ -84,7 +84,7 @@ const cases = [
     </div>
 
     <div class="cta-wrap">
-      <NuxtLink to="/" class="btn btn-primary">Ir palpitar</NuxtLink>
+      <NuxtLink to="/tournaments" class="btn btn-primary">Ir palpitar</NuxtLink>
     </div>
   </div>
 </template>

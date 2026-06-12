@@ -4,6 +4,6 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`);
   }
   if (!auth.isAdmin) {
-    return navigateTo('/');
+    return navigateTo('/tournaments');
   }
 });
