@@ -17,7 +17,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:3000/api',
+      // Overridden in prod by the NUXT_PUBLIC_API_BASE env var (Nuxt auto-maps
+      // NUXT_PUBLIC_* onto runtimeConfig.public at runtime).
+      apiBase: 'http://localhost:3000/api',
     },
   },
 

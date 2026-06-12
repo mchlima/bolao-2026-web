@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, MatchRankingResponse } from '~/types/api';
+import type { Match, RankingResponse } from '~/types/api';
 
 const route = useRoute();
 const id = route.params.id as string;
@@ -10,7 +10,7 @@ const { data, pending, error, refresh } = await useAsyncData(
     const api = useApi();
     const [match, ranking] = await Promise.all([
       api<Match>(`/matches/${id}`),
-      api<MatchRankingResponse>(`/matches/${id}/ranking`),
+      api<RankingResponse>(`/matches/${id}/ranking`),
     ]);
     return { match, ranking };
   },
