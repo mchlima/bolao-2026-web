@@ -203,6 +203,10 @@ function guess(e: { prediction?: { home: number; away: number } }): string {
               <template v-if="ranking?.provisional"> Pontuação provisória — muda com o placar.</template>
             </p>
 
+            <p v-if="ranking && !ranking.revealed" class="locknote">
+              🔒 Os palpites dos participantes aparecem quando a partida começar.
+            </p>
+
             <div v-if="podium.length" class="podium">
               <div v-for="{ e, slot } in podium" :key="e.user.id" class="pcol">
                 <div class="pav" :style="{ background: color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 18px -4px ${MEDALS[slot]}` }">{{ initials(e.user.name) }}</div>
@@ -231,7 +235,7 @@ function guess(e: { prediction?: { home: number; away: number } }): string {
               </div>
             </div>
 
-            <div v-if="me && !inTop" class="sticky">
+            <div v-if="me && !inTop && ranking?.revealed" class="sticky">
               <div class="sticky-cap">Sua posição</div>
               <div class="row me big">
                 <span class="font-numeric pos gold">{{ me.rank }}º</span>
@@ -434,6 +438,16 @@ function guess(e: { prediction?: { home: number; away: number } }): string {
   font-size: 11.5px;
   color: var(--muted);
   margin-bottom: 14px;
+}
+.locknote {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
 }
 .podium {
   display: flex;

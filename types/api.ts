@@ -131,6 +131,7 @@ export interface RankingResponse {
   totalParticipants: number;
   provisional?: boolean;
   result?: { home: number; away: number } | null;
+  revealed?: boolean; // match ranking: false until kickoff (others hidden)
 }
 
 export interface ApiError {
