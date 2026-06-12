@@ -26,7 +26,6 @@ const isOpen = computed(() => {
   return m.predictionsOpen ?? auto;
 });
 const editable = computed(() => isOpen.value && auth.isAuthenticated);
-// Visual state: already predicted vs still pending (open + logged in + no guess).
 const hasPrediction = computed(() => !!props.prediction);
 const needsPrediction = computed(() => editable.value && !props.prediction);
 
@@ -61,7 +60,25 @@ const saving = ref(false);
 const ui = useUiStore();
 const clamp = (n: number) => Math.max(0, Math.min(99, n));
 
+// Keep the steppers in sync if the prediction loads/changes from outside.
+watch(
+  () => props.prediction,
+  (p) => {
+    home.value = p?.homeScore ?? 0;
+    away.value = p?.awayScore ?? 0;
+  },
+);
+
+// Dirty = steppers differ from the saved prediction (or nothing saved yet).
+const dirty = computed(
+  () =>
+    !props.prediction ||
+    home.value !== props.prediction.homeScore ||
+    away.value !== props.prediction.awayScore,
+);
+
 async function save() {
+  if (saving.value) return;
   saving.value = true;
   try {
     const saved = await useApi()<Prediction>('/predictions', {
@@ -91,8 +108,9 @@ const leftLabel = computed(() =>
   <div class="match" :class="{ live: isLive, predicted: hasPrediction, pending: needsPrediction }">
     <div v-if="isLive" aria-hidden="true" class="live-glow" />
 
+    <!-- header line -->
     <div class="top">
-      <span class="lbl">{{ leftLabel }} · {{ formatKickoff(match.kickoffAt, tz) }}</span>
+      <span class="lbl">{{ leftLabel }}<template v-if="leftLabel"> · </template>{{ formatKickoff(match.kickoffAt, tz) }}</span>
       <span
         class="status"
         :class="{ pulse: statusMeta.live }"
@@ -102,92 +120,105 @@ const leftLabel = computed(() =>
       </span>
     </div>
 
-    <div class="teams">
+    <!-- main row: home · center · away (single line, uniform height) -->
+    <div class="row">
       <div class="side">
-        <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="50" />
+        <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="44" />
         <span class="abbr">{{ teamAbbr(match.homeTeam, match.homeSourceLabel) }}</span>
       </div>
+
       <div class="center">
-        <div v-if="hasResult" class="score">
-          <span>{{ shownHome }}</span><span class="colon">:</span><span>{{ shownAway }}</span>
-        </div>
+        <!-- editable: compact prediction stepper + icon save beside the score -->
+        <template v-if="editable">
+          <div class="edit">
+            <div class="col">
+              <button class="step" aria-label="menos" @click="home = clamp(home - 1)">−</button>
+              <span class="font-numeric num">{{ home }}</span>
+              <button class="step" aria-label="mais" @click="home = clamp(home + 1)">+</button>
+            </div>
+            <span class="font-numeric colon">:</span>
+            <div class="col">
+              <button class="step" aria-label="menos" @click="away = clamp(away - 1)">−</button>
+              <span class="font-numeric num">{{ away }}</span>
+              <button class="step" aria-label="mais" @click="away = clamp(away + 1)">+</button>
+            </div>
+            <button
+              class="save"
+              :class="{ dirty }"
+              :disabled="saving || !dirty"
+              :title="hasPrediction ? 'Atualizar palpite' : 'Confirmar palpite'"
+              :aria-label="hasPrediction ? 'Atualizar palpite' : 'Confirmar palpite'"
+              @click="save"
+            >
+              <svg v-if="!saving" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+              <span v-else class="spin" />
+            </button>
+          </div>
+          <span class="cap">{{ hasPrediction ? 'Seu palpite' : 'Faça seu palpite' }}</span>
+        </template>
+
+        <!-- live / finished: actual scoreline -->
+        <template v-else-if="hasResult">
+          <div class="score">
+            <span>{{ shownHome }}</span><span class="colon">:</span><span>{{ shownAway }}</span>
+          </div>
+        </template>
+
+        <!-- cancelled -->
         <div v-else-if="isCancelled" class="score off">— : —</div>
+
+        <!-- scheduled, not editable (logged out / locked) -->
         <div v-else class="vs">×</div>
       </div>
+
       <div class="side">
-        <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="50" />
+        <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="44" />
         <span class="abbr">{{ teamAbbr(match.awayTeam, match.awaySourceLabel) }}</span>
       </div>
     </div>
 
-    <div v-if="match.stadium" class="venue">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-      <span>{{ match.stadium.name }} · {{ match.stadium.city }}</span>
-    </div>
-
-    <!-- editable prediction -->
-    <div v-if="editable" class="pred">
-      <div class="pred-head">
-        <span class="pred-title">Seu palpite</span>
-        <span class="pred-hint">use +/− para ajustar</span>
-      </div>
-      <div class="stepper">
-        <div class="col">
-          <button class="step" @click="home = clamp(home - 1)">−</button>
-          <span class="num">{{ home }}</span>
-          <button class="step" @click="home = clamp(home + 1)">+</button>
-        </div>
-        <span class="num colon">:</span>
-        <div class="col">
-          <button class="step" @click="away = clamp(away - 1)">−</button>
-          <span class="num">{{ away }}</span>
-          <button class="step" @click="away = clamp(away + 1)">+</button>
-        </div>
-      </div>
-      <button class="btn btn-gold btn-block save" :disabled="saving" @click="save">
-        {{ prediction ? 'Atualizar palpite' : 'Confirmar palpite' }}
-      </button>
-    </div>
-
-    <!-- locked prediction -->
-    <div v-else-if="prediction" class="pred locked">
-      <div class="pred-head">
-        <span class="pred-title">Seu palpite</span>
+    <!-- footer line: prediction summary / context + ranking link (uniform) -->
+    <div class="foot">
+      <div class="foot-main">
+        <!-- locked prediction: guess + tier/points -->
         <span
-          v-if="prediction.score"
-          class="tier"
+          v-if="!editable && prediction"
+          class="chip"
           :style="{ color: tierColor, borderColor: tierColor }"
         >
-          {{ tierLabel(prediction.score.tier) }} · +{{ prediction.score.points }}
+          Palpite {{ prediction.homeScore }}:{{ prediction.awayScore }}
+          <template v-if="prediction.score"> · {{ tierLabel(prediction.score.tier) }} +{{ prediction.score.points }}</template>
+        </span>
+
+        <!-- editable + already has a saved guess -->
+        <span v-else-if="editable && prediction" class="muted-mini">
+          salvo {{ prediction.homeScore }}:{{ prediction.awayScore }}
+        </span>
+
+        <!-- open, not logged in -->
+        <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" to="/login" class="cta-mini">
+          Entre para palpitar →
+        </NuxtLink>
+
+        <!-- cancelled note -->
+        <span v-else-if="isCancelled" class="muted-mini">Cancelada — não pontua</span>
+
+        <!-- venue fallback (keeps the line populated) -->
+        <span v-else-if="match.stadium" class="muted-mini venue">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          {{ match.stadium.name }}
         </span>
       </div>
-      <div class="locked-score">
-        <span class="num">{{ prediction.homeScore }}</span>
-        <span class="num colon">:</span>
-        <span class="num">{{ prediction.awayScore }}</span>
-      </div>
+
+      <NuxtLink
+        v-if="match.homeTeam && match.awayTeam"
+        :to="`/matches/${match.id}`"
+        class="rank-link"
+      >
+        Ranking
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+      </NuxtLink>
     </div>
-
-    <!-- cancelled -->
-    <div v-else-if="isCancelled" class="cancelled">
-      Partida cancelada — não gera pontos
-    </div>
-
-    <!-- not logged, open -->
-    <NuxtLink v-else-if="isOpen" to="/login" class="btn btn-block login-cta">
-      Entre para palpitar →
-    </NuxtLink>
-
-    <!-- match ranking link (teams defined) -->
-    <NuxtLink
-      v-if="match.homeTeam && match.awayTeam"
-      :to="`/matches/${match.id}`"
-      class="rank-btn"
-    >
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>
-      Ranking da partida
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-    </NuxtLink>
   </div>
 </template>
 
@@ -197,54 +228,55 @@ const leftLabel = computed(() =>
   overflow: hidden;
   background: var(--bg-surface);
   border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 16px;
+  border-radius: 16px;
+  padding: 12px 15px;
   box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
 }
 .match.live {
   border-color: rgba(232, 54, 43, 0.55);
 }
-/* Already predicted: calm green left accent. */
 .match.predicted {
   box-shadow: inset 4px 0 0 0 var(--emerald), var(--shadow);
   border-color: color-mix(in srgb, var(--emerald) 32%, var(--border));
 }
-/* Open and not predicted yet: gold accent + faint tint to draw the eye. */
 .match.pending {
   box-shadow: inset 4px 0 0 0 var(--gold), var(--shadow);
   border-color: color-mix(in srgb, var(--gold) 42%, var(--border));
-  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 7%, transparent), transparent), var(--bg-surface);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 6%, transparent), transparent), var(--bg-surface);
 }
 .live-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(70% 90% at 50% 0%, rgba(232, 54, 43, 0.12), transparent 70%);
+  background: radial-gradient(70% 90% at 50% 0%, rgba(232, 54, 43, 0.1), transparent 70%);
   pointer-events: none;
 }
+
+/* header */
 .top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   position: relative;
 }
 .lbl {
   font-size: 11px;
   font-weight: 600;
   color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .status {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
-  font-size: 10.5px;
+  flex: none;
+  font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   border: 1px solid;
   border-radius: 999px;
@@ -261,7 +293,9 @@ const leftLabel = computed(() =>
   background: var(--scarlet);
   animation: liveDot 1.2s infinite;
 }
-.teams {
+
+/* main row */
+.row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -270,31 +304,39 @@ const leftLabel = computed(() =>
 }
 .side {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  min-width: 0;
+}
+.row .side:last-child {
+  flex-direction: row-reverse;
 }
 .abbr {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .center {
-  min-width: 90px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 96px;
 }
 .score {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 44px;
+  font-size: 38px;
   line-height: 0.85;
 }
 .score.off {
   color: var(--muted);
-  letter-spacing: 0.08em;
-  font-size: 32px;
+  letter-spacing: 0.06em;
+  font-size: 26px;
 }
 .colon {
   color: var(--muted);
@@ -302,142 +344,151 @@ const leftLabel = computed(() =>
 .vs {
   color: var(--muted);
   font-weight: 700;
-}
-.venue {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 12px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-}
-.venue span {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 18px;
+  padding: 8px 0;
 }
 
-/* prediction panel */
-.pred {
-  margin-top: 14px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 9%, var(--bg-base)), var(--bg-base));
-  border: 1px solid color-mix(in srgb, var(--gold) 28%, var(--border));
-  border-radius: 14px;
-  padding: 12px 14px;
-}
-.pred-head {
+/* editable inline stepper + icon save */
+.edit {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-}
-.pred-title {
-  font-size: 10.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--gold);
-}
-.pred-hint {
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--muted);
-}
-.tier {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  border: 1px solid;
-  border-radius: 999px;
-  padding: 4px 9px;
-}
-.stepper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
 }
 .col {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 5px;
 }
 .step {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
   border: 1px solid var(--border);
-  background: var(--bg-surface);
+  background: var(--bg-base);
   color: var(--text);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1;
   cursor: pointer;
   display: grid;
   place-items: center;
 }
+.step:active {
+  transform: scale(0.92);
+}
 .num {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 46px;
+  font-size: 30px;
   line-height: 0.85;
-  min-width: 26px;
+  min-width: 22px;
   text-align: center;
+}
+.edit .colon {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
 }
 .save {
-  margin-top: 12px;
-  font-size: 13px;
-  padding: 10px;
-}
-.msg {
-  display: block;
-  text-align: center;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--muted);
-  margin-top: 6px;
-}
-.locked .locked-score {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-.cancelled {
-  margin-top: 14px;
-  background: repeating-linear-gradient(45deg, var(--bg-base), var(--bg-base) 10px, color-mix(in srgb, var(--muted) 7%, var(--bg-base)) 10px, color-mix(in srgb, var(--muted) 7%, var(--bg-base)) 20px);
-  border: 1px dashed var(--border);
-  border-radius: 14px;
-  padding: 14px;
-  text-align: center;
-  font-size: 11.5px;
-  color: var(--muted);
-  font-weight: 700;
-  font-style: italic;
-}
-.login-cta {
-  margin-top: 12px;
-  font-size: 12.5px;
-}
-.rank-btn {
-  margin-top: 11px;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 9px;
+  margin-left: 2px;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
   border: 1px solid var(--border);
   background: var(--bg-base);
-  color: var(--text);
-  border-radius: 11px;
-  font-weight: 700;
-  font-size: 12.5px;
+  color: var(--muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.rank-btn:hover {
-  border-color: color-mix(in srgb, var(--gold) 50%, var(--border));
+.save.dirty {
+  background: var(--gold);
+  border-color: transparent;
+  color: #0a0e14;
+  box-shadow: 0 4px 12px -4px rgba(244, 184, 30, 0.6);
+}
+.save:disabled {
+  cursor: default;
+}
+.save:not(.dirty):disabled {
+  opacity: 0.6;
+}
+.spin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.cap {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+.match.pending .cap {
+  color: var(--gold);
+}
+
+/* footer */
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+  min-height: 20px;
+}
+.foot-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+.chip {
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.muted-mini {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.muted-mini.venue {
+  max-width: 220px;
+}
+.cta-mini {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.rank-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.rank-link:hover {
+  color: var(--text);
 }
 </style>

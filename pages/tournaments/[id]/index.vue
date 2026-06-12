@@ -9,8 +9,9 @@ const { data, pending, error, refresh } = await useAsyncData(
   `tournament-${id}`,
   async () => {
     const api = useApi();
-    const [tournament, p1, p2] = await Promise.all([
+    const [tournament, list, p1, p2] = await Promise.all([
       api<Tournament>(`/tournaments/${id}`),
+      api<Paginated<Tournament>>(`/tournaments`),
       api<Paginated<Match>>(`/matches?tournamentId=${id}&page=1&pageSize=100`),
       api<Paginated<Match>>(`/matches?tournamentId=${id}&page=2&pageSize=100`),
     ]);
@@ -19,7 +20,7 @@ const { data, pending, error, refresh } = await useAsyncData(
     if (auth.token) {
       predictions = await api<Prediction[]>(`/predictions/me?tournamentId=${id}`);
     }
-    return { tournament, matches, predictions };
+    return { tournament, tournaments: list.data, matches, predictions };
   },
 );
 
@@ -35,12 +36,64 @@ function onSaved(p: Prediction) {
 
 useRealtime(() => [`tournament:${id}`], () => refresh());
 
+// ── Filters ──────────────────────────────────────────────────────
+function phaseTitle(m: Match): string {
+  return m.groupName ? `Grupo ${m.groupName}` : (m.phaseLabel ?? 'Partidas');
+}
+
+type StatusKey = 'ALL' | 'SCHEDULED' | 'LIVE' | 'FINISHED';
+const STATUS_TABS: { key: StatusKey; label: string }[] = [
+  { key: 'ALL', label: 'Todas' },
+  { key: 'SCHEDULED', label: 'Agendadas' },
+  { key: 'LIVE', label: 'Ao vivo' },
+  { key: 'FINISHED', label: 'Encerradas' },
+];
+
+const search = ref('');
+const statusFilter = ref<StatusKey>('ALL');
+const phaseFilter = ref('');
+
+function inStatus(s: string): boolean {
+  if (statusFilter.value === 'ALL') return true;
+  if (statusFilter.value === 'FINISHED') return s === 'FINISHED' || s === 'CANCELLED';
+  return s === statusFilter.value;
+}
+
+// Stable phase options from the full set (so the select doesn't flicker).
+const phaseOptions = computed(() => {
+  const seen: string[] = [];
+  for (const m of data.value?.matches ?? []) {
+    const t = phaseTitle(m);
+    if (!seen.includes(t)) seen.push(t);
+  }
+  return seen;
+});
+
+const filtered = computed(() => {
+  const q = search.value.trim().toLowerCase();
+  return (data.value?.matches ?? []).filter((m) => {
+    if (!inStatus(m.status)) return false;
+    if (phaseFilter.value && phaseTitle(m) !== phaseFilter.value) return false;
+    if (!q) return true;
+    const hay = [
+      m.homeTeam?.name,
+      m.homeTeam?.shortName,
+      m.homeSourceLabel,
+      m.awayTeam?.name,
+      m.awayTeam?.shortName,
+      m.awaySourceLabel,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return hay.includes(q);
+  });
+});
+
 const sections = computed(() => {
   const out: Array<{ title: string; matches: Match[] }> = [];
-  for (const m of data.value?.matches ?? []) {
-    const title = m.groupName
-      ? `Grupo ${m.groupName}`
-      : (m.phaseLabel ?? 'Partidas');
+  for (const m of filtered.value) {
+    const title = phaseTitle(m);
     let s = out[out.length - 1];
     if (!s || s.title !== title) {
       s = { title, matches: [] };
@@ -50,6 +103,20 @@ const sections = computed(() => {
   }
   return out;
 });
+
+const hasFilters = computed(
+  () => !!search.value || statusFilter.value !== 'ALL' || !!phaseFilter.value,
+);
+function clearFilters() {
+  search.value = '';
+  statusFilter.value = 'ALL';
+  phaseFilter.value = '';
+}
+
+function onPickTournament(e: Event) {
+  const v = (e.target as HTMLSelectElement).value;
+  if (v && v !== id) navigateTo(`/tournaments/${v}`);
+}
 
 function badge(name: string): string {
   const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
@@ -71,12 +138,51 @@ function badge(name: string): string {
             <span class="tag">{{ data.matches.length }} partidas</span>
           </div>
         </div>
+        <select
+          v-if="data.tournaments.length > 1"
+          class="tourn-sel"
+          :value="id"
+          aria-label="Trocar de torneio"
+          @change="onPickTournament"
+        >
+          <option v-for="t in data.tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
+        </select>
       </div>
 
       <div class="tabs">
         <span class="tab on">Partidas</span>
         <NuxtLink :to="`/tournaments/${id}/ranking`" class="tab">Ranking</NuxtLink>
       </div>
+
+      <!-- filters -->
+      <div class="filters">
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          <input v-model="search" type="search" placeholder="Buscar por seleção…" aria-label="Buscar partidas" />
+        </div>
+        <select v-model="phaseFilter" class="sel" aria-label="Filtrar por fase">
+          <option value="">Todas as fases</option>
+          <option v-for="p in phaseOptions" :key="p" :value="p">{{ p }}</option>
+        </select>
+        <div class="status-tabs" role="tablist">
+          <button
+            v-for="t in STATUS_TABS"
+            :key="t.key"
+            class="stab"
+            :class="{ on: statusFilter === t.key }"
+            role="tab"
+            :aria-selected="statusFilter === t.key"
+            @click="statusFilter = t.key"
+          >
+            {{ t.label }}
+          </button>
+        </div>
+      </div>
+
+      <p v-if="!sections.length" class="empty">
+        <span class="muted">Nenhuma partida encontrada com esses filtros.</span>
+        <button v-if="hasFilters" class="link" @click="clearFilters">Limpar filtros</button>
+      </p>
 
       <div v-for="sec in sections" :key="sec.title" class="section">
         <h2 class="font-display section-title">{{ sec.title }}</h2>
@@ -152,6 +258,19 @@ function badge(name: string): string {
   background: rgba(30, 127, 240, 0.14);
   border-color: rgba(30, 127, 240, 0.3);
 }
+.tourn-sel {
+  flex: 0 1 auto;
+  max-width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 10px;
+  height: 40px;
+  cursor: pointer;
+}
 .tabs {
   display: flex;
   gap: 5px;
@@ -159,7 +278,7 @@ function badge(name: string): string {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 5px;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
   position: sticky;
   top: 70px;
   z-index: 20;
@@ -179,8 +298,89 @@ function badge(name: string): string {
   background: var(--grad-pitch);
   color: #fff;
 }
+
+/* filters */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.search {
+  flex: 1 1 180px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--text);
+  font-size: 13.5px;
+  padding: 10px 0;
+}
+.sel {
+  flex: 0 1 auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 10px;
+  height: 40px;
+  cursor: pointer;
+}
+.status-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 3px;
+}
+.stab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.stab.on {
+  background: var(--gold);
+  color: #0a0e14;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 0;
+}
+.link {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 9px;
+  padding: 7px 14px;
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+}
 .section {
-  margin-top: 1.5rem;
+  margin-top: 1.4rem;
 }
 .section-title {
   font-size: 15px;
@@ -190,9 +390,17 @@ function badge(name: string): string {
   color: var(--muted);
   margin-bottom: 0.7rem;
 }
+/* one card per line — easier to read, uniform height */
 .matches {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (max-width: 460px) {
+  .status-tabs {
+    flex: 1 1 100%;
+    justify-content: space-between;
+  }
 }
 </style>
