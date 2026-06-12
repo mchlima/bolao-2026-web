@@ -1,9 +1,13 @@
 import type { Paginated } from '~/types/api';
 
 /** Paginated admin list with search; refresh after mutations. */
-export function useAdminList<T>(path: string, extraQuery: () => string = () => '') {
+export function useAdminList<T>(
+  path: string,
+  extraQuery: () => string = () => '',
+  initialPageSize = 20,
+) {
   const page = ref(1);
-  const pageSize = 20;
+  const pageSize = ref(initialPageSize);
   const search = ref('');
   const data = ref<Paginated<T> | null>(null);
   const loading = ref(false);
@@ -15,7 +19,7 @@ export function useAdminList<T>(path: string, extraQuery: () => string = () => '
     try {
       const q = new URLSearchParams({
         page: String(page.value),
-        pageSize: String(pageSize),
+        pageSize: String(pageSize.value),
       });
       if (search.value) q.set('search', search.value);
       const extra = extraQuery();
@@ -33,6 +37,10 @@ export function useAdminList<T>(path: string, extraQuery: () => string = () => '
     page.value = 1;
     if (timer) clearTimeout(timer);
     timer = setTimeout(load, 250);
+  });
+  watch(pageSize, () => {
+    page.value = 1;
+    load();
   });
   watch(page, load);
 

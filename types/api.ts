@@ -36,6 +36,19 @@ export interface Team {
   continent: string | null;
   country: string | null;
   logoUrl: string | null;
+  logoDarkUrl: string | null;
+  espnId: string | null;
+  color: string | null;
+  colorAlt: string | null;
+}
+
+export interface TeamFacets {
+  total: number;
+  types: { value: TeamType; count: number }[];
+  continents: { value: string; count: number }[];
+  countries: { value: string; count: number }[];
+  withLogo: number;
+  withoutLogo: number;
 }
 
 export interface Stadium {

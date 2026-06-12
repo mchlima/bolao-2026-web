@@ -6,12 +6,16 @@ const props = withDefaults(
   { size: 50 },
 );
 
+const colorMode = useColorMode();
 const flag = computed(() => teamFlag(props.team));
+// National teams render the flag; clubs render their real crest (dark variant on
+// dark themes); anything else falls back to a colored abbreviation emblem.
+const logo = computed(() =>
+  flag.value ? null : teamLogo(props.team, colorMode.value === 'dark'),
+);
 const abbr = computed(() => teamAbbr(props.team, props.placeholder));
 const color = computed(() => teamColor(props.team));
 
-// Flags render as a standard rectangle (3:2) with lightly rounded corners.
-// Clubs / unknown opponents keep the round, colored abbr emblem.
 const box = computed(() => {
   if (flag.value) {
     const h = Math.round(props.size * 0.68);
@@ -24,21 +28,31 @@ const box = computed(() => {
   return {
     width: `${props.size}px`,
     height: `${props.size}px`,
-    borderRadius: '50%',
-    background: color.value,
+    borderRadius: logo.value
+      ? `${Math.max(4, Math.round(props.size * 0.22))}px`
+      : '50%',
+    background: logo.value ? 'var(--bg-base)' : color.value,
   };
 });
 </script>
 
 <template>
-  <div class="emblem" :class="{ flagged: !!flag }" :style="box">
+  <div class="emblem" :class="{ flagged: !!flag, logoed: !!logo }" :style="box">
+    <span v-if="flag" class="flag" v-html="flag" />
+    <img
+      v-else-if="logo"
+      class="logo"
+      :src="logo"
+      :alt="abbr"
+      loading="lazy"
+      decoding="async"
+    />
     <span
-      v-if="!flag"
+      v-else
       class="abbr"
       :style="{ fontSize: `${Math.round(size * 0.26)}px` }"
       >{{ abbr }}</span
     >
-    <span v-else class="flag" v-html="flag" />
   </div>
 </template>
 
@@ -51,7 +65,7 @@ const box = computed(() => {
   border: 1px solid var(--border);
   flex: 0 0 auto;
 }
-.emblem:not(.flagged) {
+.emblem:not(.flagged):not(.logoed) {
   border-width: 2px;
 }
 .abbr {
@@ -59,6 +73,12 @@ const box = computed(() => {
   font-weight: 700;
   color: #fff;
   line-height: 1;
+}
+.logo {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+  display: block;
 }
 .flag {
   position: absolute;

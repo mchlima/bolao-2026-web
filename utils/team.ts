@@ -12,8 +12,19 @@ export function teamAbbr(team?: Team | null, fallback?: string | null): string {
   return base.toUpperCase().slice(0, 3);
 }
 
-/** Deterministic emblem color from the team identity (clubs/flags fallback). */
+/** The crest URL, preferring the dark variant on dark themes when available. */
+export function teamLogo(team?: Team | null, dark = false): string | null {
+  if (!team) return null;
+  return (dark && team.logoDarkUrl) || team.logoUrl || null;
+}
+
+const HEX = /^#?[0-9a-fA-F]{6}$/;
+
+/** Emblem color: the team's real brand color when known, else deterministic. */
 export function teamColor(team?: Team | null): string {
+  if (team?.color && HEX.test(team.color)) {
+    return team.color.startsWith('#') ? team.color : `#${team.color}`;
+  }
   const key = team?.countryCode || team?.shortName || team?.name || 'X';
   let h = 0;
   for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) % 360;
