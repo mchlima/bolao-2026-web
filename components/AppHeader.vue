@@ -17,7 +17,7 @@ const initials = computed(() => {
 
 const ui = useUiStore();
 const ZONES = [
-  { v: 'America/Sao_Paulo', label: 'Brasília (GMT-3)' },
+  { v: 'America/Sao_Paulo', label: 'São Paulo (GMT-3)' },
   { v: 'America/Manaus', label: 'Manaus (GMT-4)' },
   { v: 'America/Mexico_City', label: 'Cidade do México (GMT-6)' },
   { v: 'America/New_York', label: 'Nova York (GMT-4)' },
