@@ -7,16 +7,19 @@ const props = withDefaults(
 );
 
 const colorMode = useColorMode();
-const flag = computed(() => teamFlag(props.team));
-// National teams render the flag; clubs render their real crest (dark variant on
-// dark themes); anything else falls back to a colored abbreviation emblem.
-const logo = computed(() =>
-  flag.value ? null : teamLogo(props.team, colorMode.value === 'dark'),
-);
+// Prefer the team's crest image (dark variant on dark themes) for everyone —
+// clubs and national teams alike. A national team without a crest falls back to
+// its vector flag; anything else to a colored abbreviation emblem.
+const logo = computed(() => teamLogo(props.team, colorMode.value === 'dark'));
+const flag = computed(() => (logo.value ? null : teamFlag(props.team)));
 const abbr = computed(() => teamAbbr(props.team, props.placeholder));
 const color = computed(() => teamColor(props.team));
 
 const box = computed(() => {
+  // Crest: transparent, borderless, no padding — the image fills the box.
+  if (logo.value) {
+    return { width: `${props.size}px`, height: `${props.size}px` };
+  }
   if (flag.value) {
     const h = Math.round(props.size * 0.68);
     return {
@@ -28,25 +31,23 @@ const box = computed(() => {
   return {
     width: `${props.size}px`,
     height: `${props.size}px`,
-    borderRadius: logo.value
-      ? `${Math.max(4, Math.round(props.size * 0.22))}px`
-      : '50%',
-    background: logo.value ? 'var(--bg-base)' : color.value,
+    borderRadius: '50%',
+    background: color.value,
   };
 });
 </script>
 
 <template>
   <div class="emblem" :class="{ flagged: !!flag, logoed: !!logo }" :style="box">
-    <span v-if="flag" class="flag" v-html="flag" />
     <img
-      v-else-if="logo"
+      v-if="logo"
       class="logo"
       :src="logo"
       :alt="abbr"
       loading="lazy"
       decoding="async"
     />
+    <span v-else-if="flag" class="flag" v-html="flag" />
     <span
       v-else
       class="abbr"
@@ -68,6 +69,11 @@ const box = computed(() => {
 .emblem:not(.flagged):not(.logoed) {
   border-width: 2px;
 }
+/* Crest images already have transparent backgrounds — no box chrome. */
+.emblem.logoed {
+  border: none;
+  background: transparent;
+}
 .abbr {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
@@ -75,8 +81,8 @@ const box = computed(() => {
   line-height: 1;
 }
 .logo {
-  width: 78%;
-  height: 78%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   display: block;
 }
