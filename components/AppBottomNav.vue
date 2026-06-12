@@ -10,7 +10,7 @@ const items = computed(() => {
     { to: '/tournaments', label: 'Torneios', icon: 'trophy' },
     { to: '/pools', label: 'Bolões', icon: 'users' },
     { to: '/predictions', label: 'Palpites', icon: 'ticket' },
-    { to: '/howto', label: 'Como funciona', icon: 'book' },
+    { to: '/howto', label: 'Como', icon: 'book' },
   ];
   if (auth.isAdmin) base.push({ to: '/admin', label: 'Admin', icon: 'cog' });
   return base;
