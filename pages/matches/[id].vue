@@ -43,6 +43,41 @@ const ranking = computed(() => data.value?.ranking ?? null);
 const me = computed(() => ranking.value?.currentUser ?? null);
 const hasResult = computed(() => !!ranking.value?.result);
 
+// Editable prediction (same effective rule as MatchCard).
+const auth = useAuthStore();
+const ui = useUiStore();
+const isOpen = computed(() => {
+  const m = match.value;
+  if (!m || !m.homeTeam || !m.awayTeam) return false;
+  if (m.status === 'FINISHED' || m.status === 'CANCELLED') return false;
+  const auto = m.status === 'SCHEDULED' && new Date(m.kickoffAt).getTime() > Date.now();
+  return m.predictionsOpen ?? auto;
+});
+const editable = computed(() => isOpen.value && auth.isAuthenticated);
+const clampScore = (n: number) => Math.max(0, Math.min(99, n));
+const ph = ref(0);
+const pa = ref(0);
+const saving = ref(false);
+watchEffect(() => {
+  ph.value = me.value?.prediction?.home ?? 0;
+  pa.value = me.value?.prediction?.away ?? 0;
+});
+async function savePrediction() {
+  saving.value = true;
+  try {
+    await useApi()('/predictions', {
+      method: 'POST',
+      body: { matchId: id, homeScore: ph.value, awayScore: pa.value },
+    });
+    ui.toast('success', 'Palpite salvo ✓');
+    await refresh();
+  } catch (e) {
+    ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro ao salvar.');
+  } finally {
+    saving.value = false;
+  }
+}
+
 const stateMeta = computed(() => {
   if (!ranking.value) return { label: '', color: 'var(--muted)', live: false };
   if (ranking.value.provisional)
@@ -116,8 +151,35 @@ function guess(e: { prediction?: { home: number; away: number } }): string {
         </div>
 
         <div class="body">
-          <!-- your prediction -->
-          <div v-if="me?.prediction" class="mypred">
+          <!-- editable prediction -->
+          <div v-if="editable" class="mypred">
+            <div class="mp-head">
+              <span class="mp-title">Seu palpite</span>
+              <span class="mp-hint">use +/− para ajustar</span>
+            </div>
+            <div class="mp-stepper">
+              <div class="mp-col">
+                <button class="mp-step" @click="ph = clampScore(ph - 1)">−</button>
+                <span class="font-numeric mp-num">{{ ph }}</span>
+                <button class="mp-step" @click="ph = clampScore(ph + 1)">+</button>
+              </div>
+              <span class="font-numeric colon mp-colon">:</span>
+              <div class="mp-col">
+                <button class="mp-step" @click="pa = clampScore(pa - 1)">−</button>
+                <span class="font-numeric mp-num">{{ pa }}</span>
+                <button class="mp-step" @click="pa = clampScore(pa + 1)">+</button>
+              </div>
+            </div>
+            <button class="btn btn-gold btn-block mp-save" :disabled="saving" @click="savePrediction">
+              {{ me?.prediction ? 'Atualizar palpite' : 'Confirmar palpite' }}
+            </button>
+          </div>
+
+          <!-- open, not logged in -->
+          <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" to="/login" class="btn btn-block login-cta">Entre para palpitar →</NuxtLink>
+
+          <!-- locked / read-only prediction -->
+          <div v-else-if="me?.prediction" class="mypred">
             <div class="mp-head">
               <span class="mp-title">Seu palpite</span>
               <span
@@ -316,6 +378,14 @@ function guess(e: { prediction?: { home: number; away: number } }): string {
   font-size: 46px;
   line-height: 0.85;
 }
+.mp-hint { font-size: 10.5px; font-weight: 600; color: var(--muted); }
+.mp-stepper { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.mp-col { display: flex; align-items: center; gap: 10px; }
+.mp-step { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text); font-size: 19px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.mp-num { font-size: 48px; line-height: 0.85; min-width: 30px; text-align: center; }
+.mp-colon { font-size: 40px; color: var(--muted); }
+.mp-save { margin-top: 14px; font-size: 14px; padding: 11px; }
+.login-cta { margin-bottom: 22px; }
 .earned {
   display: flex;
   align-items: center;
