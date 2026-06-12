@@ -61,7 +61,6 @@ function logout() {
         <NuxtLink to="/pools" class="nav-link">Bolões</NuxtLink>
         <NuxtLink to="/predictions" class="nav-link">Palpites</NuxtLink>
         <NuxtLink to="/howto" class="nav-link">Como funciona</NuxtLink>
-        <NuxtLink v-if="auth.isAdmin" to="/admin" class="nav-link">Admin</NuxtLink>
       </nav>
 
       <div class="actions">
@@ -83,6 +82,13 @@ function logout() {
               >
               <NuxtLink to="/home" class="row" @click="menuOpen = false"
                 >Início</NuxtLink
+              >
+              <NuxtLink
+                v-if="auth.isAdmin"
+                to="/admin"
+                class="row"
+                @click="menuOpen = false"
+                >Admin</NuxtLink
               >
               <div class="sep" />
               <div class="theme-block">
