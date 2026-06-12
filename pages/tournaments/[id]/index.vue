@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { Match, Paginated, Prediction, Tournament } from '~/types/api';
+import type { Match, Paginated, Prediction } from '~/types/api';
 
 const route = useRoute();
 const auth = useAuthStore();
 const id = route.params.id as string;
 
+// The tournament header + tabs live in the layout (tournaments/[id].vue); this
+// page only loads the matches + the user's predictions.
 const { data, pending, error, refresh } = await useAsyncData(
-  `tournament-${id}`,
+  `tournament-matches-${id}`,
   async () => {
     const api = useApi();
-    const [tournament, list, p1, p2] = await Promise.all([
-      api<Tournament>(`/tournaments/${id}`),
-      api<Paginated<Tournament>>(`/tournaments`),
+    const [p1, p2] = await Promise.all([
       api<Paginated<Match>>(`/matches?tournamentId=${id}&page=1&pageSize=100`),
       api<Paginated<Match>>(`/matches?tournamentId=${id}&page=2&pageSize=100`),
     ]);
@@ -20,7 +20,7 @@ const { data, pending, error, refresh } = await useAsyncData(
     if (auth.token) {
       predictions = await api<Prediction[]>(`/predictions/me?tournamentId=${id}`);
     }
-    return { tournament, tournaments: list.data, matches, predictions };
+    return { matches, predictions };
   },
 );
 
@@ -113,47 +113,13 @@ function clearFilters() {
   phaseFilter.value = '';
 }
 
-function onPickTournament(e: Event) {
-  const v = (e.target as HTMLSelectElement).value;
-  if (v && v !== id) navigateTo(`/tournaments/${v}`);
-}
-
-function badge(name: string): string {
-  const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
-  return (w[0]?.[0] ?? '') + (w[1]?.[0] ?? '');
-}
 </script>
 
 <template>
-  <div class="page">
+  <div>
     <SkeletonList v-if="pending" variant="match" :count="6" />
     <p v-else-if="error || !data" class="muted load">Torneio não encontrado.</p>
     <template v-else>
-      <div class="thead">
-        <div class="badge font-display">{{ badge(data.tournament.name) }}</div>
-        <div class="meta">
-          <h1 class="font-display name">{{ data.tournament.name }}</h1>
-          <div class="tags">
-            <span class="tag azure">Grupos + mata-mata</span>
-            <span class="tag">{{ data.matches.length }} partidas</span>
-          </div>
-        </div>
-        <select
-          v-if="data.tournaments.length > 1"
-          class="tourn-sel"
-          :value="id"
-          aria-label="Trocar de torneio"
-          @change="onPickTournament"
-        >
-          <option v-for="t in data.tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
-        </select>
-      </div>
-
-      <div class="tabs">
-        <span class="tab on">Partidas</span>
-        <NuxtLink :to="`/tournaments/${id}/ranking`" class="tab">Ranking</NuxtLink>
-      </div>
-
       <!-- filters -->
       <div class="filters">
         <div class="search">

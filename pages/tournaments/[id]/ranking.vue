@@ -11,12 +11,10 @@ useRealtime(() => [`tournament:${id}`], () => refresh());
 </script>
 
 <template>
-  <div class="page">
+  <div>
     <SkeletonList v-if="pending" variant="row" :count="8" />
     <p v-else-if="error || !data" class="muted load">Ranking indisponível.</p>
     <template v-else>
-      <NuxtLink :to="`/tournaments/${id}`" class="back">← Voltar às partidas</NuxtLink>
-
       <div class="head">
         <h3 class="font-display">Ranking do bolão</h3>
         <span class="sub">Top 100 de {{ data.totalParticipants }} participantes</span>
