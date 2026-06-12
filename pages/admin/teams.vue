@@ -4,11 +4,9 @@ import type { Team, TeamFacets } from '~/types/api';
 definePageMeta({ middleware: 'admin' });
 const ui = useUiStore();
 
+// Country/continent are stored in the international (English) standard, like the
+// team names — shown as-is, no translation.
 const CONTINENTS = ['Europe', 'South America', 'North America', 'Africa', 'Asia', 'Oceania'];
-const CONTINENT_LABEL: Record<string, string> = {
-  Europe: 'Europa', 'South America': 'América do Sul', 'North America': 'América do Norte',
-  Africa: 'África', Asia: 'Ásia', Oceania: 'Oceania',
-};
 const TYPE_LABEL: Record<string, string> = { NATIONAL_TEAM: 'Seleção', CLUB: 'Clube' };
 const SORTS = [
   { v: 'name', label: 'Nome (A–Z)' },
@@ -43,24 +41,17 @@ const { page, pageSize, search, data, load } = useAdminList<Team>('/teams', () =
 
 watch([typeFilter, localFilter, logoFilter, sort], () => { page.value = 1; load(); });
 
-const hasFilters = computed(
-  () => !!(search.value || typeFilter.value || localFilter.value || logoFilter.value || sort.value !== 'name'),
+// Type, local and crest collapse into a single "Filtros" popover; its badge
+// shows how many of the three are active.
+const filtersOpen = ref(false);
+const activeCount = computed(
+  () => [typeFilter.value, localFilter.value, logoFilter.value].filter(Boolean).length,
 );
-function clearFilters() {
-  search.value = '';
+function clearFilterCriteria() {
   typeFilter.value = '';
   localFilter.value = '';
   logoFilter.value = '';
-  sort.value = 'name';
-  page.value = 1;
-  load();
 }
-const localLabel = computed(() => {
-  const v = localFilter.value;
-  if (v.startsWith('country:')) return v.slice(8);
-  if (v.startsWith('continent:')) return CONTINENT_LABEL[v.slice(10)] ?? v.slice(10);
-  return '';
-});
 
 function hex(c?: string | null): string | null {
   if (!c) return null;
@@ -161,69 +152,63 @@ onMounted(() => { load(); loadFacets(); });
         <button v-if="search" class="sx" title="Limpar busca" @click="search = ''">✕</button>
       </div>
 
-      <!-- Type chips -->
-      <div class="chips">
-        <button class="chip" :class="{ on: typeFilter === '' }" @click="typeFilter = ''">
-          Todos <span class="ct">{{ facets?.total ?? '' }}</span>
-        </button>
-        <button class="chip" :class="{ on: typeFilter === 'NATIONAL_TEAM' }" @click="typeFilter = 'NATIONAL_TEAM'">
-          Seleções <span class="ct">{{ typeCount('NATIONAL_TEAM') }}</span>
-        </button>
-        <button class="chip" :class="{ on: typeFilter === 'CLUB' }" @click="typeFilter = 'CLUB'">
-          Clubes <span class="ct">{{ typeCount('CLUB') }}</span>
-        </button>
-      </div>
-
-      <!-- Selects: local, logo, sort, page size -->
-      <div class="selects">
-        <label class="sel">
-          <span class="sl">Local</span>
-          <select v-model="localFilter" class="input">
-            <option value="">Todos os locais</option>
-            <optgroup v-if="facets?.continents.length" label="Continentes (seleções)">
-              <option v-for="c in facets.continents" :key="c.value" :value="`continent:${c.value}`">
-                {{ CONTINENT_LABEL[c.value] ?? c.value }} ({{ c.count }})
-              </option>
-            </optgroup>
-            <optgroup v-if="facets?.countries.length" label="Países (clubes)">
-              <option v-for="c in facets.countries" :key="c.value" :value="`country:${c.value}`">
-                {{ c.value }} ({{ c.count }})
-              </option>
-            </optgroup>
-          </select>
-        </label>
-        <label class="sel">
-          <span class="sl">Escudo</span>
-          <select v-model="logoFilter" class="input">
-            <option value="">Com e sem</option>
-            <option value="true">Com escudo</option>
-            <option value="false">Sem escudo</option>
-          </select>
-        </label>
-        <label class="sel">
-          <span class="sl">Ordenar</span>
-          <select v-model="sort" class="input">
-            <option v-for="s in SORTS" :key="s.v" :value="s.v">{{ s.label }}</option>
-          </select>
-        </label>
-        <label class="sel">
-          <span class="sl">Por página</span>
-          <select v-model.number="pageSize" class="input">
-            <option :value="20">20</option>
-            <option :value="50">50</option>
-            <option :value="100">100</option>
-          </select>
-        </label>
-      </div>
-
-      <!-- Active filters + result count -->
-      <div class="bar">
-        <div class="active">
-          <span v-if="typeFilter" class="afl">{{ TYPE_LABEL[typeFilter] }}<button @click="typeFilter = ''">✕</button></span>
-          <span v-if="localLabel" class="afl">{{ localLabel }}<button @click="localFilter = ''">✕</button></span>
-          <span v-if="logoFilter" class="afl">{{ logoFilter === 'true' ? 'Com escudo' : 'Sem escudo' }}<button @click="logoFilter = ''">✕</button></span>
-          <button v-if="hasFilters" class="clearall" @click="clearFilters">Limpar tudo</button>
+      <!-- Toolbar: Filtros popover · sort · page size -->
+      <div class="toolbar">
+        <div class="fmenu">
+          <button class="fbtn" :class="{ on: activeCount > 0 || filtersOpen }" @click="filtersOpen = !filtersOpen">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+            Filtros
+            <span v-if="activeCount" class="fbadge">{{ activeCount }}</span>
+            <svg class="cv" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <template v-if="filtersOpen">
+            <div class="fback" @click="filtersOpen = false" />
+            <div class="fdrop" @click.stop>
+              <div class="fgroup">
+                <span class="fgl">Tipo</span>
+                <div class="fchips">
+                  <button class="fchip" :class="{ on: typeFilter === '' }" @click="typeFilter = ''">Todos <span class="ct">{{ facets?.total ?? '' }}</span></button>
+                  <button class="fchip" :class="{ on: typeFilter === 'NATIONAL_TEAM' }" @click="typeFilter = 'NATIONAL_TEAM'">Seleções <span class="ct">{{ typeCount('NATIONAL_TEAM') }}</span></button>
+                  <button class="fchip" :class="{ on: typeFilter === 'CLUB' }" @click="typeFilter = 'CLUB'">Clubes <span class="ct">{{ typeCount('CLUB') }}</span></button>
+                </div>
+              </div>
+              <div class="fgroup">
+                <span class="fgl">Local</span>
+                <select v-model="localFilter" class="input">
+                  <option value="">Todos os locais</option>
+                  <optgroup v-if="facets?.continents.length" label="Continentes (seleções)">
+                    <option v-for="c in facets.continents" :key="c.value" :value="`continent:${c.value}`">{{ c.value }} ({{ c.count }})</option>
+                  </optgroup>
+                  <optgroup v-if="facets?.countries.length" label="Países (clubes)">
+                    <option v-for="c in facets.countries" :key="c.value" :value="`country:${c.value}`">{{ c.value }} ({{ c.count }})</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="fgroup">
+                <span class="fgl">Escudo</span>
+                <div class="fchips">
+                  <button class="fchip" :class="{ on: logoFilter === '' }" @click="logoFilter = ''">Todos</button>
+                  <button class="fchip" :class="{ on: logoFilter === 'true' }" @click="logoFilter = 'true'">Com escudo</button>
+                  <button class="fchip" :class="{ on: logoFilter === 'false' }" @click="logoFilter = 'false'">Sem escudo</button>
+                </div>
+              </div>
+              <button class="fclear" :disabled="activeCount === 0" @click="clearFilterCriteria">Limpar filtros</button>
+            </div>
+          </template>
         </div>
+
+        <div class="grow" />
+
+        <select v-model="sort" class="mini">
+          <option v-for="s in SORTS" :key="s.v" :value="s.v">Ordenar: {{ s.label }}</option>
+        </select>
+        <select v-model.number="pageSize" class="mini">
+          <option :value="20">20/pág</option>
+          <option :value="50">50/pág</option>
+          <option :value="100">100/pág</option>
+        </select>
+      </div>
+      <div class="resline">
         <span v-if="data" class="count">{{ data.pagination.total }} resultado(s)</span>
       </div>
 
@@ -237,7 +222,7 @@ onMounted(() => { load(); loadFacets(); });
           </span>
           <span class="sg">{{ t.shortName }}</span>
           <span class="ty"><span class="tb" :class="t.type === 'CLUB' ? 'club' : 'nat'">{{ TYPE_LABEL[t.type] }}</span></span>
-          <span class="lc">{{ t.country || (t.continent ? CONTINENT_LABEL[t.continent] ?? t.continent : '—') }}</span>
+          <span class="lc">{{ t.country || t.continent || '—' }}</span>
           <span class="cl">
             <span v-if="hex(t.color)" class="sw" :style="{ background: hex(t.color)! }" :title="t.color!" />
             <span v-if="hex(t.colorAlt)" class="sw" :style="{ background: hex(t.colorAlt)! }" :title="t.colorAlt!" />
@@ -270,7 +255,7 @@ onMounted(() => { load(); loadFacets(); });
               <label>Continente</label>
               <select v-model="form.continent" class="input">
                 <option value="">—</option>
-                <option v-for="c in CONTINENTS" :key="c" :value="c">{{ CONTINENT_LABEL[c] }}</option>
+                <option v-for="c in CONTINENTS" :key="c" :value="c">{{ c }}</option>
               </select>
             </div>
           </div>
@@ -318,24 +303,28 @@ onMounted(() => { load(); loadFacets(); });
 .sinput:focus { outline: none; border-color: var(--gold); }
 .sx { position: absolute; right: 8px; width: 26px; height: 26px; border: none; background: var(--bg-surface); border-radius: 7px; color: var(--muted); cursor: pointer; }
 
-/* chips */
-.chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
-.chip { display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: 12.5px; cursor: pointer; }
-.chip.on { background: var(--gold); color: #0a0e14; border-color: transparent; }
+/* toolbar */
+.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.grow { flex: 1 1 0; min-width: 0; }
+.fmenu { position: relative; }
+.fbtn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13px; cursor: pointer; }
+.fbtn:hover { border-color: var(--muted); }
+.fbtn.on { border-color: var(--gold); }
+.fbtn .cv { color: var(--muted); }
+.fbadge { min-width: 18px; height: 18px; padding: 0 5px; display: grid; place-items: center; border-radius: 999px; background: var(--gold); color: #0a0e14; font-size: 11px; font-weight: 800; }
+.fback { position: fixed; inset: 0; z-index: 30; }
+.fdrop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 31; width: 290px; max-width: 86vw; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; display: flex; flex-direction: column; gap: 13px; }
+.fgroup { display: flex; flex-direction: column; gap: 7px; }
+.fgl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.fchips { display: flex; gap: 6px; flex-wrap: wrap; }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: 12px; cursor: pointer; }
+.fchip.on { background: var(--gold); color: #0a0e14; border-color: transparent; }
+.fgroup .input { width: 100%; padding: 9px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
+.fclear { border: 1px solid var(--border); background: var(--bg-base); color: var(--scarlet); font-weight: 700; font-size: 12.5px; padding: 9px; border-radius: 9px; cursor: pointer; }
+.fclear:disabled { color: var(--muted); cursor: default; opacity: 0.55; }
 .ct { font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: color-mix(in srgb, currentColor 14%, transparent); }
-
-/* selects */
-.selects { display: grid; grid-template-columns: 2fr 1fr 1.2fr 1fr; gap: 10px; margin-bottom: 12px; }
-.sel { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.sl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.sel .input { width: 100%; padding: 9px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
-
-/* active filter bar */
-.bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; min-height: 24px; }
-.active { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-.afl { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: var(--text); background: var(--bg-base); border: 1px solid var(--border); border-radius: 999px; padding: 3px 6px 3px 10px; }
-.afl button { width: 16px; height: 16px; border: none; border-radius: 50%; background: var(--bg-surface); color: var(--muted); font-size: 10px; cursor: pointer; line-height: 1; }
-.clearall { border: none; background: none; color: var(--scarlet); font-weight: 700; font-size: 11.5px; cursor: pointer; }
+.mini { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+.resline { min-height: 18px; margin-bottom: 10px; }
 .count { font-size: 11.5px; color: var(--muted); font-weight: 600; white-space: nowrap; }
 
 /* table */
@@ -372,7 +361,6 @@ onMounted(() => { load(); loadFacets(); });
 .csw { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); flex: 0 0 auto; }
 .espnote { font-size: 11px; color: var(--muted); margin-top: 10px; }
 
-@media (max-width: 820px) { .selects { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 720px) {
   .rhead { display: none; }
   .row { grid-template-columns: 1fr auto auto; }
