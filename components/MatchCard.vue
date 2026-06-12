@@ -14,17 +14,9 @@ const hasResult = computed(
 );
 const shownHome = computed(() => props.match.homeScore ?? 0);
 const shownAway = computed(() => props.match.awayScore ?? 0);
-// Effective prediction window: admin override (predictionsOpen) wins; otherwise
-// the automatic rule (SCHEDULED + before kickoff). Terminal states never open.
-// Mirrors the backend PredictionsService.acceptsPredictions.
-const isOpen = computed(() => {
-  const m = props.match;
-  if (!m.homeTeam || !m.awayTeam) return false;
-  if (m.status === 'FINISHED' || m.status === 'CANCELLED') return false;
-  const auto =
-    m.status === 'SCHEDULED' && new Date(m.kickoffAt).getTime() > Date.now();
-  return m.predictionsOpen ?? auto;
-});
+// Effective prediction window (reactive; mirrors the backend rule and locks at
+// kickoff even without a refetch). See composables/useMatchOpen.
+const isOpen = useMatchOpen(() => props.match);
 const editable = computed(() => isOpen.value && auth.isAuthenticated);
 const hasPrediction = computed(() => !!props.prediction);
 const needsPrediction = computed(() => editable.value && !props.prediction);

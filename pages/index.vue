@@ -73,7 +73,7 @@ function onSaved(p: Prediction) {
 }
 
 useRealtime(
-  () => (data.value?.primary ? [`tournament:${data.value.primary.id}`] : []),
+  () => (data.value?.tournaments ?? []).map((t) => `tournament:${t.id}`),
   () => refresh(),
 );
 

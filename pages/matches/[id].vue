@@ -43,16 +43,10 @@ const ranking = computed(() => data.value?.ranking ?? null);
 const me = computed(() => ranking.value?.currentUser ?? null);
 const hasResult = computed(() => !!ranking.value?.result);
 
-// Editable prediction (same effective rule as MatchCard).
+// Editable prediction (same reactive rule as MatchCard).
 const auth = useAuthStore();
 const ui = useUiStore();
-const isOpen = computed(() => {
-  const m = match.value;
-  if (!m || !m.homeTeam || !m.awayTeam) return false;
-  if (m.status === 'FINISHED' || m.status === 'CANCELLED') return false;
-  const auto = m.status === 'SCHEDULED' && new Date(m.kickoffAt).getTime() > Date.now();
-  return m.predictionsOpen ?? auto;
-});
+const isOpen = useMatchOpen(() => match.value);
 const editable = computed(() => isOpen.value && auth.isAuthenticated);
 const clampScore = (n: number) => Math.max(0, Math.min(99, n));
 const ph = ref(0);
