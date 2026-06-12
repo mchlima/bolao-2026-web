@@ -52,6 +52,13 @@ html[data-theme='light'] {
   color-scheme: light;
 }
 
+html {
+  /* Reserve the scrollbar gutter always, so the layout width doesn't jump
+     between short tabs (no scrollbar) and long ones like "Jogos" — which
+     otherwise shifts the whole page, header included. */
+  scrollbar-gutter: stable;
+}
+
 html,
 body {
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
