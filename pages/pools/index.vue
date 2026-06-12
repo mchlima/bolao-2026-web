@@ -29,7 +29,7 @@ function apiError(e: unknown): string {
 // ── Create modal ──
 const createOpen = ref(false);
 const tournaments = ref<Tournament[]>([]);
-const form = reactive({ name: '', tournamentId: '' });
+const form = reactive({ name: '', description: '', tournamentId: '' });
 const creating = ref(false);
 
 async function openCreate() {
@@ -56,11 +56,13 @@ async function submitCreate() {
   try {
     const pool = await pools.create({
       name: form.name.trim(),
+      description: form.description.trim() || undefined,
       tournamentId: form.tournamentId,
     });
     ui.toast('success', 'Bolão criado!');
     createOpen.value = false;
     form.name = '';
+    form.description = '';
     await router.push(`/pools/${pool.id}`);
   } catch (e) {
     ui.toast('error', apiError(e));
@@ -120,6 +122,16 @@ async function submitCreate() {
           <input v-model="form.name" class="inp" maxlength="60" placeholder="Ex.: Galera da firma" required />
         </label>
         <label class="fld">
+          <span class="lbl">Descrição (opcional)</span>
+          <textarea
+            v-model="form.description"
+            class="inp area"
+            maxlength="500"
+            rows="3"
+            placeholder="Conte do que se trata, regras combinadas, prêmio…"
+          />
+        </label>
+        <label class="fld">
           <span class="lbl">Torneio</span>
           <select v-model="form.tournamentId" class="inp" required>
             <option value="" disabled>Selecione…</option>
@@ -177,6 +189,11 @@ async function submitCreate() {
 .inp:focus {
   outline: none;
   border-color: var(--emerald);
+}
+.area {
+  resize: vertical;
+  min-height: 64px;
+  font-family: inherit;
 }
 .empty {
   padding: 3rem 0;

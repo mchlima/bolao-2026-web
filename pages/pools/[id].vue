@@ -57,11 +57,22 @@ async function loadMatches() {
   if (matches.value || !pool.value) return;
   matchesLoading.value = true;
   try {
-    const list = await useApi()<Paginated<Match>>(
-      `/matches?tournamentId=${pool.value.tournament.id}&pageSize=200`,
-    );
+    const tid = pool.value.tournament.id;
+    const api = useApi();
+    // The API caps pageSize at 100, so page through to get every match.
+    const all: Match[] = [];
+    let page = 1;
+    let totalPages = 1;
+    do {
+      const res = await api<Paginated<Match>>(
+        `/matches?tournamentId=${tid}&page=${page}&pageSize=100`,
+      );
+      all.push(...res.data);
+      totalPages = res.pagination.totalPages;
+      page++;
+    } while (page <= totalPages);
     // Most recent first — played games (with revealed predictions) on top.
-    matches.value = [...list.data].sort(
+    matches.value = all.sort(
       (a, b) =>
         new Date(b.kickoffAt).getTime() - new Date(a.kickoffAt).getTime(),
     );
@@ -116,19 +127,24 @@ function color(uid: string): string {
   return `hsl(${h} 52% 42%)`;
 }
 
-// ── Rename ──
+// ── Edit (name + description) ──
 const editOpen = ref(false);
 const editName = ref('');
+const editDescription = ref('');
 const saving = ref(false);
 function openEdit() {
   editName.value = pool.value?.name ?? '';
+  editDescription.value = pool.value?.description ?? '';
   editOpen.value = true;
 }
 async function saveEdit() {
   if (!editName.value.trim()) return;
   saving.value = true;
   try {
-    await pools.update(id, { name: editName.value.trim() });
+    await pools.update(id, {
+      name: editName.value.trim(),
+      description: editDescription.value.trim(),
+    });
     editOpen.value = false;
     await refreshPool();
     ui.toast('success', 'Bolão atualizado.');
@@ -306,6 +322,7 @@ const unavailable = computed(() => {
             <span class="dot">·</span>
             <span>{{ pool.memberCount }} {{ pool.memberCount === 1 ? 'membro' : 'membros' }}</span>
           </div>
+          <p v-if="pool.description" class="pdesc">{{ pool.description }}</p>
           <NuxtLink :to="`/tournaments/${pool.tournament.id}`" class="tour-link">
             {{ pool.tournament.name }} — palpitar ›
           </NuxtLink>
@@ -320,11 +337,11 @@ const unavailable = computed(() => {
       <!-- tabs -->
       <div class="tabs">
         <button class="tab" :class="{ on: tab === 'ranking' }" @click="tab = 'ranking'">Ranking</button>
-        <button class="tab" :class="{ on: tab === 'members' }" @click="tab = 'members'">
-          Membros
-        </button>
         <button class="tab" :class="{ on: tab === 'matches' }" @click="tab = 'matches'">
           Jogos
+        </button>
+        <button class="tab" :class="{ on: tab === 'members' }" @click="tab = 'members'">
+          Membros
         </button>
         <button v-if="canManage" class="tab" :class="{ on: tab === 'invites' }" @click="tab = 'invites'">
           Convites
@@ -472,9 +489,21 @@ const unavailable = computed(() => {
 
     <!-- Edit modal -->
     <AppModal v-if="editOpen" title="Editar bolão" @close="editOpen = false">
-      <form id="edit-pool" @submit.prevent="saveEdit">
-        <label class="lbl">Nome do bolão</label>
-        <input v-model="editName" class="inp" maxlength="60" required />
+      <form id="edit-pool" class="editform" @submit.prevent="saveEdit">
+        <div>
+          <label class="lbl">Nome do bolão</label>
+          <input v-model="editName" class="inp" maxlength="60" required />
+        </div>
+        <div>
+          <label class="lbl">Descrição (opcional)</label>
+          <textarea
+            v-model="editDescription"
+            class="inp area"
+            maxlength="500"
+            rows="3"
+            placeholder="Conte do que se trata o bolão, regras combinadas, prêmio…"
+          />
+        </div>
       </form>
       <template #footer>
         <button class="btn" @click="editOpen = false">Cancelar</button>
@@ -566,12 +595,30 @@ const unavailable = computed(() => {
   border-radius: 999px;
   padding: 2px 9px;
 }
+.pdesc {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  max-width: 560px;
+  white-space: pre-line;
+}
 .tour-link {
   display: inline-block;
   margin-top: 10px;
   font-size: 13.5px;
   font-weight: 700;
   color: var(--emerald);
+}
+.editform {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.area {
+  resize: vertical;
+  min-height: 64px;
+  font-family: inherit;
 }
 .hd-actions {
   display: flex;

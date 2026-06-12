@@ -45,6 +45,7 @@ async function confirmJoin() {
         <span class="cap">Convite para o bolão</span>
         <h1 class="font-display title">{{ data.name }}</h1>
         <p class="tour">{{ data.tournament.name }}</p>
+        <p v-if="data.description" class="desc">{{ data.description }}</p>
         <p class="muted members">
           {{ data.memberCount }} {{ data.memberCount === 1 ? 'membro' : 'membros' }}
         </p>
@@ -116,6 +117,13 @@ async function confirmJoin() {
   font-weight: 600;
   font-size: 14.5px;
   color: var(--azure);
+}
+.desc {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  white-space: pre-line;
+  margin-top: 2px;
 }
 .members {
   font-size: 13px;

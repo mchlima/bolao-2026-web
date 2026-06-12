@@ -168,6 +168,7 @@ export interface PoolInviteView {
 export interface PoolSummary {
   id: string;
   name: string;
+  description: string | null;
   visibility: PoolVisibility;
   tournament: PoolTournamentSummary;
   myRole: PoolMemberRole;
@@ -183,6 +184,7 @@ export interface PoolDetail extends PoolSummary {
 export interface PoolJoinPreview {
   id: string;
   name: string;
+  description: string | null;
   visibility: PoolVisibility;
   tournament: PoolTournamentSummary;
   memberCount: number;
