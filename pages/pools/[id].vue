@@ -323,22 +323,30 @@ const unavailable = computed(() => {
 }
 .tabs {
   display: flex;
-  gap: 4px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 18px;
+  gap: 5px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 5px;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 70px;
+  z-index: 20;
+  backdrop-filter: blur(8px);
 }
 .tab {
-  padding: 10px 14px;
-  color: var(--muted);
-  font-size: 14px;
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  border-radius: 10px;
   font-weight: 700;
+  font-size: 13.5px;
+  color: var(--muted);
   cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
   text-decoration: none;
 }
 .tab.on {
-  color: var(--text);
-  border-bottom-color: var(--gold);
+  background: var(--grad-pitch);
+  color: #fff;
 }
 </style>
