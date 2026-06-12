@@ -148,7 +148,7 @@ const firstName = computed(
           <div class="t-info">
             <div class="t-name font-display">{{ t.name }}</div>
             <div v-if="t.startDate" class="t-dates">
-              {{ formatDate(t.startDate) }} — {{ formatDate(t.endDate) }}
+              {{ formatDate(t.startDate, 'UTC') }} — {{ formatDate(t.endDate, 'UTC') }}
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import type { User } from '~/types/api';
 definePageMeta({ middleware: 'admin' });
 const ui = useUiStore();
 const auth = useAuthStore();
+const tz = useTz();
 
 const roleFilter = ref<'' | 'ADMIN' | 'USER'>('');
 const { page, search, data, load } = useAdminList<User>('/admin/users', () =>
@@ -92,7 +93,7 @@ onMounted(load);
           </span>
           <span><span v-if="u.role === 'ADMIN'" class="adm">Admin</span><span v-else class="comum">Comum</span></span>
           <span class="acc" :style="{ color: u.isActive ? 'var(--emerald)' : 'var(--scarlet)' }"><span class="d" :style="{ background: u.isActive ? 'var(--emerald)' : 'var(--scarlet)' }" />{{ u.isActive ? 'Ativo' : 'Inativo' }}</span>
-          <span class="since">{{ formatDate(u.createdAt) }}<span class="tz">🕘 {{ tzLabel(u.timezone) }}</span></span>
+          <span class="since">{{ formatDate(u.createdAt, tz) }}<span class="tz">🕘 {{ tzLabel(u.timezone) }}</span></span>
           <span class="acts">
             <button class="ic" :style="{ color: u.role === 'ADMIN' ? 'var(--gold)' : 'var(--muted)' }" :title="u.role === 'ADMIN' ? 'Remover admin' : 'Promover a admin'" @click="toggleRole(u)">★</button>
             <button class="ic" style="color: var(--azure)" title="Gerar nova senha" @click="resetPassword(u)">⟳</button>

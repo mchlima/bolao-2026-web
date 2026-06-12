@@ -119,7 +119,7 @@ onMounted(() => {
             </span>
             <span class="nm">{{ t.name }}</span>
           </span>
-          <span class="dt">{{ t.startDate ? formatDate(t.startDate) : '—' }}<template v-if="t.endDate"> → {{ formatDate(t.endDate) }}</template></span>
+          <span class="dt">{{ t.startDate ? formatDate(t.startDate, 'UTC') : '—' }}<template v-if="t.endDate"> → {{ formatDate(t.endDate, 'UTC') }}</template></span>
           <span class="mc"><b class="font-numeric">{{ t.matchCount ?? 0 }}</b> partida(s)</span>
           <span><span class="st">{{ STATUS_LABEL[t.status] ?? t.status }}</span></span>
           <span class="acts">
