@@ -44,15 +44,12 @@ const canManage = computed(
 );
 const isOwner = computed(() => myRole.value === 'OWNER');
 
-// 'match' is a hidden tab — reached by clicking a game in the Jogos list.
-const tab = ref<'ranking' | 'members' | 'matches' | 'invites' | 'match'>(
-  'ranking',
+type Tab = 'ranking' | 'members' | 'matches' | 'invites';
+const TABS = new Set<Tab>(['ranking', 'members', 'matches', 'invites']);
+// Initial tab honours ?tab= (so returning from a match lands back on Jogos).
+const tab = ref<Tab>(
+  TABS.has(route.query.tab as Tab) ? (route.query.tab as Tab) : 'ranking',
 );
-const selectedMatchId = ref<string | null>(null);
-function openMatch(m: Match) {
-  selectedMatchId.value = m.id;
-  tab.value = 'match';
-}
 
 // ── "Jogos" tab: the tournament's matches in chronological order ──
 const matches = ref<Match[] | null>(null);
@@ -395,7 +392,12 @@ const unavailable = computed(() => {
         <template v-else>
           <div v-for="grp in matchesByDay" :key="grp.day" class="daygrp">
             <div class="dayhd">{{ grp.day }}</div>
-            <button v-for="m in grp.items" :key="m.id" class="game" @click="openMatch(m)">
+            <NuxtLink
+              v-for="m in grp.items"
+              :key="m.id"
+              :to="`/pools/${id}/matches/${m.id}`"
+              class="game"
+            >
               <div class="g-side">
                 <TeamBadge :team="m.homeTeam" :placeholder="m.homeSourceLabel" :size="26" />
                 <span class="g-tn">{{ m.homeTeam?.name ?? m.homeSourceLabel ?? 'A definir' }}</span>
@@ -411,20 +413,9 @@ const unavailable = computed(() => {
                 <span class="g-tn end">{{ m.awayTeam?.name ?? m.awaySourceLabel ?? 'A definir' }}</span>
                 <TeamBadge :team="m.awayTeam" :placeholder="m.awaySourceLabel" :size="26" />
               </div>
-            </button>
+            </NuxtLink>
           </div>
         </template>
-      </section>
-
-      <!-- MATCH — hidden tab, opened by clicking a game above -->
-      <section v-show="tab === 'match'">
-        <PoolMatchView
-          v-if="selectedMatchId"
-          :key="selectedMatchId"
-          :pool-id="id"
-          :match-id="selectedMatchId"
-          @back="tab = 'matches'"
-        />
       </section>
 
       <!-- INVITES -->
@@ -817,6 +808,7 @@ const unavailable = computed(() => {
   border: 1px solid var(--border);
   border-radius: 13px;
   color: var(--text);
+  text-decoration: none;
   font: inherit;
   cursor: pointer;
   text-align: left;
