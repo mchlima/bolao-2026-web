@@ -4,7 +4,7 @@ const route = useRoute();
 
 const items = computed(() => {
   const base = [
-    { to: '/', label: 'Início', icon: 'home' },
+    { to: '/', label: 'Torneios', icon: 'home' },
     { to: '/howto', label: 'Como funciona', icon: 'book' },
   ];
   if (auth.isAuthenticated)

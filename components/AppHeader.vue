@@ -52,9 +52,9 @@ function logout() {
       </NuxtLink>
 
       <nav class="topnav">
-        <NuxtLink to="/" class="nav-link" active-class="" exact-active-class="router-link-active">Início</NuxtLink>
+        <NuxtLink to="/" class="nav-link" active-class="" exact-active-class="router-link-active">Torneios</NuxtLink>
+        <NuxtLink v-if="auth.isAuthenticated" to="/predictions" class="nav-link">Palpites</NuxtLink>
         <NuxtLink to="/howto" class="nav-link">Como funciona</NuxtLink>
-        <NuxtLink v-if="auth.isAuthenticated" to="/predictions" class="nav-link">Meus palpites</NuxtLink>
         <NuxtLink v-if="auth.isAdmin" to="/admin" class="nav-link">Admin</NuxtLink>
       </nav>
 
