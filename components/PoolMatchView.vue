@@ -80,6 +80,38 @@ const podium = computed(() =>
     .filter((x) => x.e),
 );
 
+// ── Editable prediction — palpite is global, so saving here is the same as on
+// the tournament page (it shows up in every pool's ranking for this match). ──
+const ui = useUiStore();
+const isOpen = useMatchOpen(() => match.value);
+const editable = computed(() => isOpen.value && auth.isAuthenticated);
+const clampScore = (n: number) => Math.max(0, Math.min(99, n));
+const ph = ref(0);
+const pa = ref(0);
+const saving = ref(false);
+watchEffect(() => {
+  ph.value = me.value?.prediction?.home ?? 0;
+  pa.value = me.value?.prediction?.away ?? 0;
+});
+async function savePrediction() {
+  saving.value = true;
+  try {
+    await useApi()('/predictions', {
+      method: 'POST',
+      body: { matchId: props.matchId, homeScore: ph.value, awayScore: pa.value },
+    });
+    ui.toast('success', 'Palpite salvo ✓');
+    await refresh();
+  } catch (e) {
+    ui.toast(
+      'error',
+      (e as { data?: { message?: string } })?.data?.message ?? 'Erro ao salvar.',
+    );
+  } finally {
+    saving.value = false;
+  }
+}
+
 function initials(name: string): string {
   const p = name.trim().split(/\s+/);
   return ((p[0]?.[0] ?? '') + (p[1]?.[0] ?? '')).toUpperCase();
@@ -125,8 +157,32 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </div>
 
         <div class="body">
-          <!-- read-only own prediction -->
-          <div v-if="me?.prediction" class="mypred">
+          <!-- editable prediction (open) -->
+          <div v-if="editable" class="mypred">
+            <div class="mp-head">
+              <span class="mp-title">Seu palpite</span>
+              <span class="mp-hint">use +/− para ajustar</span>
+            </div>
+            <div class="mp-stepper">
+              <div class="mp-col">
+                <button class="mp-step" @click="ph = clampScore(ph - 1)">−</button>
+                <span class="font-numeric mp-num">{{ ph }}</span>
+                <button class="mp-step" @click="ph = clampScore(ph + 1)">+</button>
+              </div>
+              <span class="font-numeric colon mp-colon">:</span>
+              <div class="mp-col">
+                <button class="mp-step" @click="pa = clampScore(pa - 1)">−</button>
+                <span class="font-numeric mp-num">{{ pa }}</span>
+                <button class="mp-step" @click="pa = clampScore(pa + 1)">+</button>
+              </div>
+            </div>
+            <button class="btn btn-gold btn-block mp-save" :disabled="saving" @click="savePrediction">
+              {{ me?.prediction ? 'Atualizar palpite' : 'Confirmar palpite' }}
+            </button>
+          </div>
+
+          <!-- read-only own prediction (locked) -->
+          <div v-else-if="me?.prediction" class="mypred">
             <div class="mp-head">
               <span class="mp-title">Seu palpite</span>
               <span
@@ -322,6 +378,50 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   text-align: center;
   font-size: 46px;
   line-height: 0.85;
+}
+.mp-hint {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.mp-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.mp-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mp-step {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text);
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.mp-num {
+  font-size: 48px;
+  line-height: 0.85;
+  min-width: 30px;
+  text-align: center;
+}
+.mp-colon {
+  font-size: 40px;
+  color: var(--muted);
+}
+.mp-save {
+  margin-top: 14px;
+  font-size: 14px;
+  padding: 11px;
 }
 .earned {
   display: flex;
