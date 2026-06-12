@@ -233,10 +233,7 @@ onMounted(() => { load(); loadFacets(); });
         <div v-for="t in data?.data ?? []" :key="t.id" class="row">
           <span class="tn">
             <TeamBadge :team="t" :size="30" />
-            <span class="nmwrap">
-              <span class="nm">{{ t.name }}</span>
-              <span v-if="t.espnId" class="esp">ESPN #{{ t.espnId }}</span>
-            </span>
+            <span class="nm">{{ t.name }}</span>
           </span>
           <span class="sg">{{ t.shortName }}</span>
           <span class="ty"><span class="tb" :class="t.type === 'CLUB' ? 'club' : 'nat'">{{ TYPE_LABEL[t.type] }}</span></span>
@@ -297,7 +294,7 @@ onMounted(() => { load(); loadFacets(); });
           <div><label>Escudo (claro)</label><ImageUploadField v-model="form.logoUrl" prefix="teams" /></div>
           <div><label>Escudo (escuro)</label><ImageUploadField v-model="form.logoDarkUrl" prefix="teams" /></div>
         </div>
-        <p v-if="editing?.espnId" class="espnote">Vinculado à ESPN (#{{ editing.espnId }}) — atualizado automaticamente pelo seed.</p>
+        <p v-if="editing?.espnId" class="espnote">Vinculado à ESPN — atualizado automaticamente pelo seed.</p>
       </div>
       <template #footer>
         <button class="btn" @click="modalOpen = false">Cancelar</button>
@@ -349,9 +346,7 @@ onMounted(() => { load(); loadFacets(); });
 .row:hover { background: var(--bg-base); }
 .ar { text-align: right; }
 .tn { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.nmwrap { display: flex; flex-direction: column; min-width: 0; }
-.nm { font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.esp { font-size: 9.5px; color: var(--muted); font-weight: 600; }
+.nm { min-width: 0; font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sg { font-weight: 700; font-size: 13px; }
 .ty .tb { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
 .tb.nat { color: var(--azure); background: color-mix(in srgb, var(--azure) 14%, transparent); }
