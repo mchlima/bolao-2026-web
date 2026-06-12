@@ -82,13 +82,11 @@ async function submitCreate() {
 
 <template>
   <div class="page">
-    <div class="head">
-      <div>
-        <h1 class="font-display title">Meus bolões</h1>
-        <p class="sub">Dispute o ranking entre amigos.</p>
-      </div>
-      <button class="btn btn-gold" @click="openCreate">+ Criar bolão</button>
-    </div>
+    <PageHeader title="Meus bolões" subtitle="Dispute o ranking entre amigos.">
+      <template #actions>
+        <button class="btn btn-gold" @click="openCreate">+ Criar bolão</button>
+      </template>
+    </PageHeader>
 
     <SkeletonList v-if="pending && !data" variant="card" :count="3" />
 
@@ -173,25 +171,6 @@ async function submitCreate() {
 <style scoped>
 .page {
   padding: 22px 0 40px;
-}
-.head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 18px;
-}
-.title {
-  font-weight: 700;
-  font-size: clamp(24px, 5vw, 34px);
-  text-transform: uppercase;
-  line-height: 1;
-}
-.sub {
-  color: var(--muted);
-  margin-top: 6px;
-  font-size: 14px;
 }
 .inp {
   width: 100%;

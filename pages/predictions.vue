@@ -157,12 +157,10 @@ function phaseText(m: Prediction['match']): string {
 
 <template>
   <div class="page">
-    <div class="head">
-      <div>
-        <h1 class="font-display">Meus palpites</h1>
-        <p class="sub">Acompanhe seus resultados e pontos por torneio</p>
-      </div>
-    </div>
+    <PageHeader
+      title="Meus palpites"
+      subtitle="Acompanhe seus resultados e pontos por torneio"
+    />
 
     <!-- summary stats -->
     <div class="stats">
@@ -311,20 +309,6 @@ function phaseText(m: Prediction['match']): string {
 .page {
   padding: 18px 0 40px;
 }
-.head {
-  margin-bottom: 14px;
-}
-.head h1 {
-  font-weight: 700;
-  font-size: 24px;
-  text-transform: uppercase;
-}
-.sub {
-  font-size: 12.5px;
-  color: var(--muted);
-  margin-top: 2px;
-}
-
 /* stats */
 .stats {
   display: grid;

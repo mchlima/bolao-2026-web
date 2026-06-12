@@ -24,9 +24,10 @@ const { data, pending } = await useAsyncData('tournaments', async () => {
 
 <template>
   <div class="page">
-    <div class="sec-head">
-      <h2 class="font-display">Torneios</h2>
-    </div>
+    <PageHeader
+      title="Torneios"
+      subtitle="Escolha um torneio para palpitar e acompanhar o ranking."
+    />
     <SkeletonList v-if="pending && !data" variant="card" :count="3" />
     <div v-else class="grid">
       <NuxtLink
@@ -62,19 +63,6 @@ const { data, pending } = await useAsyncData('tournaments', async () => {
 <style scoped>
 .page {
   padding: 22px 0 40px;
-}
-.sec-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-.sec-head h2 {
-  font-weight: 600;
-  font-size: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 .grid {
   display: grid;
