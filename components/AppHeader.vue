@@ -3,6 +3,10 @@ const auth = useAuthStore();
 const router = useRouter();
 const colorMode = useColorMode();
 const menuOpen = ref(false);
+const primary = usePrimaryTournament();
+const rankingTo = computed(() =>
+  primary.value ? `/tournaments/${primary.value.id}/ranking` : null,
+);
 
 const initials = computed(() => {
   const n = auth.user?.name?.trim();
@@ -67,6 +71,18 @@ function logout() {
                 <div class="who-name">{{ auth.user?.name }}</div>
                 <div class="who-email">{{ auth.user?.email }}</div>
               </div>
+              <div class="sep" />
+              <NuxtLink
+                v-if="rankingTo"
+                :to="rankingTo"
+                class="row"
+                @click="menuOpen = false"
+                >Ranking</NuxtLink
+              >
+              <NuxtLink to="/inicio" class="row" @click="menuOpen = false"
+                >Início</NuxtLink
+              >
+              <div class="sep" />
               <div class="theme-block">
                 <div class="theme-lbl">Tema</div>
                 <div class="seg">
