@@ -329,10 +329,6 @@ const unavailable = computed(() => {
   border-radius: 14px;
   padding: 5px;
   margin-bottom: 16px;
-  position: sticky;
-  top: 70px;
-  z-index: 20;
-  backdrop-filter: blur(8px);
 }
 .tab {
   flex: 1;
