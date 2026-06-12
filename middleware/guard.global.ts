@@ -9,6 +9,14 @@ export default defineNuxtRouteMiddleware((to) => {
   const isPublic = PUBLIC.has(to.path);
 
   if (!auth.token && !isPublic) {
+    // Invite deep-links must survive auth: send to login but keep the
+    // destination so the user lands back on the invite after logging in /
+    // signing up. Other protected routes just bounce to the landing.
+    if (to.path.startsWith('/pools/join/')) {
+      return navigateTo(
+        `/login?redirect=${encodeURIComponent(to.fullPath)}`,
+      );
+    }
     return navigateTo('/');
   }
   if (auth.token && (to.path === '/login' || to.path === '/register')) {

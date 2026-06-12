@@ -40,6 +40,8 @@ export function usePools() {
         method: 'PATCH',
         body,
       }),
+    deleteInvite: (id: string, inviteId: string) =>
+      api(`/pools/${id}/invites/${inviteId}`, { method: 'DELETE' }),
 
     joinPreview: (code: string) =>
       api<PoolJoinPreview>(`/pools/join/${code}`),

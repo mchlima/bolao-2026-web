@@ -24,6 +24,8 @@ function apiError(e: unknown): string {
   return (e as { data?: { message?: string } })?.data?.message ?? 'Algo deu errado.';
 }
 
+// (Joining a pool is link-only — open an invite link to join.)
+
 // ── Create modal ──
 const createOpen = ref(false);
 const tournaments = ref<Tournament[]>([]);
@@ -67,13 +69,6 @@ async function submitCreate() {
   }
 }
 
-// ── Join by code ──
-const joinCode = ref('');
-function submitJoin() {
-  const code = joinCode.value.trim();
-  if (!code) return;
-  router.push(`/pools/join/${encodeURIComponent(code)}`);
-}
 </script>
 
 <template>
@@ -85,17 +80,6 @@ function submitJoin() {
       </div>
       <button class="btn btn-gold" @click="openCreate">+ Criar bolão</button>
     </div>
-
-    <!-- Join by code -->
-    <form class="join" @submit.prevent="submitJoin">
-      <input
-        v-model="joinCode"
-        class="inp"
-        placeholder="Tem um código de convite? Cole aqui"
-        aria-label="Código de convite"
-      />
-      <button class="btn" type="submit">Entrar</button>
-    </form>
 
     <SkeletonList v-if="pending && !data" variant="card" :count="3" />
 
@@ -179,14 +163,6 @@ function submitJoin() {
   color: var(--muted);
   margin-top: 6px;
   font-size: 14px;
-}
-.join {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 24px;
-}
-.join .inp {
-  flex: 1;
 }
 .inp {
   width: 100%;

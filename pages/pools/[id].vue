@@ -185,12 +185,49 @@ async function copyInvite(inv: PoolInviteView) {
     ui.toast('error', 'Não foi possível copiar.');
   }
 }
+async function removeInvite(inv: PoolInviteView) {
+  const ok = await ui.confirm({
+    title: 'Remover link',
+    msg: `Remover o link "${inv.name}"? Quem tiver esse link não poderá mais entrar por ele.`,
+    confirmLabel: 'Remover',
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    await pools.deleteInvite(id, inv.id);
+    await refreshPool();
+    ui.toast('success', 'Link removido.');
+  } catch (e) {
+    ui.toast('error', apiError(e));
+  }
+}
+
+// Friendly message for an unavailable pool (deleted, never existed, or left).
+const unavailable = computed(() => {
+  const status = (error.value as { statusCode?: number } | null)?.statusCode;
+  if (status === 403) {
+    return {
+      title: 'Você não faz parte deste bolão',
+      msg: 'Talvez você tenha saído ou sido removido. Peça um novo convite para voltar.',
+    };
+  }
+  return {
+    title: 'Bolão não encontrado',
+    msg: 'Este bolão não existe mais ou o link está incorreto. Ele pode ter sido excluído pelo dono.',
+  };
+});
 </script>
 
 <template>
   <div class="page">
     <SkeletonList v-if="pending" variant="row" :count="6" />
-    <p v-else-if="error || !pool" class="muted load">Bolão indisponível.</p>
+
+    <div v-else-if="error || !pool" class="unavail">
+      <div class="ic">🔍</div>
+      <h1 class="font-display u-title">{{ unavailable.title }}</h1>
+      <p class="muted u-msg">{{ unavailable.msg }}</p>
+      <NuxtLink to="/pools" class="btn btn-gold">Ver meus bolões</NuxtLink>
+    </div>
 
     <template v-else>
       <NuxtLink to="/pools" class="back">← Meus bolões</NuxtLink>
@@ -287,6 +324,7 @@ async function copyInvite(inv: PoolInviteView) {
             <button class="mini" @click="toggleInvite(inv)">
               {{ inv.isActive ? 'Revogar' : 'Reativar' }}
             </button>
+            <button class="mini danger" @click="removeInvite(inv)">Remover</button>
           </div>
         </div>
       </section>
@@ -314,6 +352,36 @@ async function copyInvite(inv: PoolInviteView) {
 }
 .load {
   padding: 2rem 0;
+}
+.unavail {
+  max-width: 420px;
+  margin: 8vh auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.unavail .ic {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+}
+.u-title {
+  font-weight: 700;
+  font-size: clamp(20px, 5vw, 26px);
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.u-msg {
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 6px;
 }
 .back {
   display: inline-block;

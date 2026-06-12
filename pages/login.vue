@@ -8,12 +8,18 @@ const email = ref('');
 const password = ref('');
 const loading = ref(false);
 
+// Only allow internal (relative) redirects — never an external URL.
+const redirect = computed(() => {
+  const r = route.query.redirect as string | undefined;
+  return r && r.startsWith('/') ? r : '/tournaments';
+});
+
 async function submit() {
   loading.value = true;
   try {
     await auth.login(email.value, password.value);
     ui.toast('success', 'Bem-vindo de volta!');
-    router.push((route.query.redirect as string) || '/tournaments');
+    router.push(redirect.value);
   } catch (e) {
     ui.toast(
       'error',
@@ -39,7 +45,7 @@ async function submit() {
       <div class="card box">
         <div class="tabs">
           <span class="tab on">Entrar</span>
-          <NuxtLink to="/register" class="tab">Criar conta</NuxtLink>
+          <NuxtLink :to="{ path: '/register', query: route.query }" class="tab">Criar conta</NuxtLink>
         </div>
         <form @submit.prevent="submit">
           <label>E-mail</label>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const auth = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const ui = useUiStore();
 
 const name = ref('');
@@ -8,6 +9,12 @@ const email = ref('');
 const password = ref('');
 const password2 = ref('');
 const loading = ref(false);
+
+// Only allow internal (relative) redirects — never an external URL.
+const redirect = computed(() => {
+  const r = route.query.redirect as string | undefined;
+  return r && r.startsWith('/') ? r : '/tournaments';
+});
 
 const matchState = computed(() => {
   if (!password2.value) return null;
@@ -23,7 +30,7 @@ async function submit() {
   try {
     await auth.register(name.value, email.value, password.value);
     ui.toast('success', 'Conta criada! Boa sorte nos palpites.');
-    router.push('/tournaments');
+    router.push(redirect.value);
   } catch (e) {
     ui.toast(
       'error',
@@ -48,7 +55,7 @@ async function submit() {
 
       <div class="card box">
         <div class="tabs">
-          <NuxtLink to="/login" class="tab">Entrar</NuxtLink>
+          <NuxtLink :to="{ path: '/login', query: route.query }" class="tab">Entrar</NuxtLink>
           <span class="tab on">Criar conta</span>
         </div>
         <form @submit.prevent="submit">
