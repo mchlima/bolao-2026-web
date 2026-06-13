@@ -5,7 +5,7 @@ import type { BracketStage, BracketTie, Match, Paginated, StageStandings } from 
 // knockout tie. Reuses StandingsTable / GroupRoundCard / BracketTieCard.
 const props = defineProps<{ seasonId: string; matchId: string }>();
 
-const { data } = await useAsyncData(`match-phase-${props.matchId}`, async () => {
+const { data, refresh } = await useAsyncData(`match-phase-${props.matchId}`, async () => {
   const api = useApi();
   const [match, standings, bracket, matches] = await Promise.all([
     api<Match>(`/matches/${props.matchId}`),
@@ -15,6 +15,10 @@ const { data } = await useAsyncData(`match-phase-${props.matchId}`, async () => 
   ]);
   return { match, standings, bracket, groupMatches: matches.data };
 });
+
+// Standings, bracket and the round card all depend on every match in the season,
+// so resync on any update in the tournament room (not just this match's).
+useRealtime(() => [`tournament:${props.seasonId}`], () => refresh());
 
 const match = computed(() => data.value?.match ?? null);
 const isGroup = computed(() => !!match.value?.groupName);
