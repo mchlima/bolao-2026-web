@@ -13,13 +13,13 @@ const { data, pending, error, refresh } = await useAsyncData(
   async () => {
     const api = useApi();
     const [p1, p2] = await Promise.all([
-      api<Paginated<Match>>(`/matches?tournamentId=${id}&page=1&pageSize=100`),
-      api<Paginated<Match>>(`/matches?tournamentId=${id}&page=2&pageSize=100`),
+      api<Paginated<Match>>(`/matches?seasonId=${id}&page=1&pageSize=100`),
+      api<Paginated<Match>>(`/matches?seasonId=${id}&page=2&pageSize=100`),
     ]);
     const matches = [...p1.data, ...p2.data];
     let predictions: Prediction[] = [];
     if (auth.token) {
-      predictions = await api<Prediction[]>(`/predictions/me?tournamentId=${id}`);
+      predictions = await api<Prediction[]>(`/predictions/me?seasonId=${id}`);
     }
     return { matches, predictions };
   },

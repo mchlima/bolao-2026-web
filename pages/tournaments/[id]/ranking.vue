@@ -5,7 +5,7 @@ const route = useRoute();
 const id = route.params.id as string;
 
 const { data, pending, error, refresh } = await useAsyncData(`ranking-${id}`, () =>
-  useApi()<RankingResponse>(`/tournaments/${id}/ranking`),
+  useApi()<RankingResponse>(`/seasons/${id}/ranking`),
 );
 useRealtime(() => [`tournament:${id}`], () => refresh());
 </script>

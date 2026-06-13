@@ -12,7 +12,7 @@ const all = computed(() => data.value ?? []);
 // Live updates: subscribe to every tournament the user has a prediction in;
 // any score/status change refetches so results and points stay current.
 const rooms = computed(() => [
-  ...new Set(all.value.map((p) => `tournament:${p.match.tournamentId}`)),
+  ...new Set(all.value.map((p) => `tournament:${p.match.seasonId}`)),
 ]);
 useRealtime(() => rooms.value, () => refresh());
 
@@ -29,7 +29,7 @@ const exactCount = computed(
 const tournaments = computed(() => {
   const map = new Map<string, string>();
   for (const p of all.value) {
-    const t = p.match.tournament;
+    const t = p.match.season;
     if (t) map.set(t.id, t.name);
   }
   return [...map].map(([id, name]) => ({ id, name }));
@@ -64,11 +64,11 @@ const filtered = computed(() => {
   const q = search.value.trim().toLowerCase();
   return all.value.filter((p) => {
     const m = p.match;
-    if (tournamentId.value && m.tournamentId !== tournamentId.value) return false;
+    if (tournamentId.value && m.seasonId !== tournamentId.value) return false;
     if (!inStatusBucket(m.status)) return false;
     if (!q) return true;
     const hay = [
-      m.tournament?.name,
+      m.season?.name,
       m.phaseLabel,
       m.groupName && `grupo ${m.groupName}`,
       m.homeTeam?.name,
@@ -236,7 +236,7 @@ function phaseText(m: Prediction['match']): string {
           <!-- header: tournament · phase + status -->
           <div class="item-head">
             <div class="ctx">
-              <span class="tourn">{{ p.match.tournament?.name }}</span>
+              <span class="tourn">{{ p.match.season?.name }}</span>
               <span v-if="phaseText(p.match)" class="phase">{{ phaseText(p.match) }}</span>
             </div>
             <span

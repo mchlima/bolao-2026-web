@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import type { Tournament } from '~/types/api';
+import type { Competition, Paginated, SeasonFormat, Tournament } from '~/types/api';
 
 definePageMeta({ middleware: 'admin' });
 const ui = useUiStore();
 const route = useRoute();
-const { page, search, data, load } = useAdminList<Tournament>('/tournaments');
+const { page, search, data, load } = useAdminList<Tournament>('/seasons');
+
+// Competitions to bind a season to (a season is one edition of a competition).
+const competitions = ref<Competition[]>([]);
+onMounted(async () => {
+  competitions.value = (
+    await useApi()<Paginated<Competition>>('/competitions?pageSize=100')
+  ).data;
+});
 
 const STATUS = ['DRAFT', 'UPCOMING', 'ONGOING', 'FINISHED'] as const;
 const STATUS_LABEL: Record<string, string> = {
@@ -13,6 +21,12 @@ const STATUS_LABEL: Record<string, string> = {
   ONGOING: 'Em andamento',
   FINISHED: 'Encerrado',
 };
+const FORMATS: { v: SeasonFormat; l: string }[] = [
+  { v: 'LEAGUE', l: 'Pontos corridos' },
+  { v: 'GROUPS', l: 'Apenas grupos' },
+  { v: 'KNOCKOUT', l: 'Apenas mata-mata' },
+  { v: 'GROUPS_KNOCKOUT', l: 'Grupos + mata-mata' },
+];
 
 function badge(name: string): string {
   const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
@@ -22,7 +36,10 @@ function badge(name: string): string {
 const modalOpen = ref(false);
 const editing = ref<Tournament | null>(null);
 const form = reactive({
+  competitionId: '',
   name: '',
+  seasonLabel: '',
+  format: 'GROUPS_KNOCKOUT' as SeasonFormat,
   status: 'DRAFT' as string,
   startDate: '',
   endDate: '',
@@ -32,13 +49,19 @@ const saving = ref(false);
 
 function openNew() {
   editing.value = null;
-  Object.assign(form, { name: '', status: 'DRAFT', startDate: '', endDate: '', logoUrl: '' });
+  Object.assign(form, {
+    competitionId: competitions.value[0]?.id ?? '', name: '', seasonLabel: '',
+    format: 'GROUPS_KNOCKOUT', status: 'DRAFT', startDate: '', endDate: '', logoUrl: '',
+  });
   modalOpen.value = true;
 }
 function openEdit(t: Tournament) {
   editing.value = t;
   Object.assign(form, {
+    competitionId: t.competition?.id ?? '',
     name: t.name,
+    seasonLabel: t.seasonLabel ?? '',
+    format: t.format ?? 'GROUPS_KNOCKOUT',
     status: t.status,
     startDate: t.startDate?.slice(0, 10) ?? '',
     endDate: t.endDate?.slice(0, 10) ?? '',
@@ -49,9 +72,13 @@ function openEdit(t: Tournament) {
 
 async function submit() {
   if (!form.name.trim()) return ui.toast('error', 'Informe o nome do torneio');
+  if (!form.competitionId) return ui.toast('error', 'Selecione a competição');
   saving.value = true;
   const body: Record<string, unknown> = {
+    competitionId: form.competitionId,
     name: form.name,
+    seasonLabel: form.seasonLabel || undefined,
+    format: form.format,
     status: form.status,
     logoUrl: form.logoUrl || undefined,
     startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
@@ -59,10 +86,10 @@ async function submit() {
   };
   try {
     if (editing.value) {
-      await useApi()(`/admin/tournaments/${editing.value.id}`, { method: 'PATCH', body });
+      await useApi()(`/admin/seasons/${editing.value.id}`, { method: 'PATCH', body });
       ui.toast('success', 'Torneio atualizado');
     } else {
-      await useApi()('/admin/tournaments', { method: 'POST', body });
+      await useApi()('/admin/seasons', { method: 'POST', body });
       ui.toast('success', 'Torneio criado com sucesso');
     }
     modalOpen.value = false;
@@ -83,7 +110,7 @@ async function remove(t: Tournament) {
   });
   if (!ok) return;
   try {
-    await useApi()(`/admin/tournaments/${t.id}`, { method: 'DELETE' });
+    await useApi()(`/admin/seasons/${t.id}`, { method: 'DELETE' });
     ui.toast('error', `Torneio "${t.name}" excluído`);
     await load();
   } catch (e) {
@@ -135,8 +162,22 @@ onMounted(() => {
 
     <AppModal v-if="modalOpen" :title="editing ? 'Editar torneio' : 'Novo torneio'" @close="modalOpen = false">
       <div class="form">
-        <label>Nome</label>
+        <label>Competição</label>
+        <select v-model="form.competitionId" class="input">
+          <option value="" disabled>Selecione…</option>
+          <option v-for="c in competitions" :key="c.id" :value="c.id">{{ c.name }}</option>
+        </select>
+        <label>Nome (edição)</label>
         <input v-model="form.name" class="input" placeholder="Copa do Mundo FIFA 2026" />
+        <div class="two">
+          <div><label>Rótulo da edição</label><input v-model="form.seasonLabel" class="input" placeholder="2026" /></div>
+          <div>
+            <label>Formato</label>
+            <select v-model="form.format" class="input">
+              <option v-for="f in FORMATS" :key="f.v" :value="f.v">{{ f.l }}</option>
+            </select>
+          </div>
+        </div>
         <label>Status</label>
         <select v-model="form.status" class="input">
           <option v-for="s in STATUS" :key="s" :value="s">{{ STATUS_LABEL[s] }}</option>

@@ -79,7 +79,7 @@ const filteredMenu = computed(() => {
 
 async function loadMenu() {
   const q = new URLSearchParams({ pageSize: '100', status: statusPick.value });
-  if (tournamentId.value) q.set('tournamentId', tournamentId.value);
+  if (tournamentId.value) q.set('seasonId', tournamentId.value);
   const res = await useApi()<Paginated<Match>>(`/matches?${q.toString()}`);
   menu.value = res.data.filter((m) => m.homeTeam && m.awayTeam);
 }
@@ -174,7 +174,7 @@ useRealtime(
 
 watch([tournamentId, statusPick], loadMenu);
 onMounted(async () => {
-  const tt = await useApi()<Paginated<Tournament>>('/tournaments?pageSize=100');
+  const tt = await useApi()<Paginated<Tournament>>('/seasons?pageSize=100');
   tournaments.value = tt.data;
   tournamentId.value = tt.data.find((t) => t.status === 'ONGOING')?.id ?? '';
   await loadMenu();
@@ -218,7 +218,7 @@ onMounted(async () => {
             :class="{ active: selected?.id === m.id }"
             @click="select(m)"
           >
-            <div v-if="m.tournament" class="mi-tour">{{ m.tournament.name }}</div>
+            <div v-if="m.season" class="mi-tour">{{ m.season.name }}</div>
             <div class="mi-meta">
               <span v-if="m.status === 'LIVE'" class="ld" />
               <span class="mi-time font-numeric">{{ timeOnly(m.kickoffAt) }}</span>
@@ -286,7 +286,7 @@ onMounted(async () => {
         <!-- 2) Informações -->
         <div class="card infocard">
           <div class="ic-head">
-            <span v-if="selected.tournament" class="ic-tour">{{ selected.tournament.name }}</span>
+            <span v-if="selected.season" class="ic-tour">{{ selected.season.name }}</span>
             <span class="ic-phase">{{ selected.phaseLabel }}<template v-if="selected.groupName"> · Grupo {{ selected.groupName }}</template></span>
           </div>
           <div class="ic-rows">

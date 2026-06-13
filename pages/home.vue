@@ -11,7 +11,7 @@ const auth = useAuthStore();
 
 const { data, pending, refresh } = await useAsyncData('home', async () => {
   const api = useApi();
-  const list = await api<Paginated<Tournament>>('/tournaments');
+  const list = await api<Paginated<Tournament>>('/seasons');
   const tournaments = list.data;
   const primary =
     tournaments.find((t) => t.status === 'ONGOING') ?? tournaments[0] ?? null;
@@ -22,12 +22,12 @@ const { data, pending, refresh } = await useAsyncData('home', async () => {
 
   if (primary) {
     const [rank, page1] = await Promise.all([
-      api<RankingResponse>(`/tournaments/${primary.id}/ranking`).catch(() => null),
-      api<Paginated<Match>>(`/matches?tournamentId=${primary.id}&page=1&pageSize=100`),
+      api<RankingResponse>(`/seasons/${primary.id}/ranking`).catch(() => null),
+      api<Paginated<Match>>(`/matches?seasonId=${primary.id}&page=1&pageSize=100`),
     ]);
     me = rank?.currentUser ?? null;
     predictions = await api<Prediction[]>(
-      `/predictions/me?tournamentId=${primary.id}`,
+      `/predictions/me?seasonId=${primary.id}`,
     ).catch(() => []);
     const now = Date.now();
     openMatches = page1.data

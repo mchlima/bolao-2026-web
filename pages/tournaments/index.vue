@@ -17,7 +17,7 @@ function tBadge(name: string): string {
 }
 
 const { data, pending } = await useAsyncData('tournaments', async () => {
-  const list = await useApi()<Paginated<Tournament>>('/tournaments');
+  const list = await useApi()<Paginated<Tournament>>('/seasons');
   return list.data;
 });
 </script>

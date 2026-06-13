@@ -12,7 +12,7 @@ export function usePrimaryTournament() {
     'primary-tournament',
     async () => {
       if (!auth.isAuthenticated) return null;
-      const list = await useApi()<Paginated<Tournament>>('/tournaments');
+      const list = await useApi()<Paginated<Tournament>>('/seasons');
       return list.data.find((t) => t.status === 'ONGOING') ?? list.data[0] ?? null;
     },
     { watch: [() => auth.isAuthenticated] },

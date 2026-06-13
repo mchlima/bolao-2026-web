@@ -33,7 +33,7 @@ const form = reactive({
   name: '',
   description: '',
   inviteDescription: '',
-  tournamentId: '',
+  seasonId: '',
 });
 const creating = ref(false);
 
@@ -41,10 +41,10 @@ async function openCreate() {
   createOpen.value = true;
   if (!tournaments.value.length) {
     try {
-      const list = await useApi()<Paginated<Tournament>>('/tournaments?pageSize=100');
+      const list = await useApi()<Paginated<Tournament>>('/seasons?pageSize=100');
       tournaments.value = list.data;
-      if (!form.tournamentId) {
-        form.tournamentId =
+      if (!form.seasonId) {
+        form.seasonId =
           list.data.find((t) => t.status === 'ONGOING')?.id ??
           list.data[0]?.id ??
           '';
@@ -56,14 +56,14 @@ async function openCreate() {
 }
 
 async function submitCreate() {
-  if (!form.name.trim() || !form.tournamentId) return;
+  if (!form.name.trim() || !form.seasonId) return;
   creating.value = true;
   try {
     const pool = await pools.create({
       name: form.name.trim(),
       description: form.description.trim() || undefined,
       inviteDescription: form.inviteDescription.trim() || undefined,
-      tournamentId: form.tournamentId,
+      seasonId: form.seasonId,
     });
     ui.toast('success', 'Bolão criado!');
     createOpen.value = false;
@@ -148,7 +148,7 @@ async function submitCreate() {
         </label>
         <label class="fld">
           <span class="lbl">Torneio</span>
-          <select v-model="form.tournamentId" class="inp" required>
+          <select v-model="form.seasonId" class="inp" required>
             <option value="" disabled>Selecione…</option>
             <option v-for="t in tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
           </select>

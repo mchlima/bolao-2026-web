@@ -7,14 +7,16 @@ const route = useRoute();
 const id = route.params.id as string;
 
 const { data: tournaments } = await useAsyncData('tournaments-list', () =>
-  useApi()<Paginated<Tournament>>('/tournaments?pageSize=100').then((r) => r.data),
+  useApi()<Paginated<Tournament>>('/seasons?pageSize=100').then((r) => r.data),
 );
 const current = computed(
   () => (tournaments.value ?? []).find((t) => t.id === id) ?? null,
 );
-const activeTab = computed(() =>
-  route.path.endsWith('/ranking') ? 'ranking' : 'matches',
-);
+const activeTab = computed(() => {
+  if (route.path.endsWith('/ranking')) return 'ranking';
+  if (route.path.endsWith('/fases')) return 'fases';
+  return 'matches';
+});
 
 function onPickTournament(e: Event) {
   const v = (e.target as HTMLSelectElement).value;
@@ -53,6 +55,7 @@ function badge(name: string): string {
     <nav class="tabs">
       <NuxtLink :to="`/tournaments/${id}`" class="tab" :class="{ on: activeTab === 'matches' }">Partidas</NuxtLink>
       <NuxtLink :to="`/tournaments/${id}/ranking`" class="tab" :class="{ on: activeTab === 'ranking' }">Ranking</NuxtLink>
+      <NuxtLink :to="`/tournaments/${id}/fases`" class="tab" :class="{ on: activeTab === 'fases' }">Fases</NuxtLink>
     </nav>
 
     <NuxtPage />

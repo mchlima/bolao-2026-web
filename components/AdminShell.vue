@@ -2,7 +2,9 @@
 const route = useRoute();
 const tabs = [
   { to: '/admin', label: 'Dashboard', exact: true },
+  { to: '/admin/competitions', label: 'Competições' },
   { to: '/admin/tournaments', label: 'Torneios' },
+  { to: '/admin/structure', label: 'Estrutura' },
   { to: '/admin/matches', label: 'Partidas' },
   { to: '/admin/teams', label: 'Times' },
   { to: '/admin/stadiums', label: 'Estádios' },

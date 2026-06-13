@@ -57,8 +57,8 @@ const tierColor = computed(() =>
 // to the standalone page only if the match has no tournament.
 const rankTo = computed(() => {
   if (props.poolId) return `/pools/${props.poolId}/matches/${props.match.id}`;
-  if (props.match.tournamentId)
-    return `/tournaments/${props.match.tournamentId}/matches/${props.match.id}`;
+  if (props.match.seasonId)
+    return `/tournaments/${props.match.seasonId}/matches/${props.match.id}`;
   return `/matches/${props.match.id}`;
 });
 

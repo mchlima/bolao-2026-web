@@ -60,20 +60,123 @@ export interface Stadium {
   country: string;
 }
 
+export type SeasonFormat = 'LEAGUE' | 'GROUPS' | 'KNOCKOUT' | 'GROUPS_KNOCKOUT';
+export type CompetitionType = 'LEAGUE' | 'CUP' | 'LEAGUE_CUP';
+
+export interface Competition {
+  id: string;
+  name: string;
+  slug: string;
+  type: CompetitionType;
+  country: string | null;
+  confederation: string | null;
+  logoUrl: string | null;
+  espnLeagueSlug: string | null;
+}
+
+// "Tournament" in the UI = a Season (one edition) on the API. The name is kept
+// for UI continuity ("torneio"); the API path is /seasons.
 export interface Tournament {
   id: string;
   name: string;
+  seasonLabel?: string | null;
   logoUrl: string | null;
   startDate: string | null;
   endDate: string | null;
   status: TournamentStatus;
-  matchCount?: number; // present on list responses (GET /tournaments)
+  format?: SeasonFormat;
+  competition?: Competition | null;
+  matchCount?: number; // present on list responses (GET /seasons)
+}
+
+// ── Competition structure (groups, rounds, knockout bracket) ──
+export type StageFormat = 'LEAGUE' | 'GROUP' | 'KNOCKOUT';
+export type TieResolution = 'AGGREGATE' | 'AWAY_GOALS' | 'EXTRA_TIME' | 'PENALTIES';
+
+export interface StandingsTeam {
+  id: string;
+  name: string;
+  shortName: string;
+  logoUrl: string | null;
+  countryCode: string | null;
+}
+
+export interface StandingsRow {
+  position: number;
+  team: StandingsTeam;
+  played: number; // J
+  wins: number; // V
+  draws: number; // E
+  losses: number; // D
+  goalsFor: number; // GP
+  goalsAgainst: number; // GC
+  goalDiff: number; // SG
+  points: number; // P
+  pct: number; // % (aproveitamento)
+  form: ('W' | 'D' | 'L')[]; // last 5, oldest → newest
+}
+
+export interface GroupStandings {
+  groupId: string;
+  groupName: string;
+  rows: StandingsRow[];
+}
+
+export interface StageStandings {
+  stageId: string;
+  stageName: string;
+  format: 'LEAGUE' | 'GROUP';
+  groups: GroupStandings[];
+}
+
+export interface BracketLeg {
+  id: string;
+  matchNumber: number | null;
+  leg: number | null;
+  kickoffAt: string;
+  status: MatchStatus;
+  homeScore: number;
+  awayScore: number;
+  homePenalties: number | null;
+  awayPenalties: number | null;
+  homeTeam: StandingsTeam | null;
+  awayTeam: StandingsTeam | null;
+  stadium: { name: string; city: string } | null;
+}
+
+export interface BracketTie {
+  id: string;
+  order: number;
+  home: StandingsTeam | null;
+  away: StandingsTeam | null;
+  homeSourceLabel: string | null;
+  awaySourceLabel: string | null;
+  aggregateHome: number | null;
+  aggregateAway: number | null;
+  winnerTeamId: string | null;
+  winner: StandingsTeam | null;
+  resolution: TieResolution | null;
+  legs: BracketLeg[];
+}
+
+export interface BracketRound {
+  roundId: string;
+  name: string | null;
+  legs: number;
+  ties: BracketTie[];
+}
+
+export interface BracketStage {
+  stageId: string;
+  stageName: string;
+  hasThirdPlace: boolean;
+  rounds: BracketRound[];
 }
 
 export interface Match {
   id: string;
-  tournamentId: string;
-  tournament?: { id: string; name: string; status: TournamentStatus } | null;
+  seasonId: string;
+  season?: { id: string; name: string; status: TournamentStatus } | null;
   homeTeam: Team | null;
   awayTeam: Team | null;
   homeSourceLabel: string | null;

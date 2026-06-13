@@ -14,20 +14,25 @@ const logo = computed(() => teamLogo(props.team, colorMode.value === 'dark'));
 const flag = computed(() => (logo.value ? null : teamFlag(props.team)));
 const abbr = computed(() => teamAbbr(props.team, props.placeholder));
 const color = computed(() => teamColor(props.team));
+// No team yet → a neutral "TBD" flag-shaped placeholder (not a colored avatar).
+const isTbd = computed(() => !props.team);
+
+const flagBox = () => {
+  const h = Math.round(props.size * 0.68);
+  return {
+    width: `${props.size}px`,
+    height: `${h}px`,
+    borderRadius: `${Math.max(3, Math.round(props.size * 0.1))}px`,
+  };
+};
 
 const box = computed(() => {
   // Crest: transparent, borderless, no padding — the image fills the box.
   if (logo.value) {
     return { width: `${props.size}px`, height: `${props.size}px` };
   }
-  if (flag.value) {
-    const h = Math.round(props.size * 0.68);
-    return {
-      width: `${props.size}px`,
-      height: `${h}px`,
-      borderRadius: `${Math.max(3, Math.round(props.size * 0.1))}px`,
-    };
-  }
+  if (flag.value) return flagBox();
+  if (isTbd.value) return flagBox(); // TBD placeholder is flag-shaped
   return {
     width: `${props.size}px`,
     height: `${props.size}px`,
@@ -38,7 +43,11 @@ const box = computed(() => {
 </script>
 
 <template>
-  <div class="emblem" :class="{ flagged: !!flag, logoed: !!logo }" :style="box">
+  <div
+    class="emblem"
+    :class="{ flagged: !!flag || isTbd, logoed: !!logo, tbd: isTbd }"
+    :style="box"
+  >
     <img
       v-if="logo"
       class="logo"
@@ -48,6 +57,12 @@ const box = computed(() => {
       decoding="async"
     />
     <span v-else-if="flag" class="flag" v-html="flag" />
+    <span
+      v-else-if="isTbd"
+      class="tbdtxt"
+      :style="{ fontSize: `${Math.round(size * 0.26)}px` }"
+      >TBD</span
+    >
     <span
       v-else
       class="abbr"
@@ -78,6 +93,18 @@ const box = computed(() => {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
   color: #fff;
+  line-height: 1;
+}
+/* TBD placeholder — flag-shaped, neutral, dashed. */
+.emblem.tbd {
+  background: var(--bg-base);
+  border-style: dashed;
+}
+.tbdtxt {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
   line-height: 1;
 }
 .logo {
