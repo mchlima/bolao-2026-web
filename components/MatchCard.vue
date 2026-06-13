@@ -136,9 +136,9 @@ const leftLabel = computed(() =>
 
     <!-- main row: home · center · away (single line, uniform height) -->
     <div class="row">
-      <div class="side" :class="{ win: homeWins, lose: awayWins }">
-        <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="46" />
+      <div class="side home" :class="{ win: homeWins, lose: awayWins }">
         <span class="tname" :title="homeName">{{ homeName }}</span>
+        <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="46" />
       </div>
 
       <div class="center">
@@ -185,7 +185,7 @@ const leftLabel = computed(() =>
         <div v-else class="vs">×</div>
       </div>
 
-      <div class="side" :class="{ win: awayWins, lose: homeWins }">
+      <div class="side away" :class="{ win: awayWins, lose: homeWins }">
         <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="46" />
         <span class="tname" :title="awayName">{{ awayName }}</span>
       </div>
@@ -323,11 +323,19 @@ const leftLabel = computed(() =>
   align-items: center;
   gap: 10px;
   min-width: 0;
-  justify-content: flex-end; /* home hugs the center */
 }
-.row .side:last-child {
-  flex-direction: row-reverse;
-  justify-content: flex-end; /* away hugs the center (row-reverse) */
+/* Flags sit next to the score (inner), names fill outward — so the badges stay
+   aligned regardless of name length. Home name hugs its flag on the right, away
+   on the left. */
+.side .tname {
+  flex: 1;
+  min-width: 0;
+}
+.side.home .tname {
+  text-align: right;
+}
+.side.away .tname {
+  text-align: left;
 }
 .tname {
   font-size: 14.5px;
