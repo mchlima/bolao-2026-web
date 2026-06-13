@@ -10,9 +10,34 @@ import type {
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
 const api = useApi();
+const tz = useTz();
 const helpOpen = ref(false);
 
 // Structure shape returned by GET /seasons/:id/structure (season + stages tree).
+interface StructMatch {
+  id: string;
+  matchNumber: number | null;
+  leg: number | null;
+  kickoffAt: string;
+  status: 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED';
+  homeScore: number | null;
+  awayScore: number | null;
+  groupId: string | null;
+  tieId: string | null;
+  homeSourceLabel: string | null;
+  awaySourceLabel: string | null;
+  homeTeam: Team | null;
+  awayTeam: Team | null;
+  stadium: { name: string; city: string } | null;
+}
+interface StructRound {
+  id: string;
+  number: number | null;
+  name: string | null;
+  legs: number;
+  order: number;
+  matches: StructMatch[];
+}
 interface StructStage {
   id: string;
   name: string;
@@ -26,13 +51,7 @@ interface StructStage {
     order: number;
     teams: { team: Team }[];
   }[];
-  rounds: {
-    id: string;
-    number: number | null;
-    name: string | null;
-    legs: number;
-    order: number;
-  }[];
+  rounds: StructRound[];
 }
 interface StructSeason {
   id: string;
@@ -207,6 +226,84 @@ async function resolve() {
   try { await api(`/admin/structure/seasons/${seasonId.value}/resolve`, { method: 'POST' }); ui.toast('success', 'Estrutura resolvida'); await loadStructure(); } catch (e) { err(e); }
 }
 
+// ── Jogos (matches) — criar/editar/excluir ligados à rodada/grupo/confronto ──
+const STATUS_LABEL: Record<string, string> = {
+  SCHEDULED: 'Agendado', LIVE: 'Ao vivo', FINISHED: 'Encerrado', CANCELLED: 'Cancelado',
+};
+async function delMatch(m: StructMatch) {
+  const home = m.homeTeam?.shortName ?? m.homeSourceLabel ?? '?';
+  const away = m.awayTeam?.shortName ?? m.awaySourceLabel ?? '?';
+  if (!(await ui.confirm({ title: 'Excluir jogo', msg: `Excluir ${home} × ${away}? Os palpites desse jogo são perdidos.`, confirmLabel: 'Excluir', danger: true }))) return;
+  try { await api(`/admin/matches/${m.id}`, { method: 'DELETE' }); await loadStructure(); } catch (e) { err(e); }
+}
+async function patchKickoff(m: StructMatch, local: string) {
+  if (!local) return;
+  try { await api(`/admin/matches/${m.id}`, { method: 'PATCH', body: { kickoffAt: zonedInputToUtc(local, tz.value) } }); ui.toast('success', 'Horário salvo'); await loadStructure(); } catch (e) { err(e); }
+}
+
+// Group-stage "add game" draft, keyed by roundId.
+interface GMDraft { groupId: string; home: string; away: string; kickoff: string; }
+const gmDraft = reactive<Record<string, GMDraft>>({});
+function gmd(roundId: string): GMDraft {
+  if (!gmDraft[roundId]) gmDraft[roundId] = { groupId: '', home: '', away: '', kickoff: '' };
+  return gmDraft[roundId];
+}
+function groupOf(st: StructStage, id: string) {
+  return st.groups.find((g) => g.id === id) ?? null;
+}
+async function addGroupMatch(st: StructStage, r: StructRound) {
+  const d = gmd(r.id);
+  if (!d.groupId || !d.home || !d.away || !d.kickoff) { ui.toast('error', 'Escolha grupo, os dois times e a data.'); return; }
+  if (d.home === d.away) { ui.toast('error', 'Os dois times são iguais.'); return; }
+  const g = groupOf(st, d.groupId);
+  try {
+    await api('/admin/matches', {
+      method: 'POST',
+      body: {
+        seasonId: seasonId.value, stageId: st.id, groupId: d.groupId, roundId: r.id,
+        homeTeamId: d.home, awayTeamId: d.away,
+        kickoffAt: zonedInputToUtc(d.kickoff, tz.value),
+        phaseLabel: st.name, groupName: g?.name, status: 'SCHEDULED',
+      },
+    });
+    gmDraft[r.id] = { groupId: '', home: '', away: '', kickoff: '' };
+    await loadStructure();
+  } catch (e) { err(e); }
+}
+
+// Knockout "add leg" draft, keyed by tieId.
+const kmDraft = reactive<Record<string, { kickoff: string }>>({});
+function kmd(tieId: string) {
+  if (!kmDraft[tieId]) kmDraft[tieId] = { kickoff: '' };
+  return kmDraft[tieId];
+}
+// Matches of a knockout tie come from the round's match list (filtered by tieId).
+function tieMatches(r: StructRound, tieId: string): StructMatch[] {
+  return r.matches.filter((m) => m.tieId === tieId).sort((a, b) => (a.leg ?? 1) - (b.leg ?? 1));
+}
+async function addTieMatch(st: StructStage, r: StructRound, tie: { id: string; home: { id: string } | null; away: { id: string } | null; homeSourceLabel: string | null; awaySourceLabel: string | null }) {
+  const d = kmd(tie.id);
+  if (!d.kickoff) { ui.toast('error', 'Informe a data do jogo.'); return; }
+  const existing = tieMatches(r, tie.id);
+  if (existing.length >= r.legs) { ui.toast('error', `Rodada de ${r.legs} jogo(s) — já há ${existing.length}.`); return; }
+  const leg = r.legs >= 2 ? existing.length + 1 : 1;
+  try {
+    await api('/admin/matches', {
+      method: 'POST',
+      body: {
+        seasonId: seasonId.value, stageId: st.id, roundId: r.id, tieId: tie.id, leg,
+        homeTeamId: tie.home?.id, awayTeamId: tie.away?.id,
+        homeSourceLabel: tie.home ? undefined : tie.homeSourceLabel || undefined,
+        awaySourceLabel: tie.away ? undefined : tie.awaySourceLabel || undefined,
+        kickoffAt: zonedInputToUtc(d.kickoff, tz.value),
+        phaseLabel: r.name || st.name, status: 'SCHEDULED',
+      },
+    });
+    kmDraft[tie.id] = { kickoff: '' };
+    await loadStructure();
+  } catch (e) { err(e); }
+}
+
 const teamById = (id: string) => teams.value.find((t) => t.id === id) ?? null;
 
 const FORMAT_META: Record<StageFormat, { label: string; cls: string }> = {
@@ -339,6 +436,68 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
               </div>
             </div>
           </div>
+
+          <!-- RODADAS E JOGOS -->
+          <div class="rounds-block">
+            <div class="section-head">
+              <h4 class="section-title">Rodadas e jogos <span class="count">{{ st.rounds.length }}</span></h4>
+              <button class="btn xs" @click="addRound(st)">+ Rodada</button>
+            </div>
+            <p class="hint">
+              Cada <b>rodada</b> agrupa os jogos daquela etapa (1ª, 2ª, 3ª…). Adicione os jogos de cada grupo
+              na rodada — o <b>placar e o status entram pelo robô</b>. O horário você define aqui.
+            </p>
+            <p v-if="!st.rounds.length" class="hint-empty">Nenhuma rodada ainda — adicione a primeira (ex.: "Rodada 1").</p>
+
+            <div v-for="r in st.rounds" :key="r.id" class="round">
+              <div class="r-head">
+                <input v-model="r.name" class="input sm r-name" placeholder="Ex.: Rodada 1" />
+                <span class="r-count">{{ r.matches.length }} jogo(s)</span>
+                <button class="btn xs primary-ghost" @click="saveRound(r)">Salvar</button>
+                <button class="ic del xs2" title="Excluir rodada" @click="delRound(r.id)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in TRASH" :key="i" :d="d" /></svg></button>
+              </div>
+
+              <div class="matches">
+                <div v-for="m in r.matches" :key="m.id" class="match">
+                  <span v-if="m.groupId" class="m-grp">{{ groupOf(st, m.groupId)?.name }}</span>
+                  <span class="m-side r">
+                    <TeamBadge v-if="m.homeTeam" :team="m.homeTeam" :size="16" />
+                    <span class="m-nm">{{ m.homeTeam?.name ?? m.homeSourceLabel ?? 'A definir' }}</span>
+                  </span>
+                  <span class="m-sc font-numeric">{{ m.status === 'SCHEDULED' ? '×' : `${m.homeScore ?? 0}-${m.awayScore ?? 0}` }}</span>
+                  <span class="m-side l">
+                    <TeamBadge v-if="m.awayTeam" :team="m.awayTeam" :size="16" />
+                    <span class="m-nm">{{ m.awayTeam?.name ?? m.awaySourceLabel ?? 'A definir' }}</span>
+                  </span>
+                  <span v-if="m.status !== 'SCHEDULED'" class="m-st" :class="m.status.toLowerCase()">{{ STATUS_LABEL[m.status] }}</span>
+                  <input class="input xs m-dt" type="datetime-local" :value="utcToZonedInput(m.kickoffAt, tz)" @change="patchKickoff(m, ($event.target as HTMLInputElement).value)" />
+                  <button class="ic del xs2" title="Excluir jogo" @click="delMatch(m)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in TRASH" :key="i" :d="d" /></svg></button>
+                </div>
+                <p v-if="!r.matches.length" class="ties-empty">Nenhum jogo nesta rodada.</p>
+              </div>
+
+              <div class="match-add">
+                <div class="ma-title">+ Novo jogo</div>
+                <div class="ma-grid">
+                  <select v-model="gmd(r.id).groupId" class="input sm">
+                    <option value="" disabled>Grupo…</option>
+                    <option v-for="g in st.groups" :key="g.id" :value="g.id">Grupo {{ g.name }}</option>
+                  </select>
+                  <select v-model="gmd(r.id).home" class="input sm" :disabled="!gmd(r.id).groupId">
+                    <option value="" disabled>Mandante…</option>
+                    <option v-for="gt in (groupOf(st, gmd(r.id).groupId)?.teams ?? [])" :key="gt.team.id" :value="gt.team.id">{{ gt.team.name }}</option>
+                  </select>
+                  <span class="vs">×</span>
+                  <select v-model="gmd(r.id).away" class="input sm" :disabled="!gmd(r.id).groupId">
+                    <option value="" disabled>Visitante…</option>
+                    <option v-for="gt in (groupOf(st, gmd(r.id).groupId)?.teams ?? [])" :key="gt.team.id" :value="gt.team.id">{{ gt.team.name }}</option>
+                  </select>
+                  <input v-model="gmd(r.id).kickoff" class="input sm" type="datetime-local" />
+                  <button class="btn xs btn-primary" @click="addGroupMatch(st, r)">+ Adicionar</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- KNOCKOUT -->
@@ -372,30 +531,48 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
             </div>
 
             <div class="ties">
-              <div v-for="(tie, ti) in tiesByRound.get(r.id) ?? []" :key="tie.id" class="tie">
-                <span class="tie-n">{{ ti + 1 }}</span>
-                <span class="tside" :class="{ slot: !tie.home }" :title="!tie.home ? 'Rótulo (slot) — será preenchido pelo Resolver' : undefined">
-                  <template v-if="tie.home">
-                    <TeamBadge :team="teamById(tie.home.id)" :size="16" />
-                    <span :title="tie.home.name">{{ tie.home.name }}</span>
-                  </template>
-                  <template v-else>
-                    <svg class="slot-i" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in SLOT" :key="i" :d="d" /></svg>
-                    <span>{{ tie.homeSourceLabel ?? 'A definir' }}</span>
-                  </template>
-                </span>
-                <span class="vs">×</span>
-                <span class="tside away" :class="{ slot: !tie.away }" :title="!tie.away ? 'Rótulo (slot) — será preenchido pelo Resolver' : undefined">
-                  <template v-if="tie.away">
-                    <TeamBadge :team="teamById(tie.away.id)" :size="16" />
-                    <span :title="tie.away.name">{{ tie.away.name }}</span>
-                  </template>
-                  <template v-else>
-                    <svg class="slot-i" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in SLOT" :key="i" :d="d" /></svg>
-                    <span>{{ tie.awaySourceLabel ?? 'A definir' }}</span>
-                  </template>
-                </span>
-                <button class="ic del xs2 tie-del" title="Excluir confronto" @click="delTie(tie.id)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in TRASH" :key="i" :d="d" /></svg></button>
+              <div v-for="(tie, ti) in tiesByRound.get(r.id) ?? []" :key="tie.id" class="tie-card">
+                <div class="tie">
+                  <span class="tie-n">{{ ti + 1 }}</span>
+                  <span class="tside" :class="{ slot: !tie.home }" :title="!tie.home ? 'Rótulo (slot) — será preenchido pelo Resolver' : undefined">
+                    <template v-if="tie.home">
+                      <TeamBadge :team="teamById(tie.home.id)" :size="16" />
+                      <span :title="tie.home.name">{{ tie.home.name }}</span>
+                    </template>
+                    <template v-else>
+                      <svg class="slot-i" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in SLOT" :key="i" :d="d" /></svg>
+                      <span>{{ tie.homeSourceLabel ?? 'A definir' }}</span>
+                    </template>
+                  </span>
+                  <span class="vs">×</span>
+                  <span class="tside away" :class="{ slot: !tie.away }" :title="!tie.away ? 'Rótulo (slot) — será preenchido pelo Resolver' : undefined">
+                    <template v-if="tie.away">
+                      <TeamBadge :team="teamById(tie.away.id)" :size="16" />
+                      <span :title="tie.away.name">{{ tie.away.name }}</span>
+                    </template>
+                    <template v-else>
+                      <svg class="slot-i" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in SLOT" :key="i" :d="d" /></svg>
+                      <span>{{ tie.awaySourceLabel ?? 'A definir' }}</span>
+                    </template>
+                  </span>
+                  <button class="ic del xs2 tie-del" title="Excluir confronto" @click="delTie(tie.id)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in TRASH" :key="i" :d="d" /></svg></button>
+                </div>
+
+                <!-- jogos do confronto (ida/volta) -->
+                <div class="tie-legs">
+                  <div v-for="m in tieMatches(r, tie.id)" :key="m.id" class="leg">
+                    <span v-if="r.legs >= 2" class="leg-n">{{ m.leg }}º jogo</span>
+                    <span class="leg-sc font-numeric">{{ m.status === 'SCHEDULED' ? '–' : `${m.homeScore ?? 0}-${m.awayScore ?? 0}` }}</span>
+                    <span v-if="m.status !== 'SCHEDULED'" class="m-st" :class="m.status.toLowerCase()">{{ STATUS_LABEL[m.status] }}</span>
+                    <input class="input xs m-dt" type="datetime-local" :value="utcToZonedInput(m.kickoffAt, tz)" @change="patchKickoff(m, ($event.target as HTMLInputElement).value)" />
+                    <button class="ic del xs2" title="Excluir jogo" @click="delMatch(m)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in TRASH" :key="i" :d="d" /></svg></button>
+                  </div>
+                  <div v-if="tieMatches(r, tie.id).length < r.legs" class="leg-add">
+                    <input v-model="kmd(tie.id).kickoff" class="input sm" type="datetime-local" />
+                    <button class="btn xs btn-primary" @click="addTieMatch(st, r, tie)">+ {{ r.legs >= 2 ? (tieMatches(r, tie.id).length === 0 ? 'Jogo de ida' : 'Jogo de volta') : 'Jogo' }}</button>
+                  </div>
+                  <p v-else-if="!tieMatches(r, tie.id).length" class="ties-empty">Sem jogo ainda.</p>
+                </div>
               </div>
               <p v-if="!(tiesByRound.get(r.id) ?? []).length" class="ties-empty">Nenhum confronto nesta rodada.</p>
 
@@ -446,6 +623,7 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
         <h4>✋ O que é manual</h4>
         <ul>
           <li>Criar / editar / excluir <b>fases</b>, <b>grupos</b>, <b>rodadas</b> e <b>confrontos</b>.</li>
+          <li><b>Jogos:</b> cada rodada (e cada confronto do mata-mata) lista seus jogos. Adicione um jogo escolhendo o grupo e os dois times (ou pela ida/volta do confronto) e <b>defina o horário</b> — o placar/status vêm do robô.</li>
           <li>Distribuir os <b>times nos grupos</b> (busque por nome, sigla ou abreviação).</li>
           <li>Definir cada confronto: por <b>time</b> direto ou por <b>rótulo</b> (slot a preencher depois).</li>
           <li><b>Override:</b> se a resolução automática não decidir (empate, jogo pendente), ajuste na mão.</li>
@@ -579,6 +757,35 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
 .seg2 button.on { background: var(--accent); color: #fff; }
 .ta-grid .vs { align-self: center; padding-bottom: 8px; }
 .ta-add { flex: none; }
+
+/* Rodadas (grupo) + jogos */
+.rounds-block { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border); }
+.matches { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+.match { display: flex; align-items: center; gap: 8px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 9px; padding: 6px 8px; flex-wrap: wrap; }
+.m-grp { width: 24px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 6px; background: color-mix(in srgb, var(--emerald) 16%, transparent); color: var(--emerald); font-size: 11px; font-weight: 800; }
+.m-side { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; min-width: 0; flex: 1; }
+.m-side.l { justify-content: flex-end; }
+.m-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m-sc { font-size: 13px; flex: none; color: var(--muted); min-width: 26px; text-align: center; }
+.m-st { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; border-radius: 5px; padding: 2px 6px; flex: none; }
+.m-st.live { color: #fff; background: var(--scarlet); }
+.m-st.finished { color: var(--muted); border: 1px solid var(--border); }
+.m-st.cancelled { color: var(--muted); border: 1px solid var(--border); text-decoration: line-through; }
+.input.xs { height: 32px; font-size: 12px; padding: 0 8px; width: auto; flex: none; }
+.match-add { margin-top: 6px; padding: 10px; border: 1px dashed var(--border); border-radius: 10px; background: var(--bg-surface); }
+.ma-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; }
+.ma-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ma-grid .input.sm { flex: 1; min-width: 130px; }
+.ma-grid .vs { flex: none; }
+
+/* Confronto (knockout) com jogos */
+.tie-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 5px 9px 7px; }
+.tie-card .tie { background: none; border: none; border-radius: 0; padding: 2px 0; }
+.tie-legs { margin-top: 3px; padding-top: 6px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 6px; }
+.leg { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.leg-n { font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--gold); flex: none; }
+.leg-sc { font-size: 13px; color: var(--muted); flex: none; min-width: 26px; text-align: center; }
+.leg-add { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 /* Icon buttons */
 .ic { width: 30px; height: 30px; flex: none; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--muted); cursor: pointer; display: grid; place-items: center; }
