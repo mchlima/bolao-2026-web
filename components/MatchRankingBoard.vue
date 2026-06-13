@@ -183,19 +183,24 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
         <!-- seu palpite × placar → pontos (o coração do acompanhamento ao vivo) -->
         <div v-else-if="myPred" class="pred-vs" :class="{ live: provisional, settled: hasResult && !provisional }">
-          <div class="pv-block">
-            <span class="pv-cap">Seu palpite</span>
-            <span class="pv-score font-numeric">{{ myPred.home }}<span class="colon">:</span>{{ myPred.away }}</span>
-          </div>
+          <span class="pv-item">
+            <svg class="pv-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg>
+            <span class="pv-lbl">Seu palpite</span>
+            <b class="pv-score font-numeric">{{ myPred.home }}:{{ myPred.away }}</b>
+          </span>
           <template v-if="scored">
-            <svg class="pv-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            <div class="pv-block pts" :class="{ pulse: provisional }">
-              <span class="pv-cap">{{ provisional ? 'Ganhando agora' : 'Você fez' }}</span>
-              <span class="pv-pts font-numeric" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }">+{{ myPoints }}</span>
-              <span v-if="myTier" class="tier ignite" :style="{ color: TIER_COLOR[myTier], borderColor: TIER_COLOR[myTier] }">{{ tierLabel(myTier) }}</span>
-            </div>
+            <svg class="pv-arrow" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            <span class="pv-item pts">
+              <svg class="pv-ic" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+              <span class="pv-lbl">{{ provisional ? 'Ganhando' : 'Você fez' }}</span>
+              <b class="pv-pts font-numeric" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }">+{{ myPoints }}</b>
+              <span v-if="myTier" class="tier sm ignite" :style="{ color: TIER_COLOR[myTier], borderColor: TIER_COLOR[myTier] }">{{ tierLabel(myTier) }}</span>
+            </span>
           </template>
-          <span v-else class="pv-wait">Trancado — vale quando a bola rolar</span>
+          <span v-else class="pv-wait">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            vale quando a bola rolar
+          </span>
         </div>
 
         <!-- jogando, sem palpite -->
@@ -420,16 +425,17 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .mp-save { margin-top: 14px; font-size: 14px; padding: 11px; }
 .login-cta { margin-bottom: 20px; }
 
-/* seu palpite × pontos */
+/* seu palpite × pontos — uma linha só, espalhada pra ocupar a largura */
 .pred-vs {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 18px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 14px;
   background: var(--bg-base);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 14px 18px;
+  border-radius: 14px;
+  padding: 11px 16px;
   margin-bottom: 20px;
 }
 .pred-vs.live {
@@ -439,15 +445,14 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .pred-vs.settled {
   border-color: color-mix(in srgb, var(--emerald) 35%, var(--border));
 }
-.pv-block { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-.pv-block.pts { align-items: center; text-align: center; }
-.pv-cap { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
-.pv-score { font-size: 30px; line-height: 0.85; letter-spacing: 0.03em; }
-.pv-arrow { color: var(--muted); flex: none; }
-.pv-pts { font-size: 34px; line-height: 0.8; }
-.pv-block.pts .tier { margin-top: 4px; }
-.pv-block.pts.pulse .pv-pts { animation: livePulse 1.8s infinite; border-radius: 8px; }
-.pv-wait { font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: center; max-width: 150px; }
+.pv-item { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+.pv-ic { flex: none; color: var(--muted); }
+.pv-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.pv-score { font-size: 22px; line-height: 1; letter-spacing: 0.03em; }
+.pv-arrow { flex: none; color: var(--muted); }
+.pv-pts { font-size: 24px; line-height: 1; }
+.pred-vs.live .pv-pts { animation: ignite 0.5s ease both; }
+.pv-wait { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
 
 .nopred {
   display: flex;
