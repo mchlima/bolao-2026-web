@@ -29,7 +29,7 @@ const steps = [
   {
     n: '02',
     title: 'Crave os placares',
-    text: 'Palpite o resultado de cada jogo antes do apito. Quanto mais perto do placar real, mais pontos você leva.',
+    text: 'Palpite o resultado de cada jogo antes do apito. Acertou quem ganha já pontua; quanto mais preciso o placar, mais vale.',
     color: 'var(--gold)',
   },
   {
@@ -40,13 +40,15 @@ const steps = [
   },
 ];
 
-// Mesma partida real (mandante 2 × 1 visitante), variando só o palpite — o
-// gradiente de "cravou" a "errou" da pontuação por proximidade.
+// Mesma partida real (mandante 2 × 1 visitante), variando só o palpite — os
+// tiers do modelo de pontuação (acertar o vencedor é a porta; quanto mais
+// preciso, mais vale). Rótulos/cores iguais ao resto do app (utils/format).
 const ladder = [
-  { guess: '2:1', label: 'Cravou', pts: '10', color: 'var(--emerald)' },
-  { guess: '2:0', label: 'Quase exato', pts: '8', color: 'var(--azure)' },
-  { guess: '3:2', label: 'Quase', pts: '6', color: 'var(--gold)' },
-  { guess: '5:3', label: 'Só o vencedor', pts: '4', color: 'var(--magenta)' },
+  { guess: '2:1', label: 'Cravou', pts: '25', color: 'var(--emerald)' },
+  { guess: '2:0', label: 'Gols do vencedor', pts: '18', color: 'var(--azure)' },
+  { guess: '3:2', label: 'Acertou o saldo', pts: '15', color: 'var(--gold)' },
+  { guess: '4:1', label: 'Gols do perdedor', pts: '12', color: 'var(--scarlet)' },
+  { guess: '5:3', label: 'Acertou o vencedor', pts: '10', color: 'var(--magenta)' },
   { guess: '1:2', label: 'Errou o vencedor', pts: '0', color: 'var(--muted)' },
 ];
 
@@ -111,7 +113,7 @@ const ranking = [
           <p class="lead">
             Crave os placares dos 104 jogos, monte bolões privados com a galera e
             veja o ranking se mexer <b>ao vivo</b> a cada gol. Placares automáticos,
-            classificação completa e pontuação que premia chegar perto.
+            classificação completa e pontuação que premia a precisão.
           </p>
           <div class="cta">
             <NuxtLink to="/register" class="btn btn-gold big">Criar conta grátis</NuxtLink>
@@ -136,7 +138,7 @@ const ranking = [
             </div>
             <div class="mock-foot">
               <span class="mchip">Seu palpite 2:1</span>
-              <span class="mpts font-numeric">+10</span>
+              <span class="mpts font-numeric">+25</span>
             </div>
           </div>
 
@@ -150,7 +152,7 @@ const ranking = [
             </div>
           </div>
 
-          <span class="float-badge font-display">CRAVOU! <b>+10</b></span>
+          <span class="float-badge font-display">CRAVOU! <b>+25</b></span>
         </div>
       </div>
 
@@ -179,8 +181,9 @@ const ranking = [
       <div class="sc-head">
         <h2 class="font-display sec-title">Cravar é a glória</h2>
         <p class="sc-sub">
-          Não é só acertar quem ganha. Cada gol que você chega perto vale ponto.
-          O mesmo jogo (<b>2 × 1</b>), do palpite perfeito ao furo:
+          Acertar quem ganha já garante pontos. A partir daí, quanto mais
+          <b>preciso</b> for o seu placar, mais ele vale — até cravar. O mesmo
+          jogo (<b>2 × 1</b>), do palpite perfeito ao furo:
         </p>
       </div>
       <div class="ladder">
@@ -190,6 +193,10 @@ const ranking = [
           <span class="lad-label">{{ c.label }}</span>
         </div>
       </div>
+      <p class="sc-note">
+        <span class="sc-star">★</span> E no <b>mata-mata</b> cada acerto vale ainda
+        mais — os pontos crescem a cada fase rumo à final.
+      </p>
     </section>
 
     <!-- FEATURES -->
@@ -653,7 +660,7 @@ const ranking = [
 }
 .ladder {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 10px;
 }
 .lad {
@@ -684,6 +691,19 @@ const ranking = [
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--muted);
+}
+.sc-note {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.sc-note b {
+  color: var(--text);
+}
+.sc-star {
+  color: var(--gold);
+  font-weight: 800;
 }
 
 /* features */
@@ -961,12 +981,14 @@ const ranking = [
     transform: none;
   }
 }
-@media (max-width: 620px) {
+@media (max-width: 820px) {
+  .ladder {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 480px) {
   .ladder {
     grid-template-columns: repeat(2, 1fr);
-  }
-  .ladder .lad:last-child {
-    grid-column: span 2;
   }
 }
 @media (max-width: 440px) {
