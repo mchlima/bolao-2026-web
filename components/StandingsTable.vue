@@ -57,7 +57,7 @@ const asTeam = (t: StandingsRow['team']) => t as unknown as Team;
             <th v-if="!compact" class="form hide-sm">Últimos</th>
           </tr>
         </thead>
-        <tbody>
+        <TransitionGroup tag="tbody" name="row">
           <tr
             v-for="row in rows"
             :key="row.team.id"
@@ -72,6 +72,12 @@ const asTeam = (t: StandingsRow['team']) => t as unknown as Team;
             <td class="team">
               <TeamBadge :team="asTeam(row.team)" :size="22" />
               <span class="tname">{{ row.team.shortName }}</span>
+              <span
+                v-if="row.live"
+                class="rec"
+                title="Em jogo agora — classificação provisória"
+                aria-label="Em jogo ao vivo"
+              />
             </td>
             <td class="num strong">{{ row.points }}</td>
             <td class="num">{{ row.played }}</td>
@@ -93,7 +99,7 @@ const asTeam = (t: StandingsRow['team']) => t as unknown as Team;
               >
             </td>
           </tr>
-        </tbody>
+        </TransitionGroup>
       </table>
     </div>
     <div v-if="showLegend && (qualifyCount > 0 || yellowFrom > 0)" class="legend">
@@ -145,6 +151,31 @@ tbody tr {
 tbody tr:last-child {
   border-bottom: none;
 }
+/* Animated reordering: when positions change (e.g. live results), rows slide to
+   their new spot instead of snapping (FLIP via <TransitionGroup>). */
+.row-move {
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.55s ease;
+}
+/* A row in transit floats above its neighbours so it slides over, not under. */
+.row-move {
+  position: relative;
+  z-index: 1;
+}
+/* New rows (first results of the table) fade in rather than pop. */
+.row-enter-active {
+  transition: opacity 0.4s ease;
+}
+.row-enter-from {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .row-move,
+  .row-enter-active {
+    transition: none;
+  }
+}
 .pos {
   width: 34px;
 }
@@ -169,6 +200,35 @@ tbody tr:last-child {
 }
 .tname {
   font-weight: 600;
+}
+/* "Ao vivo" REC dot — pulsing red, marks a team currently playing. */
+.rec {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5484d;
+  box-shadow: 0 0 0 0 rgba(229, 72, 77, 0.7);
+  animation: rec-pulse 1.4s ease-out infinite;
+}
+@keyframes rec-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229, 72, 77, 0.6);
+    opacity: 1;
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(229, 72, 77, 0);
+    opacity: 0.85;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 72, 77, 0);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rec {
+    animation: none;
+  }
 }
 .num {
   font-variant-numeric: tabular-nums;

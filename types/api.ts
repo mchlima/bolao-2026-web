@@ -6,10 +6,10 @@ export type TeamType = 'NATIONAL_TEAM' | 'CLUB';
 export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED';
 export type ScoreTier =
   | 'EXACT'
-  | 'ONE_TEAM_SCORE'
-  | 'CLOSE'
+  | 'WINNER_GOALS'
+  | 'GOAL_DIFF'
+  | 'LOSER_GOALS'
   | 'OUTCOME'
-  | 'TEAM_GOALS'
   | 'NONE';
 
 export interface User {
@@ -114,6 +114,7 @@ export interface StandingsRow {
   points: number; // P
   pct: number; // % (aproveitamento)
   form: ('W' | 'D' | 'L')[]; // last 5, oldest → newest
+  live: boolean; // team has a match in progress — row is provisional
 }
 
 export interface GroupStandings {

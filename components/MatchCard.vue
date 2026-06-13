@@ -42,10 +42,10 @@ const statusMeta = computed(() => {
 
 const TIER_COLOR: Record<string, string> = {
   EXACT: 'var(--emerald)',
-  ONE_TEAM_SCORE: 'var(--azure)',
-  CLOSE: 'var(--gold)',
+  WINNER_GOALS: 'var(--azure)',
+  GOAL_DIFF: 'var(--gold)',
   OUTCOME: 'var(--magenta)',
-  TEAM_GOALS: 'var(--scarlet)',
+  LOSER_GOALS: 'var(--scarlet)',
   NONE: 'var(--muted)',
 };
 const tierColor = computed(() =>

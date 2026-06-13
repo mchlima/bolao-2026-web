@@ -58,10 +58,10 @@ export function zonedInputToUtc(local: string, tz: string = DEFAULT_TZ): string 
 
 const TIER_LABEL: Record<string, string> = {
   EXACT: 'Cravou',
-  ONE_TEAM_SCORE: 'Acertou um placar',
-  CLOSE: 'Quase',
+  WINNER_GOALS: 'Gols do vencedor',
+  GOAL_DIFF: 'Acertou o saldo',
+  LOSER_GOALS: 'Gols do perdedor',
   OUTCOME: 'Acertou o vencedor',
-  TEAM_GOALS: 'Gols de um time',
   NONE: 'Não pontuou',
 };
 
