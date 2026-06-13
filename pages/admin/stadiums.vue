@@ -5,6 +5,12 @@ definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
 const { page, search, data, load } = useAdminList<Stadium>('/stadiums');
 
+const COLS: AdminColumn[] = [
+  { key: 'name', label: 'Estádio' },
+  { key: 'local', label: 'Local' },
+  { key: 'actions', label: 'Ações', align: 'end' },
+];
+
 const modalOpen = ref(false);
 const editing = ref<Stadium | null>(null);
 const form = reactive({ name: '', city: '', state: '', country: '' });
@@ -62,33 +68,33 @@ onMounted(load);
   <div>
     <AdminPageHeader title="Estádios" subtitle="Sedes das partidas — nome, cidade e país.">
       <template #actions>
-        <button class="btn btn-primary" @click="openNew">+ Criar novo</button>
+        <button class="btn btn-primary" @click="openNew"><AppIcon name="plus" :size="16" :stroke="2.4" />Novo estádio</button>
       </template>
     </AdminPageHeader>
 
-    <div class="card panel">
-      <input v-model="search" class="input search" placeholder="Buscar estádio, cidade, país..." />
+    <div class="card adm-panel">
+      <AdminSearchBar v-model="search" placeholder="Buscar estádio, cidade, país…" class="mb" />
 
-      <SkeletonList v-if="!data" variant="row" :count="8" />
-      <div v-else class="rows">
-        <div class="rhead"><span>Estádio</span><span>Local</span><span class="ar">Ações</span></div>
-        <div v-for="s in data?.data ?? []" :key="s.id" class="row">
-          <span class="nm">{{ s.name }}</span>
-          <span class="dt">{{ s.city }}<template v-if="s.state">, {{ s.state }}</template> · {{ s.country }}</span>
-          <span class="acts">
-            <button class="ic" title="Editar" @click="openEdit(s)">✎</button>
-            <button class="ic del" title="Excluir" @click="remove(s)">🗑</button>
-          </span>
-        </div>
-        <p v-if="data && !data.data.length" class="muted empty">Nenhum estádio.</p>
-      </div>
+      <AdminTable :columns="COLS" :rows="data?.data" grid="minmax(0,1fr) 1fr auto" empty="Nenhum estádio." empty-icon="stadium">
+        <template #col-name="{ row }"><span class="nm">{{ row.name }}</span></template>
+        <template #col-local="{ row }">
+          <span class="loc">{{ row.city }}<template v-if="row.state">, {{ row.state }}</template> · {{ row.country }}</span>
+        </template>
+        <template #col-actions="{ row }">
+          <div class="acts">
+            <IconButton icon="edit" label="Editar" @click="openEdit(row)" />
+            <IconButton icon="trash" label="Excluir" tone="danger" @click="remove(row)" />
+          </div>
+        </template>
+      </AdminTable>
+
       <AdminPager v-if="data" v-model="page" :pagination="data.pagination" />
     </div>
 
     <AppModal v-if="modalOpen" :title="editing ? 'Editar estádio' : 'Novo estádio'" @close="modalOpen = false">
-      <div class="form">
+      <div class="adm-form">
         <label>Nome</label><input v-model="form.name" class="input" placeholder="Maracanã" />
-        <div class="two">
+        <div class="fld2">
           <div><label>Cidade</label><input v-model="form.city" class="input" /></div>
           <div><label>Estado/Região</label><input v-model="form.state" class="input" /></div>
         </div>
@@ -103,22 +109,8 @@ onMounted(load);
 </template>
 
 <style scoped>
-.panel { padding: 16px; }
-.p-head h3 { font-weight: 600; font-size: 17px; text-transform: uppercase; }
-.search { margin-bottom: 14px; }
-.rows { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }
-.rhead, .row { display: grid; grid-template-columns: 1fr 1fr 90px; gap: 10px; padding: 11px 14px; align-items: center; }
-.rhead { background: var(--bg-base); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-.row { border-top: 1px solid var(--border); }
-.ar { text-align: right; }
+.mb { margin-bottom: 14px; }
 .nm { font-weight: 700; font-size: 13.5px; }
-.dt { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.loc { font-size: 12.5px; color: var(--muted); font-weight: 600; }
 .acts { display: flex; gap: 6px; justify-content: flex-end; }
-.ic { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); cursor: pointer; }
-.ic.del { color: var(--scarlet); }
-.empty { padding: 18px; text-align: center; }
-.form { display: flex; flex-direction: column; gap: 4px; }
-.form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 8px; }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-@media (max-width: 640px) { .rhead { display: none; } .row { grid-template-columns: 1fr auto; } }
 </style>

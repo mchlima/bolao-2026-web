@@ -12,6 +12,14 @@ const { page, search, data, load } = useAdminList<User>('/admin/users', () =>
 );
 watch(roleFilter, () => { page.value = 1; load(); });
 
+const COLS: AdminColumn[] = [
+  { key: 'user', label: 'Usuário' },
+  { key: 'role', label: 'Papel' },
+  { key: 'access', label: 'Acesso' },
+  { key: 'since', label: 'Membro desde', mobileHide: true },
+  { key: 'actions', label: 'Ações', align: 'end' },
+];
+
 const tempPassword = ref<{ name: string; password: string } | null>(null);
 
 function initials(name: string) {
@@ -74,35 +82,42 @@ onMounted(load);
   <div>
     <AdminPageHeader title="Usuários" subtitle="Gerencie papéis, acesso e senhas dos usuários." />
 
-    <div class="card panel">
-      <div class="filters">
-        <input v-model="search" class="input" placeholder="Buscar nome ou e-mail" />
-        <div class="chips">
-          <button class="chip" :class="{ on: roleFilter === '' }" @click="roleFilter = ''">Todos</button>
-          <button class="chip" :class="{ on: roleFilter === 'ADMIN' }" @click="roleFilter = 'ADMIN'">Admins</button>
-          <button class="chip" :class="{ on: roleFilter === 'USER' }" @click="roleFilter = 'USER'">Comuns</button>
+    <div class="card adm-panel">
+      <div class="adm-toolbar">
+        <div class="grow"><AdminSearchBar v-model="search" placeholder="Buscar nome ou e-mail…" /></div>
+        <div class="adm-chips">
+          <button class="adm-chip" :class="{ on: roleFilter === '' }" @click="roleFilter = ''">Todos</button>
+          <button class="adm-chip" :class="{ on: roleFilter === 'ADMIN' }" @click="roleFilter = 'ADMIN'">Admins</button>
+          <button class="adm-chip" :class="{ on: roleFilter === 'USER' }" @click="roleFilter = 'USER'">Comuns</button>
         </div>
       </div>
 
-      <SkeletonList v-if="!data" variant="row" :count="8" />
-      <div v-else class="rows">
-        <div class="rhead"><span>Usuário</span><span>Papel</span><span>Acesso</span><span>Membro desde</span><span class="ar">Ações</span></div>
-        <div v-for="u in data?.data ?? []" :key="u.id" class="row">
+      <AdminTable :columns="COLS" :rows="data?.data" grid="minmax(0,1fr) 96px 104px 150px auto" empty="Nenhum usuário." empty-icon="users">
+        <template #col-user="{ row }">
           <span class="who">
-            <span class="av" :style="{ background: color(u.id), opacity: u.isActive ? 1 : 0.5 }">{{ initials(u.name) }}</span>
-            <span class="info"><span class="nm">{{ u.name }}<span v-if="u.id === auth.user?.id" class="metag">você</span></span><span class="em">{{ u.email }}</span></span>
+            <span class="av" :style="{ background: color(row.id), opacity: row.isActive ? 1 : 0.5 }">{{ initials(row.name) }}</span>
+            <span class="info"><span class="nm">{{ row.name }}<span v-if="row.id === auth.user?.id" class="metag">você</span></span><span class="em">{{ row.email }}</span></span>
           </span>
-          <span><span v-if="u.role === 'ADMIN'" class="adm">Admin</span><span v-else class="comum">Comum</span></span>
-          <span class="acc" :style="{ color: u.isActive ? 'var(--emerald)' : 'var(--scarlet)' }"><span class="d" :style="{ background: u.isActive ? 'var(--emerald)' : 'var(--scarlet)' }" />{{ u.isActive ? 'Ativo' : 'Inativo' }}</span>
-          <span class="since">{{ formatDate(u.createdAt, tz) }}<span class="tz">🕘 {{ tzLabel(u.timezone) }}</span></span>
-          <span class="acts">
-            <button class="ic" :style="{ color: u.role === 'ADMIN' ? 'var(--gold)' : 'var(--muted)' }" :title="u.role === 'ADMIN' ? 'Remover admin' : 'Promover a admin'" @click="toggleRole(u)">★</button>
-            <button class="ic" style="color: var(--azure)" title="Gerar nova senha" @click="resetPassword(u)">⟳</button>
-            <button class="ic" :style="{ color: u.isActive ? 'var(--scarlet)' : 'var(--emerald)' }" :title="u.isActive ? 'Desativar' : 'Reativar'" @click="toggleActive(u)">⏻</button>
-          </span>
-        </div>
-        <p v-if="data && !data.data.length" class="muted empty">Nenhum usuário.</p>
-      </div>
+        </template>
+        <template #col-role="{ row }">
+          <StatusPill v-if="row.role === 'ADMIN'" label="Admin" tone="gold" soft />
+          <span v-else class="comum">Comum</span>
+        </template>
+        <template #col-access="{ row }">
+          <StatusPill :label="row.isActive ? 'Ativo' : 'Inativo'" :tone="row.isActive ? 'emerald' : 'scarlet'" dot />
+        </template>
+        <template #col-since="{ row }">
+          <span class="since">{{ formatDate(row.createdAt, tz) }}<span class="tz"><AppIcon name="clock" :size="11" :stroke="2" /> {{ tzLabel(row.timezone) }}</span></span>
+        </template>
+        <template #col-actions="{ row }">
+          <div class="acts">
+            <IconButton icon="star" :label="row.role === 'ADMIN' ? 'Remover admin' : 'Promover a admin'" tone="gold" :active="row.role === 'ADMIN'" :size="30" @click="toggleRole(row)" />
+            <IconButton icon="refresh" label="Gerar nova senha" tone="azure" :size="30" @click="resetPassword(row)" />
+            <IconButton icon="power" :label="row.isActive ? 'Desativar' : 'Reativar'" :tone="row.isActive ? 'danger' : 'emerald'" :size="30" @click="toggleActive(row)" />
+          </div>
+        </template>
+      </AdminTable>
+
       <AdminPager v-if="data" v-model="page" :pagination="data.pagination" />
     </div>
 
@@ -117,33 +132,16 @@ onMounted(load);
 </template>
 
 <style scoped>
-.panel { padding: 16px; }
-.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
-.filters .input { flex: 1; min-width: 170px; }
-.chips { display: flex; gap: 7px; }
-.chip { padding: 8px 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: 12.5px; cursor: pointer; }
-.chip.on { background: var(--gold); color: #0a0e14; border-color: transparent; }
-.rows { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }
-.rhead, .row { display: grid; grid-template-columns: minmax(0, 1fr) 96px 104px 150px 120px; gap: 10px; padding: 10px 14px; align-items: center; }
-.rhead { background: var(--bg-base); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-.row { border-top: 1px solid var(--border); }
-.ar { text-align: right; }
 .who { display: flex; align-items: center; gap: 11px; min-width: 0; }
 .av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 12px; flex: 0 0 auto; }
 .info { min-width: 0; }
 .nm { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .metag { font-size: 8.5px; font-weight: 800; text-transform: uppercase; color: #0a0e14; background: var(--gold); border-radius: 5px; padding: 1px 5px; }
 .em { display: block; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.adm { font-size: 9.5px; font-weight: 800; text-transform: uppercase; color: #0a0e14; background: var(--gold); border-radius: 5px; padding: 3px 8px; }
 .comum { font-size: 12px; color: var(--muted); font-weight: 600; }
-.acc { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; }
-.d { width: 7px; height: 7px; border-radius: 50%; }
 .since { display: flex; flex-direction: column; gap: 2px; font-size: 12px; font-weight: 600; color: var(--text); }
-.tz { font-size: 10.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tz { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acts { display: flex; gap: 5px; justify-content: flex-end; }
-.ic { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-base); cursor: pointer; font-size: 14px; }
-.empty { padding: 18px; text-align: center; }
 .tp-msg { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
 .tp-box { font-size: 28px; letter-spacing: 0.1em; text-align: center; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
-@media (max-width: 720px) { .rhead { display: none; } .row { grid-template-columns: 1fr auto; } .row > span:nth-child(2), .row > span:nth-child(3), .since { display: none; } }
 </style>

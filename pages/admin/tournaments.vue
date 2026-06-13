@@ -33,6 +33,17 @@ function badge(name: string): string {
   return ((w[0]?.[0] ?? '') + (w[1]?.[0] ?? '')).toUpperCase();
 }
 
+const COLS: AdminColumn[] = [
+  { key: 'name', label: 'Torneio' },
+  { key: 'period', label: 'Período' },
+  { key: 'matches', label: 'Partidas' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: 'Ações', align: 'end' },
+];
+const STATUS_TONE: Record<string, 'neutral' | 'azure' | 'emerald' | 'gold'> = {
+  DRAFT: 'neutral', UPCOMING: 'azure', ONGOING: 'emerald', FINISHED: 'gold',
+};
+
 const modalOpen = ref(false);
 const editing = ref<Tournament | null>(null);
 const form = reactive({
@@ -128,42 +139,41 @@ onMounted(() => {
   <div>
     <AdminPageHeader title="Torneios" subtitle="Edições (temporadas) de uma competição — ex.: Copa do Mundo FIFA 2026.">
       <template #actions>
-        <button class="btn btn-primary" @click="openNew">+ Criar novo</button>
+        <button class="btn btn-primary" @click="openNew"><AppIcon name="plus" :size="16" :stroke="2.4" />Novo torneio</button>
       </template>
     </AdminPageHeader>
 
-    <div class="card panel">
-      <input v-model="search" class="input search" placeholder="Buscar torneio..." />
+    <div class="card adm-panel">
+      <AdminSearchBar v-model="search" placeholder="Buscar torneio…" class="mb" />
 
-      <SkeletonList v-if="!data" variant="row" :count="8" />
-      <div v-else class="rows">
-        <div class="rhead">
-          <span>Torneio</span><span>Período</span><span>Partidas</span><span>Status</span><span class="ar">Ações</span>
-        </div>
-        <div v-for="t in data?.data ?? []" :key="t.id" class="row">
+      <AdminTable :columns="COLS" :rows="data?.data" grid="minmax(0,1fr) 200px 130px 120px auto" empty="Nenhum torneio." empty-icon="calendar">
+        <template #col-name="{ row }">
           <span class="tn">
             <span class="logo">
-              <img v-if="t.logoUrl" :src="t.logoUrl" :alt="t.name" />
-              <span v-else class="logo-fb font-display">{{ badge(t.name) }}</span>
+              <img v-if="row.logoUrl" :src="row.logoUrl" :alt="row.name" />
+              <span v-else class="logo-fb font-display">{{ badge(row.name) }}</span>
             </span>
-            <span class="nm">{{ t.name }}</span>
+            <span class="nm">{{ row.name }}</span>
           </span>
-          <span class="dt">{{ t.startDate ? formatDate(t.startDate, 'UTC') : '—' }}<template v-if="t.endDate"> → {{ formatDate(t.endDate, 'UTC') }}</template></span>
-          <span class="mc"><b class="font-numeric">{{ t.matchCount ?? 0 }}</b> partida(s)</span>
-          <span><span class="st">{{ STATUS_LABEL[t.status] ?? t.status }}</span></span>
-          <span class="acts">
-            <button class="ic" title="Editar" @click="openEdit(t)">✎</button>
-            <button class="ic del" title="Excluir" @click="remove(t)">🗑</button>
-          </span>
-        </div>
-        <p v-if="data && !data.data.length" class="muted empty">Nenhum torneio.</p>
-      </div>
+        </template>
+        <template #col-period="{ row }">
+          <span class="dt">{{ row.startDate ? formatDate(row.startDate, 'UTC') : '—' }}<template v-if="row.endDate"> → {{ formatDate(row.endDate, 'UTC') }}</template></span>
+        </template>
+        <template #col-matches="{ row }"><span class="mc"><b class="font-numeric">{{ row.matchCount ?? 0 }}</b> partida(s)</span></template>
+        <template #col-status="{ row }"><StatusPill :label="STATUS_LABEL[row.status] ?? row.status" :tone="STATUS_TONE[row.status] ?? 'neutral'" soft /></template>
+        <template #col-actions="{ row }">
+          <div class="acts">
+            <IconButton icon="edit" label="Editar" @click="openEdit(row)" />
+            <IconButton icon="trash" label="Excluir" tone="danger" @click="remove(row)" />
+          </div>
+        </template>
+      </AdminTable>
 
       <AdminPager v-if="data" v-model="page" :pagination="data.pagination" />
     </div>
 
     <AppModal v-if="modalOpen" :title="editing ? 'Editar torneio' : 'Novo torneio'" @close="modalOpen = false">
-      <div class="form">
+      <div class="adm-form">
         <label>Competição</label>
         <select v-model="form.competitionId" class="input">
           <option value="" disabled>Selecione…</option>
@@ -171,7 +181,7 @@ onMounted(() => {
         </select>
         <label>Nome (edição)</label>
         <input v-model="form.name" class="input" placeholder="Copa do Mundo FIFA 2026" />
-        <div class="two">
+        <div class="fld2">
           <div><label>Rótulo da edição</label><input v-model="form.seasonLabel" class="input" placeholder="2026" /></div>
           <div>
             <label>Formato</label>
@@ -184,7 +194,7 @@ onMounted(() => {
         <select v-model="form.status" class="input">
           <option v-for="s in STATUS" :key="s" :value="s">{{ STATUS_LABEL[s] }}</option>
         </select>
-        <div class="two">
+        <div class="fld2">
           <div><label>Início</label><input v-model="form.startDate" type="date" class="input" /></div>
           <div><label>Fim</label><input v-model="form.endDate" type="date" class="input" /></div>
         </div>
@@ -200,38 +210,8 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.panel {
-  padding: 16px;
-}
-.search {
+.mb {
   margin-bottom: 14px;
-}
-.rows {
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  overflow: hidden;
-}
-.rhead,
-.row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 200px 130px 120px 84px;
-  gap: 10px;
-  padding: 11px 14px;
-  align-items: center;
-}
-.rhead {
-  background: var(--bg-base);
-  font-size: 10.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-}
-.row {
-  border-top: 1px solid var(--border);
-}
-.ar {
-  text-align: right;
 }
 .tn {
   display: flex;
@@ -282,75 +262,9 @@ onMounted(() => {
   font-size: 14px;
   margin-right: 3px;
 }
-.st {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 3px 9px;
-}
 .acts {
   display: flex;
   gap: 6px;
   justify-content: flex-end;
-}
-.ic {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-base);
-  color: var(--muted);
-  cursor: pointer;
-}
-.ic.del {
-  color: var(--scarlet);
-}
-.empty {
-  padding: 18px;
-  text-align: center;
-}
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.form label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--muted);
-  margin-top: 8px;
-}
-.two {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-@media (max-width: 640px) {
-  .rhead {
-    display: none;
-  }
-  .row {
-    grid-template-columns: 1fr auto;
-    grid-template-areas: 'tn acts' 'dt st';
-  }
-  .tn {
-    grid-area: tn;
-  }
-  .dt {
-    grid-area: dt;
-  }
-  .mc {
-    display: none;
-  }
-  .row > span:nth-child(4) {
-    grid-area: st;
-    justify-self: start;
-  }
-  .acts {
-    grid-area: acts;
-  }
 }
 </style>

@@ -1,0 +1,118 @@
+/* ===== Admin shared utilities ===== */
+/* Form, toolbar, chip and select patterns that were copy-pasted across every
+   admin page. Keeps the markup declarative; AdminTable / IconButton / etc. own
+   the rest of the structure. */
+
+/* panel: the card body every admin list/section sits in */
+.adm-panel {
+  padding: 16px;
+}
+
+/* ── modal forms ── */
+.adm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.adm-form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.adm-form .fld2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.adm-form .fld3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 460px) {
+  .adm-form .fld3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── toolbar: search row + filters/sort/page-size ── */
+.adm-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+.adm-toolbar .grow {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.adm-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.adm-filters .input {
+  flex: 1;
+  min-width: 170px;
+}
+
+/* compact select (sort / page size) */
+.adm-mini {
+  padding: 10px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* segmented chip filters */
+.adm-chips {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.adm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: border-color 0.13s, color 0.13s;
+}
+.adm-chip:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+.adm-chip.on {
+  background: var(--gold);
+  color: #0a0e14;
+  border-color: transparent;
+}
+.adm-chip .ct {
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+/* result count line under the toolbar */
+.adm-results {
+  min-height: 16px;
+  margin-bottom: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+}

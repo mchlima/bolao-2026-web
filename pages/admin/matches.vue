@@ -39,7 +39,15 @@ async function loadOptions() {
 
 const STATUS = ['SCHEDULED', 'LIVE', 'FINISHED', 'CANCELLED'] as const;
 const STATUS_LABEL: Record<string, string> = { SCHEDULED: 'Agendada', LIVE: 'Ao vivo', FINISHED: 'Encerrada', CANCELLED: 'Cancelada' };
-const STATUS_COLOR: Record<string, string> = { SCHEDULED: 'var(--azure)', LIVE: 'var(--scarlet)', FINISHED: 'var(--muted)', CANCELLED: 'var(--muted)' };
+const STATUS_TONE: Record<string, 'azure' | 'scarlet' | 'neutral'> = { SCHEDULED: 'azure', LIVE: 'scarlet', FINISHED: 'neutral', CANCELLED: 'neutral' };
+
+const COLS: AdminColumn[] = [
+  { key: 'match', label: 'Partida' },
+  { key: 'when', label: 'Fase · Data' },
+  { key: 'stadium', label: 'Estádio', mobileHide: true },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: 'Ações', align: 'end' },
+];
 
 const modalOpen = ref(false);
 const editing = ref<Match | null>(null);
@@ -122,12 +130,12 @@ onMounted(async () => {
   <div>
     <AdminPageHeader title="Partidas" subtitle="Jogos do torneio — placar, status, estádio e horário.">
       <template #actions>
-        <button class="btn btn-primary" @click="openNew">+ Criar novo</button>
+        <button class="btn btn-primary" @click="openNew"><AppIcon name="plus" :size="16" :stroke="2.4" />Nova partida</button>
       </template>
     </AdminPageHeader>
 
-    <div class="card panel">
-      <div class="filters">
+    <div class="card adm-panel">
+      <div class="adm-filters mb">
         <select v-model="tournamentFilter" class="input">
           <option value="">Todos os torneios</option>
           <option v-for="t in tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
@@ -138,38 +146,40 @@ onMounted(async () => {
         </select>
       </div>
 
-      <SkeletonList v-if="!data" variant="row" :count="8" />
-      <div v-else class="rows">
-        <div class="rhead"><span>Partida</span><span>Fase · Data</span><span>Estádio</span><span>Status</span><span class="ar">Ações</span></div>
-        <div v-for="m in data?.data ?? []" :key="m.id" class="row">
+      <AdminTable :columns="COLS" :rows="data?.data" grid="1.2fr 1.4fr 1fr 110px auto" empty="Nenhuma partida." empty-icon="ball">
+        <template #col-match="{ row }">
           <span class="mt">
-            <TeamBadge :team="m.homeTeam" :placeholder="m.homeSourceLabel" :size="22" />
-            <span class="vs">{{ teamAbbr(m.homeTeam, m.homeSourceLabel) }} <b v-if="m.homeScore != null" class="scr">{{ m.homeScore }}-{{ m.awayScore }}</b><template v-else> × </template> {{ teamAbbr(m.awayTeam, m.awaySourceLabel) }}</span>
-            <TeamBadge :team="m.awayTeam" :placeholder="m.awaySourceLabel" :size="22" />
+            <TeamBadge :team="row.homeTeam" :placeholder="row.homeSourceLabel" :size="22" />
+            <span class="vs">{{ teamAbbr(row.homeTeam, row.homeSourceLabel) }} <b v-if="row.homeScore != null" class="scr">{{ row.homeScore }}-{{ row.awayScore }}</b><template v-else> × </template> {{ teamAbbr(row.awayTeam, row.awaySourceLabel) }}</span>
+            <TeamBadge :team="row.awayTeam" :placeholder="row.awaySourceLabel" :size="22" />
           </span>
-          <span class="dt">{{ m.phaseLabel }}<template v-if="m.groupName"> {{ m.groupName }}</template> · {{ formatKickoff(m.kickoffAt, tz) }}</span>
-          <span class="vn">{{ m.stadium?.name ?? '—' }}</span>
-          <span>
-            <NuxtLink v-if="m.status === 'LIVE'" to="/admin/live" class="st live"><span class="d" />{{ STATUS_LABEL[m.status] }}</NuxtLink>
-            <span v-else class="st" :style="{ color: STATUS_COLOR[m.status] }">{{ STATUS_LABEL[m.status] }}</span>
-          </span>
-          <span class="acts">
-            <button class="ic" title="Editar" @click="openEdit(m)">✎</button>
-            <button class="ic del" title="Excluir" @click="remove(m)">🗑</button>
-          </span>
-        </div>
-        <p v-if="data && !data.data.length" class="muted empty">Nenhuma partida.</p>
-      </div>
+        </template>
+        <template #col-when="{ row }">
+          <span class="dt">{{ row.phaseLabel }}<template v-if="row.groupName"> {{ row.groupName }}</template> · {{ formatKickoff(row.kickoffAt, tz) }}</span>
+        </template>
+        <template #col-stadium="{ row }"><span class="vn">{{ row.stadium?.name ?? '—' }}</span></template>
+        <template #col-status="{ row }">
+          <NuxtLink v-if="row.status === 'LIVE'" to="/admin/live"><StatusPill :label="STATUS_LABEL[row.status]" tone="scarlet" live /></NuxtLink>
+          <StatusPill v-else :label="STATUS_LABEL[row.status]" :tone="STATUS_TONE[row.status]" />
+        </template>
+        <template #col-actions="{ row }">
+          <div class="acts">
+            <IconButton icon="edit" label="Editar" :size="30" @click="openEdit(row)" />
+            <IconButton icon="trash" label="Excluir" tone="danger" :size="30" @click="remove(row)" />
+          </div>
+        </template>
+      </AdminTable>
+
       <AdminPager v-if="data" v-model="page" :pagination="data.pagination" />
     </div>
 
     <AppModal v-if="modalOpen" :title="editing ? 'Editar partida' : 'Nova partida'" wide @close="modalOpen = false">
-      <div class="form">
+      <div class="adm-form">
         <label>Torneio</label>
         <select v-model="form.seasonId" class="input">
           <option v-for="t in tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
         </select>
-        <div class="two">
+        <div class="fld2">
           <div><label>Mandante</label>
             <select v-model="form.homeTeamId" class="input"><option value="">A definir</option><option v-for="t in teams" :key="t.id" :value="t.id">{{ t.name }}</option></select>
           </div>
@@ -181,12 +191,12 @@ onMounted(async () => {
         <select v-model="form.stadiumId" class="input"><option value="">—</option><option v-for="s in stadiums" :key="s.id" :value="s.id">{{ s.name }} · {{ s.city }}</option></select>
         <label>Data e hora <span class="tzhint">(fuso: {{ tzShort }})</span></label>
         <input v-model="form.kickoffAt" type="datetime-local" class="input" />
-        <div class="three">
+        <div class="fld3">
           <div><label>Fase</label><input v-model="form.phaseLabel" class="input" placeholder="Fase de Grupos" /></div>
           <div><label>Grupo</label><input v-model="form.groupName" class="input" placeholder="A" maxlength="8" /></div>
           <div><label>Nº</label><input v-model="form.matchNumber" type="number" class="input" /></div>
         </div>
-        <div class="three">
+        <div class="fld3">
           <div><label>Status</label><select v-model="form.status" class="input"><option v-for="s in STATUS" :key="s" :value="s">{{ STATUS_LABEL[s] }}</option></select></div>
           <div><label>Placar mandante</label><input v-model="form.homeScore" type="number" min="0" class="input" /></div>
           <div><label>Placar visitante</label><input v-model="form.awayScore" type="number" min="0" class="input" /></div>
@@ -201,29 +211,10 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.panel { padding: 16px; }
-.p-head h3 { font-weight: 600; font-size: 17px; text-transform: uppercase; }
-.filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-.filters .input { flex: 1; min-width: 170px; }
-.rows { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }
-.rhead, .row { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr 110px 80px; gap: 10px; padding: 10px 14px; align-items: center; }
-.rhead { background: var(--bg-base); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-.row { border-top: 1px solid var(--border); }
-.ar { text-align: right; }
+.mb { margin-bottom: 14px; }
 .mt { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .vs { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
 .dt, .vn { font-size: 11.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.st { font-size: 10px; font-weight: 800; text-transform: uppercase; }
-.st.live { display: inline-flex; align-items: center; gap: 5px; color: var(--scarlet); background: color-mix(in srgb, var(--scarlet) 14%, transparent); border: 1px solid var(--scarlet); border-radius: 999px; padding: 4px 9px; animation: livePulse 1.8s infinite; }
-.d { width: 6px; height: 6px; border-radius: 50%; background: var(--scarlet); animation: liveDot 1.2s infinite; }
 .acts { display: flex; gap: 6px; justify-content: flex-end; }
-.ic { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); cursor: pointer; }
-.ic.del { color: var(--scarlet); }
-.empty { padding: 18px; text-align: center; }
-.form { display: flex; flex-direction: column; gap: 4px; }
-.form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 8px; }
 .tzhint { font-weight: 600; text-transform: none; color: var(--muted); }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-@media (max-width: 760px) { .rhead { display: none; } .row { grid-template-columns: 1fr auto; } .dt, .vn, .row > span:nth-child(4) { display: none; } }
 </style>

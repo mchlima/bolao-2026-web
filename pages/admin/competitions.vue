@@ -13,6 +13,14 @@ const TYPES: { v: CompetitionType; l: string }[] = [
   { v: 'LEAGUE_CUP', l: 'Grupos + mata-mata' },
 ];
 
+const COLS: AdminColumn[] = [
+  { key: 'name', label: 'Competição' },
+  { key: 'type', label: 'Tipo' },
+  { key: 'espn', label: 'ESPN slug', mobileHide: true },
+  { key: 'seasons', label: 'Edições' },
+  { key: 'actions', label: 'Ações', align: 'end' },
+];
+
 const modalOpen = ref(false);
 const editing = ref<Competition | null>(null);
 const form = reactive({
@@ -102,35 +110,31 @@ onMounted(load);
         Guarda o <code>slug</code> e o <code>espnLeagueSlug</code> que o robô usa pra puxar placares.
       </template>
       <template #actions>
-        <button class="btn btn-primary" @click="openNew">+ Criar nova</button>
+        <button class="btn btn-primary" @click="openNew"><AppIcon name="plus" :size="16" :stroke="2.4" />Nova competição</button>
       </template>
     </AdminPageHeader>
 
-    <div class="card panel">
-      <input v-model="search" class="input search" placeholder="Buscar competição..." />
+    <div class="card adm-panel">
+      <AdminSearchBar v-model="search" placeholder="Buscar competição…" class="mb" />
 
-      <SkeletonList v-if="!data" variant="row" :count="6" />
-      <div v-else class="rows">
-        <div class="rhead">
-          <span>Competição</span><span>Tipo</span><span>ESPN slug</span><span>Edições</span><span class="ar">Ações</span>
-        </div>
-        <div v-for="c in data?.data ?? []" :key="c.id" class="row">
-          <span class="nm">{{ c.name }} <code class="slug">{{ c.slug }}</code></span>
-          <span class="muted">{{ TYPES.find((t) => t.v === c.type)?.l ?? c.type }}</span>
-          <span class="muted mono">{{ c.espnLeagueSlug || '—' }}</span>
-          <span class="muted">{{ c.seasonCount ?? 0 }}</span>
-          <span class="acts">
-            <button class="ic" title="Editar" @click="openEdit(c)">✎</button>
-            <button class="ic del" title="Excluir" @click="remove(c)">🗑</button>
-          </span>
-        </div>
-        <p v-if="data && !data.data.length" class="muted empty">Nenhuma competição.</p>
-      </div>
+      <AdminTable :columns="COLS" :rows="data?.data" grid="minmax(0,1fr) 160px 150px 80px auto" :skeleton="6" empty="Nenhuma competição." empty-icon="trophy">
+        <template #col-name="{ row }"><span class="nm">{{ row.name }} <code class="slug">{{ row.slug }}</code></span></template>
+        <template #col-type="{ row }"><span class="muted">{{ TYPES.find((t) => t.v === row.type)?.l ?? row.type }}</span></template>
+        <template #col-espn="{ row }"><span class="muted mono">{{ row.espnLeagueSlug || '—' }}</span></template>
+        <template #col-seasons="{ row }"><span class="muted">{{ row.seasonCount ?? 0 }}</span></template>
+        <template #col-actions="{ row }">
+          <div class="acts">
+            <IconButton icon="edit" label="Editar" @click="openEdit(row)" />
+            <IconButton icon="trash" label="Excluir" tone="danger" @click="remove(row)" />
+          </div>
+        </template>
+      </AdminTable>
+
       <AdminPager v-if="data" v-model="page" :pagination="data.pagination" />
     </div>
 
     <AppModal v-if="modalOpen" :title="editing ? 'Editar competição' : 'Nova competição'" @close="modalOpen = false">
-      <div class="form">
+      <div class="adm-form">
         <label>Nome</label>
         <input v-model="form.name" class="input" placeholder="Brasileirão Série A" />
         <label>Slug (chave interna)</label>
@@ -139,7 +143,7 @@ onMounted(load);
         <select v-model="form.type" class="input">
           <option v-for="t in TYPES" :key="t.v" :value="t.v">{{ t.l }}</option>
         </select>
-        <div class="two">
+        <div class="fld2">
           <div><label>País</label><input v-model="form.country" class="input" placeholder="Brasil" /></div>
           <div><label>Confederação</label><input v-model="form.confederation" class="input" placeholder="CBF" /></div>
         </div>
@@ -157,23 +161,10 @@ onMounted(load);
 </template>
 
 <style scoped>
-.panel { padding: 16px; }
-.search { margin-bottom: 14px; }
-.rows { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }
-.rhead, .row { display: grid; grid-template-columns: minmax(0,1fr) 160px 150px 80px 84px; gap: 10px; padding: 11px 14px; align-items: center; }
-.rhead { background: var(--bg-base); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-.row { border-top: 1px solid var(--border); }
-.ar { text-align: right; }
+.mb { margin-bottom: 14px; }
 .nm { font-weight: 700; font-size: 13.5px; min-width: 0; }
 .slug { font-size: 11px; color: var(--muted); background: var(--bg-base); border-radius: 4px; padding: 1px 5px; }
 .mono { font-family: ui-monospace, monospace; font-size: 12px; }
 .muted { color: var(--muted); font-size: 12.5px; font-weight: 600; }
 .acts { display: flex; gap: 6px; justify-content: flex-end; }
-.ic { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); cursor: pointer; }
-.ic.del { color: var(--scarlet); }
-.empty { padding: 18px; text-align: center; }
-.form { display: flex; flex-direction: column; gap: 4px; }
-.form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 8px; }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-@media (max-width: 640px) { .rhead { display: none; } .row { grid-template-columns: 1fr auto; } .row > span:nth-child(2), .row > span:nth-child(3), .row > span:nth-child(4) { display: none; } }
 </style>

@@ -27,6 +27,15 @@ async function loadFacets() {
 
 const typeCount = (t: string) => facets.value?.types.find((x) => x.value === t)?.count ?? 0;
 
+const COLS: AdminColumn[] = [
+  { key: 'team', label: 'Time' },
+  { key: 'short', label: 'Sigla', mobileHide: true },
+  { key: 'type', label: 'Tipo' },
+  { key: 'local', label: 'Local' },
+  { key: 'colors', label: 'Cores', mobileHide: true },
+  { key: 'actions', label: 'Ações', align: 'end' },
+];
+
 const { page, pageSize, search, data, load } = useAdminList<Team>('/teams', () => {
   const p: string[] = [];
   if (typeFilter.value) p.push(`type=${typeFilter.value}`);
@@ -141,26 +150,21 @@ onMounted(() => { load(); loadFacets(); });
       :subtitle="facets ? `${facets.total} no total · ${facets.withLogo} com escudo` : 'Seleções e clubes — escudos, cores e país.'"
     >
       <template #actions>
-        <button class="btn btn-primary" @click="openNew">+ Criar novo</button>
+        <button class="btn btn-primary" @click="openNew"><AppIcon name="plus" :size="16" :stroke="2.4" />Novo time</button>
       </template>
     </AdminPageHeader>
 
-    <div class="card panel">
-      <!-- Search -->
-      <div class="searchbar">
-        <svg class="si" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input v-model="search" class="sinput" placeholder="Buscar por nome, sigla ou país…" />
-        <button v-if="search" class="sx" title="Limpar busca" @click="search = ''">✕</button>
-      </div>
+    <div class="card adm-panel">
+      <AdminSearchBar v-model="search" placeholder="Buscar por nome, sigla ou país…" class="mb-sm" />
 
       <!-- Toolbar: Filtros popover · sort · page size -->
-      <div class="toolbar">
+      <div class="adm-toolbar">
         <div class="fmenu">
           <button class="fbtn" :class="{ on: activeCount > 0 || filtersOpen }" @click="filtersOpen = !filtersOpen">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+            <AppIcon name="filter" :size="15" :stroke="2" />
             Filtros
             <span v-if="activeCount" class="fbadge">{{ activeCount }}</span>
-            <svg class="cv" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <AppIcon name="chevronDown" :size="13" :stroke="2.4" class="cv" />
           </button>
           <template v-if="filtersOpen">
             <div class="fback" @click="filtersOpen = false" />
@@ -200,57 +204,58 @@ onMounted(() => { load(); loadFacets(); });
 
         <div class="grow" />
 
-        <select v-model="sort" class="mini">
+        <select v-model="sort" class="adm-mini">
           <option v-for="s in SORTS" :key="s.v" :value="s.v">Ordenar: {{ s.label }}</option>
         </select>
-        <select v-model.number="pageSize" class="mini">
+        <select v-model.number="pageSize" class="adm-mini">
           <option :value="20">20/pág</option>
           <option :value="50">50/pág</option>
           <option :value="100">100/pág</option>
         </select>
       </div>
-      <div class="resline">
-        <span v-if="data" class="count">{{ data.pagination.total }} resultado(s)</span>
+      <div class="adm-results">
+        <span v-if="data">{{ data.pagination.total }} resultado(s)</span>
       </div>
 
-      <SkeletonList v-if="!data" variant="row" :count="10" />
-      <div v-else class="rows">
-        <div class="rhead"><span>Time</span><span>Sigla</span><span>Tipo</span><span>Local</span><span>Cores</span><span class="ar">Ações</span></div>
-        <div v-for="t in data?.data ?? []" :key="t.id" class="row">
+      <AdminTable :columns="COLS" :rows="data?.data" grid="1fr 80px 90px 1fr 64px auto" :skeleton="10" empty="Nenhum time encontrado com esses filtros." empty-icon="shield">
+        <template #col-team="{ row }">
           <span class="tn">
-            <TeamBadge :team="t" :size="30" />
-            <span class="nm">{{ t.name }}</span>
+            <TeamBadge :team="row" :size="30" />
+            <span class="nm">{{ row.name }}</span>
           </span>
-          <span class="sg">{{ t.shortName }}</span>
-          <span class="ty"><span class="tb" :class="t.type === 'CLUB' ? 'club' : 'nat'">{{ TYPE_LABEL[t.type] }}</span></span>
-          <span class="lc">{{ t.country || t.continent || '—' }}</span>
+        </template>
+        <template #col-short="{ row }"><span class="sg">{{ row.shortName }}</span></template>
+        <template #col-type="{ row }"><span class="tb" :class="row.type === 'CLUB' ? 'club' : 'nat'">{{ TYPE_LABEL[row.type] }}</span></template>
+        <template #col-local="{ row }"><span class="lc">{{ row.country || row.continent || '—' }}</span></template>
+        <template #col-colors="{ row }">
           <span class="cl">
-            <span v-if="hex(t.color)" class="sw" :style="{ background: hex(t.color)! }" :title="t.color!" />
-            <span v-if="hex(t.colorAlt)" class="sw" :style="{ background: hex(t.colorAlt)! }" :title="t.colorAlt!" />
-            <span v-if="!hex(t.color) && !hex(t.colorAlt)" class="muted-mini">—</span>
+            <span v-if="hex(row.color)" class="sw" :style="{ background: hex(row.color)! }" :title="row.color!" />
+            <span v-if="hex(row.colorAlt)" class="sw" :style="{ background: hex(row.colorAlt)! }" :title="row.colorAlt!" />
+            <span v-if="!hex(row.color) && !hex(row.colorAlt)" class="muted-mini">—</span>
           </span>
-          <span class="acts">
-            <button class="ic" title="Editar" @click="openEdit(t)">✎</button>
-            <button class="ic del" title="Excluir" @click="remove(t)">🗑</button>
-          </span>
-        </div>
-        <p v-if="data && !data.data.length" class="muted empty">Nenhum time encontrado com esses filtros.</p>
-      </div>
+        </template>
+        <template #col-actions="{ row }">
+          <div class="acts">
+            <IconButton icon="edit" label="Editar" @click="openEdit(row)" />
+            <IconButton icon="trash" label="Excluir" tone="danger" @click="remove(row)" />
+          </div>
+        </template>
+      </AdminTable>
       <AdminPager v-if="data" v-model="page" :pagination="data.pagination" />
     </div>
 
     <AppModal v-if="modalOpen" :title="editing ? 'Editar time' : 'Novo time'" @close="modalOpen = false">
-      <div class="form">
+      <div class="adm-form">
         <div class="seg">
           <button class="seg-b" :class="{ on: form.type === 'NATIONAL_TEAM' }" @click="form.type = 'NATIONAL_TEAM'">Seleção</button>
           <button class="seg-b" :class="{ on: form.type === 'CLUB' }" @click="form.type = 'CLUB'">Clube</button>
         </div>
-        <div class="two">
+        <div class="fld2">
           <div><label>Nome</label><input v-model="form.name" class="input" /></div>
           <div><label>Sigla</label><input v-model="form.shortName" class="input" maxlength="10" /></div>
         </div>
         <template v-if="form.type === 'NATIONAL_TEAM'">
-          <div class="two">
+          <div class="fld2">
             <div><label>Código do país (ISO, ex.: BR)</label><input v-model="form.countryCode" class="input" placeholder="BR" maxlength="6" /></div>
             <div>
               <label>Continente</label>
@@ -265,7 +270,7 @@ onMounted(() => { load(); loadFacets(); });
           <label>País</label><input v-model="form.country" class="input" />
         </template>
 
-        <div class="two">
+        <div class="fld2">
           <div>
             <label>Cor primária</label>
             <div class="clr"><span class="csw" :style="{ background: hex(form.color) || 'transparent' }" /><input v-model="form.color" class="input" placeholder="D80518" maxlength="7" /></div>
@@ -276,7 +281,7 @@ onMounted(() => { load(); loadFacets(); });
           </div>
         </div>
 
-        <div class="two">
+        <div class="fld2">
           <div><label>Escudo (claro)</label><ImageUploadField v-model="form.logoUrl" prefix="teams" /></div>
           <div><label>Escudo (escuro)</label><ImageUploadField v-model="form.logoDarkUrl" prefix="teams" /></div>
         </div>
@@ -291,18 +296,9 @@ onMounted(() => { load(); loadFacets(); });
 </template>
 
 <style scoped>
-.panel { padding: 16px; }
+.mb-sm { margin-bottom: 10px; }
 
-/* search */
-.searchbar { position: relative; display: flex; align-items: center; margin-bottom: 10px; }
-.si { position: absolute; left: 12px; color: var(--muted); pointer-events: none; }
-.sinput { width: 100%; padding: 11px 36px; border-radius: 11px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font: inherit; font-size: 14px; }
-.sinput:focus { outline: none; border-color: var(--gold); }
-.sx { position: absolute; right: 8px; width: 26px; height: 26px; border: none; background: var(--bg-surface); border-radius: 7px; color: var(--muted); cursor: pointer; }
-
-/* toolbar */
-.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-.grow { flex: 1 1 0; min-width: 0; }
+/* filters popover (team-specific) */
 .fmenu { position: relative; }
 .fbtn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13px; cursor: pointer; }
 .fbtn:hover { border-color: var(--muted); }
@@ -320,21 +316,12 @@ onMounted(() => { load(); loadFacets(); });
 .fclear { border: 1px solid var(--border); background: var(--bg-base); color: var(--scarlet); font-weight: 700; font-size: 12.5px; padding: 9px; border-radius: 9px; cursor: pointer; }
 .fclear:disabled { color: var(--muted); cursor: default; opacity: 0.55; }
 .ct { font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: color-mix(in srgb, currentColor 14%, transparent); }
-.mini { padding: 9px 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-.resline { min-height: 18px; margin-bottom: 10px; }
-.count { font-size: 11.5px; color: var(--muted); font-weight: 600; white-space: nowrap; }
 
-/* table */
-.rows { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }
-.rhead, .row { display: grid; grid-template-columns: 1fr 80px 90px 1fr 64px 78px; gap: 10px; padding: 9px 14px; align-items: center; }
-.rhead { background: var(--bg-base); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-.row { border-top: 1px solid var(--border); }
-.row:hover { background: var(--bg-base); }
-.ar { text-align: right; }
+/* cells */
 .tn { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .nm { min-width: 0; font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sg { font-weight: 700; font-size: 13px; }
-.ty .tb { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
+.tb { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
 .tb.nat { color: var(--azure); background: color-mix(in srgb, var(--azure) 14%, transparent); }
 .tb.club { color: var(--emerald); background: color-mix(in srgb, var(--emerald) 14%, transparent); }
 .lc { font-size: 12.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -342,25 +329,12 @@ onMounted(() => { load(); loadFacets(); });
 .sw { width: 16px; height: 16px; border-radius: 5px; border: 1px solid var(--border); flex: 0 0 auto; }
 .muted-mini { color: var(--muted); font-size: 12px; }
 .acts { display: flex; gap: 6px; justify-content: flex-end; }
-.ic { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); cursor: pointer; }
-.ic:hover { color: var(--text); }
-.ic.del:hover { color: var(--scarlet); border-color: var(--scarlet); }
-.empty { padding: 22px; text-align: center; }
 
 /* form */
-.form { display: flex; flex-direction: column; gap: 4px; }
-.form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 8px; display: block; }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .seg { display: flex; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 3px; margin-bottom: 4px; }
 .seg-b { flex: 1; padding: 9px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 700; font-size: 13px; cursor: pointer; }
 .seg-b.on { background: var(--bg-surface); color: var(--text); box-shadow: var(--shadow); }
 .clr { display: flex; align-items: center; gap: 8px; }
 .csw { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); flex: 0 0 auto; }
 .espnote { font-size: 11px; color: var(--muted); margin-top: 10px; }
-
-@media (max-width: 720px) {
-  .rhead { display: none; }
-  .row { grid-template-columns: 1fr auto auto; }
-  .sg, .lc, .cl { display: none; }
-}
 </style>
