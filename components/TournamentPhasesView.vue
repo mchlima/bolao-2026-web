@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { BracketRound, BracketStage, StageStandings } from '~/types/api';
+import type { BracketRound, BracketStage, Match, StageStandings } from '~/types/api';
 
 const props = defineProps<{
   standings: StageStandings[]; // LEAGUE/GROUP stages → classification phase(s)
   bracketStages: BracketStage[]; // KNOCKOUT stages → one phase per round
+  matches?: Match[]; // group-stage fixtures, for the per-group round cards
+  seasonId?: string;
 }>();
 
 type Phase =
@@ -78,6 +80,8 @@ const bestThirds = (s: StageStandings) =>
             <GroupStageView
               v-if="current.stage.format === 'GROUP'"
               :groups="current.stage.groups"
+              :matches="matches ?? []"
+              :season-id="seasonId ?? ''"
               :qualify-count="2"
               :best-thirds="bestThirds(current.stage)"
             />

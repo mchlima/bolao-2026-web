@@ -1,16 +1,54 @@
 <script setup lang="ts">
-import type { GroupStandings, StandingsRow } from '~/types/api';
+import type { GroupStandings, Match, StandingsRow } from '~/types/api';
+import type { RoundBlock } from './GroupRoundCard.vue';
 
 const props = withDefaults(
   defineProps<{
     groups: GroupStandings[];
+    // Season id — used to link each fixture to its match page.
+    seasonId?: string;
+    // Group-stage matches; grouped per group into rounds (matchdays).
+    matches?: Match[];
     // Positions that advance directly from each group (top N).
     qualifyCount?: number;
     // Show the cross-group "best 3rd-placed" ranking (World Cup 2026 format).
     bestThirds?: number;
   }>(),
-  { qualifyCount: 2, bestThirds: 0 },
+  { qualifyCount: 2, bestThirds: 0, matches: () => [], seasonId: '' },
 );
+
+// Per-group rounds (matchdays), derived from the matches: bucket by roundId,
+// order rounds by their lowest matchNumber, and label 1..N. ge.globo strategy —
+// each group shows its standings beside a round-by-round fixtures card.
+const roundsByGroup = computed<Map<string, RoundBlock[]>>(() => {
+  const out = new Map<string, RoundBlock[]>();
+  const byGroup = new Map<string, Match[]>();
+  for (const m of props.matches) {
+    if (!m.groupName) continue;
+    (byGroup.get(m.groupName) ?? byGroup.set(m.groupName, []).get(m.groupName)!).push(m);
+  }
+  for (const [groupName, ms] of byGroup) {
+    const byRound = new Map<string, Match[]>();
+    for (const m of ms) {
+      const key = m.roundId ?? `n${m.matchNumber ?? 0}`;
+      (byRound.get(key) ?? byRound.set(key, []).get(key)!).push(m);
+    }
+    const blocks = [...byRound.values()]
+      .map((matches) => {
+        const sorted = [...matches].sort(
+          (a, b) =>
+            (a.matchNumber ?? 0) - (b.matchNumber ?? 0) ||
+            a.kickoffAt.localeCompare(b.kickoffAt),
+        );
+        const minNum = Math.min(...sorted.map((m) => m.matchNumber ?? Number.MAX_SAFE_INTEGER));
+        return { roundId: sorted[0].roundId ?? sorted[0].id, matches: sorted, minNum };
+      })
+      .sort((a, b) => a.minNum - b.minNum)
+      .map((b, i): RoundBlock => ({ roundId: b.roundId, number: i + 1, label: `Rodada ${i + 1}`, matches: b.matches }));
+    out.set(groupName, blocks);
+  }
+  return out;
+});
 
 // Third-placed team of every group, ranked across groups by the FIFA criteria:
 // points → SG → GP → fair play → (sorteio, aqui aproximado pelo nome). Mirrors
@@ -55,19 +93,24 @@ const ABBR: [string, string][] = [
       <p class="hint">
         Os {{ qualifyCount }} primeiros de cada grupo avançam<template v-if="bestThirds > 0">; o 3º pode avançar como melhor terceiro</template>.
       </p>
-      <div class="grid">
-        <StandingsTable
-          v-for="g in groups"
-          :key="g.groupId"
-          :title="`Grupo ${g.groupName}`"
-          :rows="g.rows"
-          :qualify-count="qualifyCount"
-          :yellow-from="bestThirds > 0 ? 3 : 0"
-          :yellow-to="bestThirds > 0 ? 3 : 0"
-          yellow-label="Pode avançar (melhor 3º)"
-          :show-legend="false"
-          compact
-        />
+      <div class="groups">
+        <div v-for="g in groups" :key="g.groupId" class="grp">
+          <StandingsTable
+            :title="`Grupo ${g.groupName}`"
+            :rows="g.rows"
+            :qualify-count="qualifyCount"
+            :yellow-from="bestThirds > 0 ? 3 : 0"
+            :yellow-to="bestThirds > 0 ? 3 : 0"
+            yellow-label="Pode avançar (melhor 3º)"
+            :show-legend="false"
+            compact
+          />
+          <GroupRoundCard
+            v-if="(roundsByGroup.get(g.groupName) ?? []).length"
+            :season-id="seasonId"
+            :rounds="roundsByGroup.get(g.groupName)!"
+          />
+        </div>
       </div>
       <!-- one shared legend at the end of the group listing -->
       <div v-if="qualifyCount > 0 || bestThirds > 0" class="legend">
@@ -113,10 +156,21 @@ const ABBR: [string, string][] = [
   font-size: 12.5px;
   margin: 2px 0 10px;
 }
-.grid {
+.groups {
   display: flex;
   flex-direction: column;
+  gap: 22px;
+}
+.grp {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 14px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .grp {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  }
 }
 .legend {
   display: flex;

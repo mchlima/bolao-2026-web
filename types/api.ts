@@ -193,6 +193,7 @@ export interface Match {
   awayScore: number | null;
   phaseLabel: string | null;
   groupName: string | null;
+  roundId: string | null;
   matchNumber: number | null;
   predictionsOpen: boolean | null; // manual override; null = automatic rule
   autoManaged: boolean; // true = ESPN robot drives score/status; false = admin took over

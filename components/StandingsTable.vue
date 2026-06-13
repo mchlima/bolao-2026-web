@@ -84,7 +84,8 @@ const discTitle = (r: StandingsRow): string => {
             </td>
             <td class="team">
               <TeamBadge :team="asTeam(row.team)" :size="22" />
-              <span class="tname">{{ row.team.shortName }}</span>
+              <span class="tname full" :title="row.team.name">{{ row.team.name }}</span>
+              <span class="tname abbr">{{ row.team.shortName }}</span>
               <span
                 v-if="row.live"
                 class="rec"
@@ -220,6 +221,10 @@ tbody tr:last-child {
 }
 .tname {
   font-weight: 600;
+}
+/* Full name on desktop; sigla on mobile (narrow, horizontally scrollable). */
+.tname.abbr {
+  display: none;
 }
 /* "Ao vivo" REC dot — pulsing red, marks a team currently playing. */
 .rec {
@@ -357,6 +362,12 @@ tbody tr:last-child {
 @media (max-width: 560px) {
   .hide-sm {
     display: none;
+  }
+  .tname.full {
+    display: none;
+  }
+  .tname.abbr {
+    display: inline;
   }
 }
 </style>
