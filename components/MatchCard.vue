@@ -211,7 +211,7 @@ const leftLabel = computed(() =>
 
         <!-- open, not logged in -->
         <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" to="/login" class="cta-mini">
-          Entre para palpitar →
+          Entre para palpitar <AppIcon name="arrowRight" :size="13" :stroke="2.4" />
         </NuxtLink>
 
         <!-- cancelled note -->
@@ -518,6 +518,9 @@ const leftLabel = computed(() =>
   max-width: 220px;
 }
 .cta-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 11.5px;
   font-weight: 700;
   color: var(--gold);

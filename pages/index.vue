@@ -194,7 +194,7 @@ const ranking = [
         </div>
       </div>
       <p class="sc-note">
-        <span class="sc-star">★</span> E no <b>mata-mata</b> cada acerto vale ainda
+        <span class="sc-star"><AppIcon name="star" :size="15" /></span> E no <b>mata-mata</b> cada acerto vale ainda
         mais — os pontos crescem a cada fase rumo à final.
       </p>
     </section>
@@ -237,7 +237,7 @@ const ranking = [
               <span class="pool-name font-display">Galera do Trampo</span>
               <span class="pool-meta">12 participantes · privado</span>
             </div>
-            <span class="pool-badge">🏆</span>
+            <span class="pool-badge"><AppIcon name="trophy" :size="22" /></span>
           </div>
           <div class="pool-rk">
             <div v-for="r in ranking" :key="r.pos" class="rk-row" :class="{ me: r.you }">
@@ -702,8 +702,9 @@ const ranking = [
   color: var(--text);
 }
 .sc-star {
+  display: inline-flex;
+  vertical-align: -3px;
   color: var(--gold);
-  font-weight: 800;
 }
 
 /* features */
@@ -821,7 +822,8 @@ const ranking = [
   font-weight: 600;
 }
 .pool-badge {
-  font-size: 22px;
+  display: inline-flex;
+  color: var(--gold);
 }
 .pool-rk {
   border-top: 1px solid var(--border);

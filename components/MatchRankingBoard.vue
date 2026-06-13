@@ -121,7 +121,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
 <template>
   <div>
-    <button class="back" @click="emit('back')">← {{ backLabel }}</button>
+    <button class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
 
     <div class="card detail" :class="{ live: isLive }">
       <div v-if="isLive" class="live-glow" aria-hidden="true" />
@@ -179,7 +179,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </div>
 
         <!-- aberto, deslogado -->
-        <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" to="/login" class="btn btn-block login-cta">Entre para palpitar →</NuxtLink>
+        <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" to="/login" class="btn btn-block login-cta">Entre para palpitar <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
 
         <!-- seu palpite × placar → pontos (o coração do acompanhamento ao vivo) -->
         <div v-else-if="myPred" class="pred-vs" :class="{ live: provisional, settled: hasResult && !provisional }">
@@ -273,6 +273,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
 <style scoped>
 .back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   border: none;
   background: none;
   color: var(--muted);
@@ -282,6 +285,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   cursor: pointer;
   margin-bottom: 14px;
   padding: 0;
+}
+.back:hover {
+  color: var(--text);
 }
 .detail {
   position: relative;

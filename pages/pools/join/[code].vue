@@ -34,14 +34,14 @@ async function confirmJoin() {
       <SkeletonList v-if="pending" variant="row" :count="2" />
 
       <template v-else-if="error || !data">
-        <div class="ic bad">✕</div>
+        <div class="ic bad"><AppIcon name="close" :size="30" :stroke="2.4" /></div>
         <h1 class="font-display title">Convite inválido</h1>
         <p class="muted">Este link de convite não existe mais ou foi revogado.</p>
         <NuxtLink to="/pools" class="btn">Ver meus bolões</NuxtLink>
       </template>
 
       <template v-else>
-        <div class="ic">⚽</div>
+        <div class="ic"><AppIcon name="trophy" :size="30" /></div>
         <span class="cap">Convite para o bolão</span>
         <h1 class="font-display title">{{ data.name }}</h1>
         <p class="tour">{{ data.tournament.name }}</p>
@@ -92,7 +92,7 @@ async function confirmJoin() {
   border-radius: 18px;
   display: grid;
   place-items: center;
-  font-size: 30px;
+  color: #0a0e14;
   background: var(--grad-trophy);
   margin-bottom: 4px;
 }

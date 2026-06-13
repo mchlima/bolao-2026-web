@@ -29,6 +29,12 @@ const { data, pending } = await useAsyncData('tournaments', async () => {
       subtitle="Escolha um torneio para palpitar e acompanhar o ranking."
     />
     <SkeletonList v-if="pending && !data" variant="card" :count="3" />
+    <EmptyState
+      v-else-if="!data?.length"
+      icon="calendar"
+      title="Nenhum torneio disponível"
+      description="Ainda não há torneios para palpitar. Volte em breve!"
+    />
     <div v-else class="grid">
       <NuxtLink
         v-for="(t, i) in data ?? []"

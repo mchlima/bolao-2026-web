@@ -100,22 +100,22 @@ const phases = [
     <h2 class="font-display sec2">As regras</h2>
     <div class="cards">
       <div class="card rule">
-        <div class="ric azure">◷</div>
+        <div class="ric azure"><AppIcon name="clock" :size="20" /></div>
         <h3 class="font-display">Quando palpitar</h3>
         <p>Por padrão os palpites ficam abertos enquanto a partida está <b class="azure">agendada</b> e antes do horário do apito. Depois disso fecham automaticamente. O <b>organizador</b> também pode abrir ou fechar os palpites de uma partida na mão — inclusive reabrir um jogo já <b class="scarlet">ao vivo</b>, se decidir.</p>
       </div>
       <div class="card rule">
-        <div class="ric scarlet">●</div>
+        <div class="ric scarlet"><AppIcon name="live" :size="20" /></div>
         <h3 class="font-display">Ao vivo é provisório</h3>
         <p>Enquanto a partida rola, o ranking dela mostra <b class="scarlet">quanto cada um está ganhando até o momento</b>, calculado pelo placar parcial (um 1 × 0 já conta como 1 a 0). Os pontos <b>mudam a cada gol</b> e só viram <b class="emerald">definitivos</b> quando o jogo é encerrado.</p>
       </div>
       <div class="card rule">
-        <div class="ric gold">🏆</div>
+        <div class="ric gold"><AppIcon name="trophy" :size="20" /></div>
         <h3 class="font-display">Dois rankings</h3>
         <p><b>Do torneio:</b> a soma dos seus pontos em todas as partidas, com pódio. <b>Da partida:</b> só aquele jogo. <b>Empate?</b> quem <b class="gold">palpitou primeiro</b> fica na frente — no torneio vale o seu palpite mais antigo.</p>
       </div>
       <div class="card rule">
-        <div class="ric magenta">👁</div>
+        <div class="ric magenta"><AppIcon name="eye" :size="20" /></div>
         <h3 class="font-display">Palpites à mostra</h3>
         <p>Os palpites são <b>visíveis para todos</b>. Dá pra ver o que cada amigo apostou em cada partida — e quem cravou. Partidas <b>canceladas</b> não geram pontos para ninguém.</p>
       </div>

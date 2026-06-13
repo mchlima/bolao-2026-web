@@ -169,7 +169,7 @@ const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? '');
           <h3 class="font-display cta-title">Novo por aqui?</h3>
           <p class="cta-sub">Entenda como pontuar e dispute o topo do ranking.</p>
         </div>
-        <span class="cta-go">Como funciona <span aria-hidden="true">→</span></span>
+        <span class="cta-go">Como funciona <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></span>
       </NuxtLink>
 
       <!-- MATCH SECTIONS: ao vivo / hoje / amanhã -->
@@ -180,7 +180,7 @@ const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? '');
             {{ s.title }}
             <span class="count">{{ s.matches.length }}</span>
           </h2>
-          <NuxtLink v-if="data?.primary" :to="`/tournaments/${data.primary.id}`" class="see-all">Ver todas ›</NuxtLink>
+          <NuxtLink v-if="data?.primary" :to="`/tournaments/${data.primary.id}`" class="see-all">Ver todas <AppIcon name="chevronRight" :size="13" :stroke="2.4" /></NuxtLink>
         </div>
         <div class="matchlist">
           <MatchCard
@@ -194,11 +194,16 @@ const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? '');
       </section>
 
       <!-- empty state when a tournament exists but no matches are near -->
-      <div v-if="data?.primary && !hasAnyMatch" class="empty-matches card">
-        <span class="em-emoji" aria-hidden="true">⚽️</span>
-        <p>Nenhuma partida ao vivo ou agendada por enquanto.</p>
-        <NuxtLink :to="`/tournaments/${data.primary.id}`" class="btn">Ver o torneio</NuxtLink>
-      </div>
+      <EmptyState
+        v-if="data?.primary && !hasAnyMatch"
+        icon="ball"
+        title="Nenhuma partida por enquanto"
+        description="Não há jogos ao vivo ou agendados no momento."
+      >
+        <template #action>
+          <NuxtLink :to="`/tournaments/${data.primary.id}`" class="btn">Ver o torneio</NuxtLink>
+        </template>
+      </EmptyState>
     </template>
   </div>
 </template>
@@ -363,6 +368,9 @@ const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? '');
   .live-dot { animation: none; }
 }
 .see-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-size: 12.5px;
   font-weight: 700;
   color: var(--muted);
@@ -436,6 +444,9 @@ const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? '');
   margin-top: 3px;
 }
 .cta-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   flex: 0 0 auto;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;

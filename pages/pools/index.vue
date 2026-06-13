@@ -84,15 +84,22 @@ async function submitCreate() {
   <div class="page">
     <PageHeader title="Meus bolões" subtitle="Dispute o ranking entre amigos.">
       <template #actions>
-        <button class="btn btn-gold" @click="openCreate">+ Criar bolão</button>
+        <button class="btn btn-gold" @click="openCreate"><AppIcon name="plus" :size="16" :stroke="2.4" />Criar bolão</button>
       </template>
     </PageHeader>
 
     <SkeletonList v-if="pending && !data" variant="card" :count="3" />
 
-    <p v-else-if="!data?.length" class="empty muted">
-      Você ainda não está em nenhum bolão. Crie um ou entre com um código de convite.
-    </p>
+    <EmptyState
+      v-else-if="!data?.length"
+      icon="trophy"
+      title="Você ainda não está em nenhum bolão"
+      description="Crie um bolão para disputar com seus amigos ou entre com um código de convite."
+    >
+      <template #action>
+        <button class="btn btn-gold" @click="openCreate"><AppIcon name="plus" :size="16" :stroke="2.4" />Criar bolão</button>
+      </template>
+    </EmptyState>
 
     <div v-else class="grid">
       <NuxtLink

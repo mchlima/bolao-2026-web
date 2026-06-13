@@ -117,14 +117,14 @@ const unavailable = computed(() => {
     <SkeletonList v-if="pending && !pool" variant="row" :count="6" />
 
     <div v-else-if="error || !pool" class="unavail">
-      <div class="ic">🔍</div>
+      <div class="ic"><AppIcon name="search" :size="28" :stroke="1.8" /></div>
       <h1 class="font-display u-title">{{ unavailable.title }}</h1>
       <p class="muted u-msg">{{ unavailable.msg }}</p>
       <NuxtLink to="/pools" class="btn btn-gold">Ver meus bolões</NuxtLink>
     </div>
 
     <template v-else>
-      <NuxtLink to="/pools" class="back">← Meus bolões</NuxtLink>
+      <NuxtLink to="/pools" class="back"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />Meus bolões</NuxtLink>
 
       <!-- header -->
       <header class="hd">
@@ -137,7 +137,7 @@ const unavailable = computed(() => {
           </div>
           <p v-if="pool.description" class="pdesc">{{ pool.description }}</p>
           <NuxtLink :to="`/tournaments/${pool.tournament.id}`" class="tour-link">
-            {{ pool.tournament.name }} — palpitar ›
+            {{ pool.tournament.name }} — palpitar <AppIcon name="chevronRight" :size="13" :stroke="2.4" />
           </NuxtLink>
         </div>
         <div class="hd-actions">
@@ -219,11 +219,16 @@ const unavailable = computed(() => {
   margin-bottom: 6px;
 }
 .back {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: var(--muted);
   font-weight: 700;
   font-size: 13px;
   margin-bottom: 14px;
+}
+.back:hover {
+  color: var(--text);
 }
 .hd {
   display: flex;
@@ -270,7 +275,9 @@ const unavailable = computed(() => {
   white-space: pre-line;
 }
 .tour-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   margin-top: 10px;
   font-size: 13.5px;
   font-weight: 700;

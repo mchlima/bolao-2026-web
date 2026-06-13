@@ -1,6 +1,10 @@
 <script setup lang="ts">
 const auth = useAuthStore();
 const router = useRouter();
+const route = useRoute();
+// On the auth screens the page already offers Entrar/Criar conta, so the header
+// CTA is redundant noise — hide it there.
+const onAuthPage = computed(() => route.path === '/login' || route.path === '/register');
 const colorMode = useColorMode();
 const menuOpen = ref(false);
 const primary = usePrimaryTournament();
@@ -117,7 +121,7 @@ function logout() {
             </div>
           </div>
         </template>
-        <template v-else>
+        <template v-else-if="!onAuthPage">
           <NuxtLink to="/login" class="btn btn-gold">Entrar</NuxtLink>
         </template>
       </div>
@@ -193,6 +197,7 @@ function logout() {
   color: var(--muted);
   padding: 7px 11px;
   border-radius: 9px;
+  transition: color 0.13s, background 0.13s;
 }
 .nav-link:hover {
   color: var(--text);

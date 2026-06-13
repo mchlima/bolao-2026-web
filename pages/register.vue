@@ -68,7 +68,7 @@ async function submit() {
           <label>Confirmar senha</label>
           <input v-model="password2" type="password" class="input" placeholder="••••••••" autocomplete="new-password" required />
           <p v-if="matchState === false" class="err">As senhas não coincidem</p>
-          <p v-else-if="matchState === true" class="ok">Senhas conferem ✓</p>
+          <p v-else-if="matchState === true" class="ok"><AppIcon name="check" :size="13" :stroke="2.6" />Senhas conferem</p>
           <button class="btn btn-primary btn-block submit" :disabled="loading" type="submit">
             {{ loading ? 'Cadastrando…' : 'Criar conta' }}
           </button>
@@ -164,6 +164,9 @@ label {
   margin: 0.5rem 0 0;
 }
 .ok {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: var(--emerald);
   font-size: 12px;
   font-weight: 600;

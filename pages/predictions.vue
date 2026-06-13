@@ -220,11 +220,27 @@ function phaseText(m: Prediction['match']): string {
     <SkeletonList v-if="pending && !data" variant="row" :count="6" />
 
     <template v-else>
-      <p v-if="!all.length" class="empty muted">Você ainda não fez palpites.</p>
-      <div v-else-if="!sorted.length" class="empty">
-        <p class="muted">Nenhum palpite encontrado com esses filtros.</p>
-        <button v-if="hasFilters" class="link" @click="clearFilters">Limpar filtros</button>
-      </div>
+      <EmptyState
+        v-if="!all.length"
+        icon="star"
+        title="Você ainda não fez palpites"
+        description="Escolha um torneio e faça seus primeiros palpites para começar a pontuar."
+      >
+        <template #action>
+          <NuxtLink to="/tournaments" class="btn btn-gold">Ver torneios</NuxtLink>
+        </template>
+      </EmptyState>
+      <EmptyState
+        v-else-if="!sorted.length"
+        icon="search"
+        title="Nenhum palpite encontrado"
+        description="Tente ajustar a busca ou os filtros."
+        compact
+      >
+        <template v-if="hasFilters" #action>
+          <button class="btn" @click="clearFilters">Limpar filtros</button>
+        </template>
+      </EmptyState>
 
       <div v-else class="list">
         <div
