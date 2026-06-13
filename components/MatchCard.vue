@@ -201,7 +201,7 @@ const leftLabel = computed(() =>
           :style="{ color: tierColor, borderColor: tierColor }"
         >
           Palpite {{ prediction.homeScore }}:{{ prediction.awayScore }}
-          <template v-if="prediction.score"> · {{ tierLabel(prediction.score.tier) }} +{{ prediction.score.points }}</template>
+          <template v-if="prediction.score"> · {{ tierLabel(prediction.score.tier, hasResult && shownHome === shownAway) }} +{{ prediction.score.points }}</template>
         </span>
 
         <!-- editable + already has a saved guess -->

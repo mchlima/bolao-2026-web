@@ -65,6 +65,9 @@ const TIER_LABEL: Record<string, string> = {
   NONE: 'Não pontuou',
 };
 
-export function tierLabel(tier?: string | null): string {
-  return tier ? (TIER_LABEL[tier] ?? tier) : '';
+export function tierLabel(tier?: string | null, isDraw = false): string {
+  if (!tier) return '';
+  // A draw has no winner — the OUTCOME tier means "got the draw right".
+  if (tier === 'OUTCOME' && isDraw) return 'Acertou o empate';
+  return TIER_LABEL[tier] ?? tier;
 }

@@ -56,6 +56,10 @@ const myPred = computed(() => me.value?.prediction ?? null);
 const myTier = computed(() => me.value?.tier ?? null);
 const myPoints = computed(() => me.value?.points ?? 0);
 const scored = computed(() => provisional.value || hasResult.value); // points exist
+// Current result is a draw — drives the "Acertou o empate" vs "Acertou o vencedor" label.
+const resultIsDraw = computed(
+  () => scored.value && (match.value.homeScore ?? 0) === (match.value.awayScore ?? 0),
+);
 
 // Editable prediction (same reactive rule as MatchCard). Palpite is global.
 const isOpen = useMatchOpen(() => match.value);
@@ -194,7 +198,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
               <svg class="pv-ic" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
               <span class="pv-lbl">{{ provisional ? 'Ganhando' : 'Você fez' }}</span>
               <b class="pv-pts font-numeric" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }">+{{ myPoints }}</b>
-              <span v-if="myTier" class="tier sm ignite" :style="{ color: TIER_COLOR[myTier], borderColor: TIER_COLOR[myTier] }">{{ tierLabel(myTier) }}</span>
+              <span v-if="myTier" class="tier sm ignite" :style="{ color: TIER_COLOR[myTier], borderColor: TIER_COLOR[myTier] }">{{ tierLabel(myTier, resultIsDraw) }}</span>
             </span>
           </template>
           <span v-else class="pv-wait">
@@ -243,7 +247,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
               </div>
               <div class="rscore">
                 <span class="font-numeric gscore">{{ guess(e) }}</span>
-                <span v-if="e.tier && scored" class="tier sm" :style="{ color: TIER_COLOR[e.tier], borderColor: TIER_COLOR[e.tier] }">{{ tierLabel(e.tier) }}</span>
+                <span v-if="e.tier && scored" class="tier sm" :style="{ color: TIER_COLOR[e.tier], borderColor: TIER_COLOR[e.tier] }">{{ tierLabel(e.tier, resultIsDraw) }}</span>
                 <span v-if="scored" class="rp" :style="{ color: e.tier ? TIER_COLOR[e.tier] : 'var(--muted)' }">+{{ e.points }}</span>
               </div>
             </div>

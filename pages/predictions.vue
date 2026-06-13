@@ -298,7 +298,7 @@ function phaseText(m: Prediction['match']): string {
             class="foot"
             :style="{ '--tc': TIER_COLOR[p.score.tier] }"
           >
-            <span class="tier">{{ tierLabel(p.score.tier) }}</span>
+            <span class="tier">{{ tierLabel(p.score.tier, (p.match.homeScore ?? 0) === (p.match.awayScore ?? 0)) }}</span>
             <span class="pts font-numeric">
               {{ p.score.points > 0 ? '+' : '' }}{{ p.score.points }}
               <i>{{ p.match.status === 'LIVE' ? 'pts parciais' : 'pts' }}</i>
