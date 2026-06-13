@@ -1,15 +1,32 @@
 <script setup lang="ts">
-// Each case is a worked example against the same real result (2 × 1), so the
-// gradient from "cravou" to "errou" is easy to compare.
+// Modelo granular de mercado ("dacopa"): acertar o vencedor/empate é o portão;
+// dentro disso, quanto mais preciso o placar, mais pontos. Fonte da verdade:
+// ScoringService (api) + bolao-2026-docs/api/scoring.md. Rótulos/cores espelham
+// utils/format.ts e MatchCard.vue.
+const tiers = [
+  { label: 'Cravou', cond: 'Placar exato', pts: '25', color: 'var(--emerald)' },
+  { label: 'Gols do vencedor', cond: 'Vencedor certo + os gols dele exatos', pts: '18', color: 'var(--azure)' },
+  { label: 'Acertou o saldo', cond: 'Vencedor certo + mesmo saldo de gols', pts: '15', color: 'var(--gold)' },
+  { label: 'Gols do perdedor', cond: 'Vencedor certo + os gols dele exatos', pts: '12', color: 'var(--scarlet)' },
+  { label: 'Acertou o vencedor', cond: 'Só quem venceu (ou o empate)', pts: '10', color: 'var(--magenta)' },
+  { label: 'Não pontuou', cond: 'Errou quem venceu / o empate', pts: '0', color: 'var(--muted)' },
+];
+
+// Um exemplo de cada caso contra o mesmo resultado real (mandante 2 × 1).
 const cases = [
-  { label: 'Cravou o placar', guess: '2-1', why: 'Placar exato: base 4 + cravou os dois times (+3 e +3).', pts: '10', color: 'var(--emerald)' },
-  { label: 'Acertou um placar', guess: '2-0', why: 'Base 4 + cravou o 2 do mandante (+3) + errou o fora por 1 (+1).', pts: '8', color: 'var(--azure)' },
-  { label: 'Acertou um placar', guess: '3-1', why: 'Base 4 + cravou o 1 do visitante (+3) + errou o mando por 1 (+1).', pts: '8', color: 'var(--azure)' },
-  { label: 'Quase', guess: '3-2', why: 'Vencedor certo; cada time ficou a 1 gol (+1 e +1).', pts: '6', color: 'var(--gold)' },
-  { label: 'Acertou o vencedor', guess: '4-0', why: 'Acertou quem venceu; o visitante ficou a 1 gol (+1), o mando longe.', pts: '5', color: 'var(--magenta)' },
-  { label: 'Acertou o vencedor', guess: '5-3', why: 'Só o vencedor: os dois times ficaram a 2+ gols. Piso da base.', pts: '4', color: 'var(--magenta)' },
-  { label: 'Gols de um time', guess: '2-3', why: 'Errou quem venceu (previu o visitante), mas cravou o 2 do mandante — só a consolação.', pts: '1', color: 'var(--scarlet)' },
-  { label: 'Não pontuou', guess: '1-2', why: 'Previu o visitante vencendo e não cravou os gols de nenhum time.', pts: '0', color: 'var(--muted)' },
+  { label: 'Cravou', guess: '2-1', why: 'Placar exato. O máximo da partida.', pts: '25', color: 'var(--emerald)' },
+  { label: 'Gols do vencedor', guess: '2-0', why: 'Acertou em cheio os 2 gols do vencedor; só errou o perdedor.', pts: '18', color: 'var(--azure)' },
+  { label: 'Acertou o saldo', guess: '3-2', why: 'Vencedor certo e mesmo saldo (+1), mas sem cravar os gols.', pts: '15', color: 'var(--gold)' },
+  { label: 'Gols do perdedor', guess: '3-1', why: 'Cravou o 1 gol do perdedor; errou os gols do vencedor e o saldo.', pts: '12', color: 'var(--scarlet)' },
+  { label: 'Acertou o vencedor', guess: '4-2', why: 'Só acertou quem venceu — gols, saldo e perdedor todos diferentes.', pts: '10', color: 'var(--magenta)' },
+  { label: 'Não pontuou', guess: '0-2', why: 'Previu o visitante ganhando: errou o vencedor e zerou a partida.', pts: '0', color: 'var(--muted)' },
+];
+
+// Peso por fase (mata-mata) — padrão SCORING_PHASE_STEP=1, CAP=3 na Copa 2026.
+const phases = [
+  { name: 'Fase de grupos', w: '1×', color: 'var(--muted)' },
+  { name: '16-avos de final', w: '2×', color: 'var(--azure)' },
+  { name: 'Oitavas em diante', w: '3×', color: 'var(--gold)' },
 ];
 </script>
 
@@ -20,21 +37,29 @@ const cases = [
       <div class="hero-in">
         <span class="kicker">Guia do bolão</span>
         <h1 class="font-display">Como funciona</h1>
-        <p class="sub">Você palpita o placar de cada partida antes dela começar. Quanto mais perto do resultado real, mais pontos. Veja as regras abaixo.</p>
+        <p class="sub">Você palpita o placar de cada partida antes dela começar. Acertar quem ganha já garante pontos — e quanto mais preciso for o placar, mais você leva. Veja as regras abaixo.</p>
       </div>
     </section>
 
-    <h2 class="font-display sec">Pontuação por proximidade</h2>
-    <p class="lead">Primeiro, é preciso <b>acertar quem venceu</b> (ou o empate) — isso vale uma <b>base de 4 pontos</b>. A partir daí, <b>cada time</b> soma pela proximidade do seu palpite:</p>
+    <h2 class="font-display sec">Como você pontua</h2>
+    <p class="lead">Primeiro, o portão: é preciso <b>acertar quem venceu</b> (ou o empate). Quem erra isso <b>zera a partida</b>. Acertando o vencedor, você já garante a base — e sobe de faixa conforme cravou mais detalhes do placar, com o <b>saldo de gols</b> como critério, igual aos bolões tradicionais:</p>
 
-    <div class="formula">
-      <div class="fr"><span class="fk">Acertou o vencedor / empate</span><span class="fv">+4 base</span></div>
-      <div class="fr"><span class="fk">Cravou os gols de um time</span><span class="fv gold">+3 por time</span></div>
-      <div class="fr"><span class="fk">Errou um time por 1 gol</span><span class="fv gold">+1 por time</span></div>
-      <div class="fr"><span class="fk">Errou quem venceu, mas cravou os gols de um time</span><span class="fv scarlet">+1 consolação</span></div>
-      <div class="fr"><span class="fk">Errou quem venceu (sem cravar nenhum time)</span><span class="fv muted">0 — zerou a partida</span></div>
+    <div class="tiers">
+      <div
+        v-for="t in tiers"
+        :key="t.label"
+        class="tier"
+        :style="{ borderColor: `color-mix(in srgb, ${t.color} 45%, var(--border))`, background: `color-mix(in srgb, ${t.color} 7%, var(--bg-surface))` }"
+      >
+        <span class="tier-dot" :style="{ background: t.color }" />
+        <div class="tier-main">
+          <span class="tier-name" :style="{ color: t.color }">{{ t.label }}</span>
+          <span class="tier-cond">{{ t.cond }}</span>
+        </div>
+        <span class="tier-pts font-numeric" :style="{ color: t.color }">{{ t.pts === '0' ? '0' : '+' + t.pts }}</span>
+      </div>
     </div>
-    <p class="note">Cravar o placar inteiro dá o máximo: <b class="emerald">10 pontos</b> (4 + 3 + 3). Acertar quem venceu sempre vale mais (≥4) do que a consolação de 1 ponto.</p>
+    <p class="note">Cravar o placar inteiro é a glória: <b class="emerald">25 pontos</b>. E acertar quem venceu sempre vale mais do que qualquer detalhe sem o vencedor — quem erra o lado não pontua, por mais perto que tenha chegado.</p>
 
     <h2 class="font-display sec2">Um exemplo de cada caso</h2>
     <p class="lead">Todos com o mesmo resultado real — <b>mandante 2 × 1 visitante</b> — variando só o seu palpite:</p>
@@ -60,6 +85,17 @@ const cases = [
         </div>
       </div>
     </div>
+    <p class="note">No <b>empate</b> não há vencedor nem perdedor: um empate certo com placar diferente vale sempre <b class="magenta">10</b> (ex.: você pôs 1 × 1 e deu 2 × 2). Cravar o empate (2 × 2) vale <b class="emerald">25</b>.</p>
+
+    <h2 class="font-display sec2">Vale mais no mata-mata</h2>
+    <p class="lead">Quanto mais decisiva a fase, mais valem os seus pontos. Os acertos do <b>mata-mata</b> são multiplicados — sobe a cada rodada rumo à final:</p>
+    <div class="phases">
+      <div v-for="p in phases" :key="p.name" class="phase" :style="{ '--c': p.color }">
+        <span class="ph-w font-numeric">{{ p.w }}</span>
+        <span class="ph-name">{{ p.name }}</span>
+      </div>
+    </div>
+    <p class="note">O multiplicador mexe só nos <b>pontos</b> — a faixa do seu palpite (cravou, saldo…) é a mesma. Cravar uma final vale muito mais do que cravar um jogo de grupo.</p>
 
     <h2 class="font-display sec2">As regras</h2>
     <div class="cards">
@@ -76,7 +112,7 @@ const cases = [
       <div class="card rule">
         <div class="ric gold">🏆</div>
         <h3 class="font-display">Dois rankings</h3>
-        <p><b>Do torneio:</b> a soma dos seus pontos em todas as partidas (top 100, com pódio). <b>Da partida:</b> só aquele jogo. <b>Empate?</b> quem <b class="gold">palpitou primeiro</b> fica na frente — no torneio vale o seu palpite mais antigo.</p>
+        <p><b>Do torneio:</b> a soma dos seus pontos em todas as partidas, com pódio. <b>Da partida:</b> só aquele jogo. <b>Empate?</b> quem <b class="gold">palpitou primeiro</b> fica na frente — no torneio vale o seu palpite mais antigo.</p>
       </div>
       <div class="card rule">
         <div class="ric magenta">👁</div>
@@ -92,30 +128,33 @@ const cases = [
 </template>
 
 <style scoped>
-.page { padding: 22px 0 40px; max-width: 760px; margin: 0 auto; }
+.page { padding: 22px 0 40px; max-width: 1040px; margin: 0 auto; }
+/* Keep prose readable even on the wide layout. */
+.sub, .lead, .note { max-width: 680px; }
 .hero { position: relative; overflow: hidden; border-radius: 22px; border: 1px solid var(--border); background: linear-gradient(135deg, rgba(244, 184, 30, 0.2), rgba(224, 33, 138, 0.16)), var(--bg-surface); box-shadow: var(--shadow); padding: clamp(20px, 4vw, 30px); margin-bottom: 24px; }
 .glow { position: absolute; right: -30px; top: -30px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(244, 184, 30, 0.3), transparent 70%); }
 .hero-in { position: relative; }
 .kicker { display: inline-block; background: rgba(244, 184, 30, 0.16); border: 1px solid rgba(244, 184, 30, 0.4); color: var(--gold); border-radius: 999px; padding: 5px 11px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
 .hero-in h1 { font-weight: 700; font-size: clamp(28px, 5vw, 40px); text-transform: uppercase; line-height: 1; }
-.sub { color: var(--muted); margin-top: 10px; font-size: 14.5px; max-width: 520px; }
+.sub { color: var(--muted); margin-top: 10px; font-size: 14.5px; max-width: 540px; }
 .sec { font-weight: 600; font-size: 19px; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 6px; }
 .sec2 { font-weight: 600; font-size: 19px; text-transform: uppercase; letter-spacing: 0.02em; margin: 30px 0 6px; }
 .lead { color: var(--muted); font-size: 13.5px; line-height: 1.55; margin-bottom: 14px; }
 .lead b, .rule p b { color: var(--text); }
 .note { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+.note b { color: var(--text); }
 
-/* formula */
-.formula { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.fr { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 15px; border-top: 1px solid var(--border); }
-.fr:first-child { border-top: none; }
-.fk { font-size: 13.5px; font-weight: 600; }
-.fv { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; white-space: nowrap; }
-.fv.gold { color: var(--gold); }
-.fv.muted { color: var(--muted); }
+/* tiers ladder — two columns on wide screens (reads 25→0 left-to-right, row by row) */
+.tiers { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
+.tier { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border: 1px solid; border-radius: 13px; }
+.tier-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.tier-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tier-name { font-size: 14px; font-weight: 800; }
+.tier-cond { font-size: 12px; color: var(--muted); font-weight: 500; }
+.tier-pts { font-size: 26px; line-height: 0.9; flex: none; }
 
-/* example cases */
-.cases { display: flex; flex-direction: column; gap: 9px; }
+/* example cases — two columns on wide screens */
+.cases { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
 .case { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; border: 1px solid; }
 .cg { text-align: center; flex: 0 0 auto; }
 .cg-cap { display: block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
@@ -126,6 +165,12 @@ const cases = [
 .cp { text-align: right; flex: 0 0 auto; }
 .cp .font-numeric { font-size: 28px; line-height: 0.8; }
 .cp-l { display: block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+
+/* phase weights */
+.phases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.phase { border: 1px solid color-mix(in srgb, var(--c) 40%, var(--border)); background: color-mix(in srgb, var(--c) 7%, var(--bg-surface)); border-radius: 14px; padding: 16px 12px; text-align: center; }
+.ph-w { display: block; font-size: 34px; line-height: 0.8; color: var(--c); }
+.ph-name { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); margin-top: 8px; }
 
 /* rules */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; }
@@ -141,5 +186,13 @@ const cases = [
 .scarlet { color: var(--scarlet); }
 .emerald { color: var(--emerald); }
 .gold { color: var(--gold); }
+.magenta { color: var(--magenta); }
 .cta-wrap { display: flex; justify-content: center; margin-top: 26px; }
+
+@media (max-width: 680px) {
+  .tiers, .cases { grid-template-columns: 1fr; }
+}
+@media (max-width: 460px) {
+  .phases { grid-template-columns: 1fr; }
+}
 </style>
