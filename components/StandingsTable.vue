@@ -16,6 +16,8 @@ const props = withDefaults(
     compact?: boolean;
     // Render the color legend inside the card. Off when the parent shows a shared one.
     showLegend?: boolean;
+    // Show the position-movement indicator (up/down/= vs the previous round).
+    movement?: boolean;
   }>(),
   {
     title: null,
@@ -25,8 +27,13 @@ const props = withDefaults(
     yellowLabel: 'Pode avançar (3º)',
     compact: false,
     showLegend: true,
+    movement: false,
   },
 );
+
+// Position delta vs the previous round: >0 climbed, <0 dropped, 0 held, null = no baseline.
+const delta = (r: StandingsRow): number | null =>
+  r.previousPosition == null ? null : r.previousPosition - r.position;
 
 const inYellow = (pos: number) =>
   props.yellowFrom > 0 && pos >= props.yellowFrom && pos <= props.yellowTo;
@@ -92,6 +99,17 @@ const discTitle = (r: StandingsRow): string => {
                 title="Em jogo agora — classificação provisória"
                 aria-label="Em jogo ao vivo"
               />
+              <span
+                v-if="movement && delta(row) !== null"
+                class="move"
+                :class="delta(row)! > 0 ? 'up' : delta(row)! < 0 ? 'down' : 'eq'"
+                :title="delta(row)! > 0 ? `Subiu ${delta(row)} posição(ões)` : delta(row)! < 0 ? `Caiu ${-delta(row)!} posição(ões)` : 'Manteve a posição'"
+              >
+                <template v-if="delta(row) !== 0">
+                  <AppIcon :name="delta(row)! > 0 ? 'arrowUp' : 'arrowDown'" :size="11" :stroke="3" />{{ Math.abs(delta(row)!) }}
+                </template>
+                <span v-else class="eq-dash">–</span>
+              </span>
             </td>
             <td class="num strong">{{ row.points }}</td>
             <td class="num">{{ row.played }}</td>
@@ -100,7 +118,7 @@ const discTitle = (r: StandingsRow): string => {
             <td class="num">{{ row.losses }}</td>
             <td class="num hide-sm">{{ row.goalsFor }}</td>
             <td class="num hide-sm">{{ row.goalsAgainst }}</td>
-            <td class="num">{{ row.goalDiff > 0 ? '+' + row.goalDiff : row.goalDiff }}</td>
+            <td class="num">{{ row.goalDiff }}</td>
             <td class="num hide-sm muted">{{ row.pct.toFixed(0) }}</td>
             <td class="disc hide-sm" :title="discTitle(row)">
               <span v-if="row.yellowCards || row.redCards" class="cards">
@@ -225,6 +243,30 @@ tbody tr:last-child {
 /* Full name on desktop; sigla on mobile (narrow, horizontally scrollable). */
 .tname.abbr {
   display: none;
+}
+/* Position movement vs previous round: green up / red down / muted held. */
+.move {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: auto;
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  padding-left: 6px;
+}
+.move.up {
+  color: #1f9d55;
+}
+.move.down {
+  color: #e5484d;
+}
+.move.eq {
+  color: var(--muted);
+}
+.move .eq-dash {
+  opacity: 0.7;
 }
 /* "Ao vivo" REC dot — pulsing red, marks a team currently playing. */
 .rec {

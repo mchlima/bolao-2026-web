@@ -103,6 +103,7 @@ const ABBR: [string, string][] = [
             :yellow-to="bestThirds > 0 ? 3 : 0"
             yellow-label="Pode avançar (melhor 3º)"
             :show-legend="false"
+            movement
             compact
           />
           <GroupRoundCard

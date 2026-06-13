@@ -85,7 +85,7 @@ const bestThirds = (s: StageStandings) =>
               :qualify-count="2"
               :best-thirds="bestThirds(current.stage)"
             />
-            <StandingsTable v-else :rows="current.stage.groups[0]?.rows ?? []" />
+            <StandingsTable v-else :rows="current.stage.groups[0]?.rows ?? []" movement />
           </template>
 
           <!-- Knockout round → tie cards stacked full-width -->

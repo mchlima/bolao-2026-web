@@ -104,6 +104,7 @@ export interface StandingsTeam {
 
 export interface StandingsRow {
   position: number;
+  previousPosition: number | null; // rank after the previous round; null on the first round
   team: StandingsTeam;
   played: number; // J
   wins: number; // V
