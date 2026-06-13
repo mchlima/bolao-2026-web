@@ -20,6 +20,11 @@ const hasResult = computed(
 );
 const shownHome = computed(() => props.match.homeScore ?? 0);
 const shownAway = computed(() => props.match.awayScore ?? 0);
+// Winner emphasis on LIVE/FINISHED (loser is dimmed, winner bold).
+const homeWins = computed(() => hasResult.value && shownHome.value > shownAway.value);
+const awayWins = computed(() => hasResult.value && shownAway.value > shownHome.value);
+const homeName = computed(() => props.match.homeTeam?.name ?? props.match.homeSourceLabel ?? 'A definir');
+const awayName = computed(() => props.match.awayTeam?.name ?? props.match.awaySourceLabel ?? 'A definir');
 // Effective prediction window (reactive; mirrors the backend rule and locks at
 // kickoff even without a refetch). See composables/useMatchOpen.
 const isOpen = useMatchOpen(() => props.match);
@@ -131,9 +136,9 @@ const leftLabel = computed(() =>
 
     <!-- main row: home · center · away (single line, uniform height) -->
     <div class="row">
-      <div class="side">
-        <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="44" />
-        <span class="abbr">{{ teamAbbr(match.homeTeam, match.homeSourceLabel) }}</span>
+      <div class="side" :class="{ win: homeWins, lose: awayWins }">
+        <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="46" />
+        <span class="tname" :title="homeName">{{ homeName }}</span>
       </div>
 
       <div class="center">
@@ -180,9 +185,9 @@ const leftLabel = computed(() =>
         <div v-else class="vs">×</div>
       </div>
 
-      <div class="side">
-        <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="44" />
-        <span class="abbr">{{ teamAbbr(match.awayTeam, match.awaySourceLabel) }}</span>
+      <div class="side" :class="{ win: awayWins, lose: homeWins }">
+        <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="46" />
+        <span class="tname" :title="awayName">{{ awayName }}</span>
       </div>
     </div>
 
@@ -303,44 +308,59 @@ const leftLabel = computed(() =>
   animation: liveDot 1.2s infinite;
 }
 
-/* main row */
+/* main row — centered match cluster (home ▸ score ◂ away) */
 .row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   position: relative;
+  max-width: 560px;
+  margin: 2px auto 0;
 }
 .side {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   min-width: 0;
+  justify-content: flex-end; /* home hugs the center */
 }
 .row .side:last-child {
   flex-direction: row-reverse;
+  justify-content: flex-end; /* away hugs the center (row-reverse) */
 }
-.abbr {
-  font-size: 13px;
+.tname {
+  font-size: 14.5px;
   font-weight: 700;
+  line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: opacity 0.2s, font-weight 0.2s;
+}
+/* winner emphasis on settled/live results */
+.side.win .tname {
+  font-weight: 800;
+  color: var(--text);
+}
+.side.lose {
+  opacity: 0.5;
 }
 .center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  min-width: 96px;
+  gap: 4px;
+  min-width: 92px;
 }
 .score {
   display: flex;
-  align-items: center;
-  gap: 7px;
+  align-items: baseline;
+  gap: 8px;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 38px;
+  font-size: 42px;
   line-height: 0.85;
+  letter-spacing: 0.01em;
 }
 .score.off {
   color: var(--muted);
@@ -351,10 +371,16 @@ const leftLabel = computed(() =>
   color: var(--muted);
 }
 .vs {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
   color: var(--muted);
-  font-weight: 700;
-  font-size: 18px;
-  padding: 8px 0;
+  font-weight: 800;
+  font-size: 14px;
 }
 
 /* editable inline stepper + icon save */
