@@ -35,6 +35,17 @@ const STATUS_LABEL: Record<string, string> = {
 const STATUS_COLOR: Record<string, string> = {
   SCHEDULED: 'var(--azure)', LIVE: 'var(--scarlet)', FINISHED: 'var(--muted)', CANCELLED: 'var(--muted)',
 };
+// Segmented status control — declarative "set the state" instead of verb buttons.
+const STATUS_OPTS = [
+  { v: 'SCHEDULED', label: 'Agendada', tone: 'azure', msg: 'Partida agendada', type: 'info' },
+  { v: 'LIVE', label: 'Ao vivo', tone: 'scarlet', msg: 'Partida ao vivo', type: 'success' },
+  { v: 'FINISHED', label: 'Encerrada', tone: 'emerald', msg: 'Partida encerrada', type: 'success' },
+  { v: 'CANCELLED', label: 'Cancelada', tone: 'danger', msg: 'Partida cancelada', type: 'info' },
+] as const;
+function setStatus(o: (typeof STATUS_OPTS)[number]) {
+  if (!selected.value || selected.value.status === o.v) return;
+  patch({ status: o.v }, o.msg, o.type);
+}
 
 // ---- date helpers (account tz) ----
 /** "YYYY-MM-DD" of an instant as seen in the account tz (en-CA → ISO order). */
@@ -339,27 +350,34 @@ onMounted(async () => {
                 <div v-if="settingsOpen" class="set-pop">
                   <div class="set-group">
                     <div class="set-lbl">Status da partida</div>
-                    <div class="set-actions">
-                      <button v-if="selected.status !== 'LIVE'" class="sb live" @click="patch({ status: 'LIVE' }, 'Partida ao vivo', 'success')">● Ao vivo</button>
-                      <button v-else class="sb live on" @click="patch({ status: 'SCHEDULED' }, 'Partida voltou para agendada', 'info')">↩ Tirar do ao vivo</button>
-                      <button class="sb" :class="{ on: selected.status === 'FINISHED' }" @click="patch({ status: 'FINISHED' }, 'Partida encerrada', 'success')">Encerrar</button>
-                      <button class="sb danger" :class="{ on: selected.status === 'CANCELLED' }" @click="patch({ status: 'CANCELLED' }, 'Partida cancelada')">Cancelar</button>
+                    <div class="segc s4">
+                      <button
+                        v-for="o in STATUS_OPTS"
+                        :key="o.v"
+                        class="segc-b"
+                        :class="[o.tone, { on: selected.status === o.v }]"
+                        @click="setStatus(o)"
+                      >
+                        <span v-if="o.v === 'LIVE' && selected.status === 'LIVE'" class="ld" />{{ o.label }}
+                      </button>
                     </div>
                   </div>
                   <div class="set-group">
-                    <div class="set-lbl">Placar <span class="set-sub">{{ selected.autoManaged ? '· o robô ESPN atualiza' : '· você controla nos botões +/−' }}</span></div>
-                    <div class="set-actions">
-                      <button class="sb" :class="{ on: selected.autoManaged }" @click="setAuto(true)">Automático</button>
-                      <button class="sb" :class="{ on: !selected.autoManaged }" @click="setAuto(false)">Manual</button>
+                    <div class="set-lbl">Fonte do placar</div>
+                    <div class="segc">
+                      <button class="segc-b azure" :class="{ on: selected.autoManaged }" @click="setAuto(true)">Automático</button>
+                      <button class="segc-b" :class="{ on: !selected.autoManaged }" @click="setAuto(false)">Manual</button>
                     </div>
+                    <p class="seg-help">{{ selected.autoManaged ? 'O robô ESPN atualiza placar e status sozinho.' : 'Você controla pelos botões + / − no placar.' }}</p>
                   </div>
                   <div class="set-group">
-                    <div class="set-lbl">Palpites <span class="set-sub">· {{ predEffectiveOpen ? 'abertos' : 'fechados' }} ({{ predIsManual ? 'manual' : 'automático' }})</span></div>
-                    <div class="set-actions">
-                      <button class="sb ok" :class="{ on: selected.predictionsOpen === true }" @click="setPredictions(true)">Abrir</button>
-                      <button class="sb danger" :class="{ on: selected.predictionsOpen === false }" @click="setPredictions(false)">Fechar</button>
-                      <button class="sb" :class="{ on: selected.predictionsOpen == null }" @click="setPredictions(null)">Automático</button>
+                    <div class="set-lbl">Palpites</div>
+                    <div class="segc">
+                      <button class="segc-b emerald" :class="{ on: selected.predictionsOpen === true }" @click="setPredictions(true)">Abertos</button>
+                      <button class="segc-b danger" :class="{ on: selected.predictionsOpen === false }" @click="setPredictions(false)">Fechados</button>
+                      <button class="segc-b" :class="{ on: selected.predictionsOpen == null }" @click="setPredictions(null)">Automático</button>
                     </div>
+                    <p class="seg-help">Agora <b :class="predEffectiveOpen ? 'tx-ok' : 'tx-no'">{{ predEffectiveOpen ? 'abertos' : 'fechados' }}</b> — {{ predIsManual ? 'forçado pelo operador' : 'seguindo a regra (fecha no apito)' }}.</p>
                   </div>
                 </div>
               </div>
@@ -515,10 +533,23 @@ onMounted(async () => {
 .gear.on { color: var(--text); border-color: var(--azure); background: color-mix(in srgb, var(--azure) 10%, var(--bg-base)); }
 .set-pop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; width: min(320px, 86vw); display: flex; flex-direction: column; gap: 14px; padding: 15px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-elevated); box-shadow: var(--shadow); }
 .set-pop::before { content: ''; position: absolute; top: -6px; right: 12px; width: 11px; height: 11px; background: var(--bg-elevated); border-left: 1px solid var(--border); border-top: 1px solid var(--border); transform: rotate(45deg); }
-.set-group { display: flex; flex-direction: column; gap: 8px; }
+.set-group { display: flex; flex-direction: column; gap: 7px; }
 .set-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-.set-sub { font-weight: 600; text-transform: none; letter-spacing: 0; }
-.set-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+
+/* segmented controls — current state is the highlighted segment */
+.segc { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 3px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 11px; padding: 3px; }
+.segc.s4 { grid-template-columns: repeat(4, 1fr); }
+.segc-b { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 9px 4px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 700; font-size: 12px; cursor: pointer; transition: color 0.12s, background 0.12s; }
+.segc-b:hover { color: var(--text); }
+.segc-b.on { background: var(--bg-surface); color: var(--text); box-shadow: var(--shadow); }
+.segc-b.on.azure { color: var(--azure); }
+.segc-b.on.scarlet { color: var(--scarlet); }
+.segc-b.on.emerald { color: var(--emerald); }
+.segc-b.on.danger { color: var(--scarlet); }
+.seg-help { font-size: 11.5px; line-height: 1.45; color: var(--muted); padding: 0 2px; }
+.seg-help b { font-weight: 800; }
+.tx-ok { color: var(--emerald); }
+.tx-no { color: var(--gold); }
 
 /* score */
 .sides { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; max-width: 480px; margin: 6px auto 0; }
@@ -529,11 +560,6 @@ onMounted(async () => {
 .steppers { display: flex; gap: 9px; margin-top: 2px; }
 .step { width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-size: 24px; line-height: 1; cursor: pointer; }
 .step.plus { border: none; background: var(--emerald); color: #fff; box-shadow: 0 8px 20px -8px var(--emerald); }
-.sb { flex: 1; min-width: 92px; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 12.5px; cursor: pointer; }
-.sb.live.on { background: var(--scarlet); color: #fff; border-color: transparent; }
-.sb.on { background: var(--grad-pitch); color: #fff; border-color: transparent; }
-.sb.ok.on { background: var(--emerald); color: #fff; border-color: transparent; }
-.sb.danger.on { background: var(--scarlet); color: #fff; border-color: transparent; }
 
 .sb-flags { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
 .flag-hint { font-size: 11px; font-weight: 600; color: var(--muted); }
