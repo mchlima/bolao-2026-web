@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { User } from '~/types/api';
 
-definePageMeta({ middleware: 'admin' });
+definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
 const auth = useAuthStore();
 const tz = useTz();
@@ -71,9 +71,10 @@ onMounted(load);
 </script>
 
 <template>
-  <AdminShell>
+  <div>
+    <AdminPageHeader title="Usuários" subtitle="Gerencie papéis, acesso e senhas dos usuários." />
+
     <div class="card panel">
-      <div class="p-head"><h3 class="font-display">Usuários</h3></div>
       <div class="filters">
         <input v-model="search" class="input" placeholder="Buscar nome ou e-mail" />
         <div class="chips">
@@ -112,13 +113,11 @@ onMounted(load);
         <button class="btn btn-primary" @click="tempPassword = null">Entendi</button>
       </template>
     </AppModal>
-  </AdminShell>
+  </div>
 </template>
 
 <style scoped>
 .panel { padding: 16px; }
-.p-head { margin-bottom: 14px; }
-.p-head h3 { font-weight: 600; font-size: 17px; text-transform: uppercase; }
 .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
 .filters .input { flex: 1; min-width: 170px; }
 .chips { display: flex; gap: 7px; }

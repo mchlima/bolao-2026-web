@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'admin' });
+definePageMeta({ layout: 'admin', middleware: 'admin' });
 
 interface Dashboard {
   users: { total: number; active: number; admins: number };
@@ -29,7 +29,8 @@ const metrics = computed(() => {
 </script>
 
 <template>
-  <AdminShell>
+  <div>
+    <AdminPageHeader title="Dashboard" subtitle="Visão geral do torneio e atalhos rápidos." />
     <div class="metrics">
       <div v-for="m in metrics" :key="m.label" class="card metric">
         <div class="blob" :style="{ background: m.color }" />
@@ -47,7 +48,7 @@ const metrics = computed(() => {
         <NuxtLink to="/admin/live" class="btn live"><span class="dot" />Controle ao vivo</NuxtLink>
       </div>
     </div>
-  </AdminShell>
+  </div>
 </template>
 
 <style scoped>

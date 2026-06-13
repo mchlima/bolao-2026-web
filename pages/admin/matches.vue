@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Match, Paginated, Stadium, Team, Tournament } from '~/types/api';
 
-definePageMeta({ middleware: 'admin' });
+definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
 const route = useRoute();
 const tz = useTz();
@@ -119,12 +119,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <AdminShell>
-    <div class="card panel">
-      <div class="p-head">
-        <h3 class="font-display">Partidas</h3>
+  <div>
+    <AdminPageHeader title="Partidas" subtitle="Jogos do torneio — placar, status, estádio e horário.">
+      <template #actions>
         <button class="btn btn-primary" @click="openNew">+ Criar novo</button>
-      </div>
+      </template>
+    </AdminPageHeader>
+
+    <div class="card panel">
       <div class="filters">
         <select v-model="tournamentFilter" class="input">
           <option value="">Todos os torneios</option>
@@ -195,12 +197,11 @@ onMounted(async () => {
         <button class="btn btn-primary" :disabled="saving" @click="submit">{{ editing ? 'Salvar' : 'Criar' }}</button>
       </template>
     </AppModal>
-  </AdminShell>
+  </div>
 </template>
 
 <style scoped>
 .panel { padding: 16px; }
-.p-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .p-head h3 { font-weight: 600; font-size: 17px; text-transform: uppercase; }
 .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
 .filters .input { flex: 1; min-width: 170px; }

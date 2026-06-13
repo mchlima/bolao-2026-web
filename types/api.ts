@@ -32,6 +32,7 @@ export interface Team {
   id: string;
   name: string;
   shortName: string;
+  espnAbbr: string | null;
   type: TeamType;
   countryCode: string | null;
   continent: string | null;

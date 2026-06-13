@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Stadium } from '~/types/api';
 
-definePageMeta({ middleware: 'admin' });
+definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
 const { page, search, data, load } = useAdminList<Stadium>('/stadiums');
 
@@ -59,12 +59,14 @@ onMounted(load);
 </script>
 
 <template>
-  <AdminShell>
-    <div class="card panel">
-      <div class="p-head">
-        <h3 class="font-display">Estádios</h3>
+  <div>
+    <AdminPageHeader title="Estádios" subtitle="Sedes das partidas — nome, cidade e país.">
+      <template #actions>
         <button class="btn btn-primary" @click="openNew">+ Criar novo</button>
-      </div>
+      </template>
+    </AdminPageHeader>
+
+    <div class="card panel">
       <input v-model="search" class="input search" placeholder="Buscar estádio, cidade, país..." />
 
       <SkeletonList v-if="!data" variant="row" :count="8" />
@@ -97,12 +99,11 @@ onMounted(load);
         <button class="btn btn-primary" :disabled="saving" @click="submit">{{ editing ? 'Salvar' : 'Criar' }}</button>
       </template>
     </AppModal>
-  </AdminShell>
+  </div>
 </template>
 
 <style scoped>
 .panel { padding: 16px; }
-.p-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .p-head h3 { font-weight: 600; font-size: 17px; text-transform: uppercase; }
 .search { margin-bottom: 14px; }
 .rows { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }

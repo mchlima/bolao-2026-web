@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Match, Paginated, Tournament } from '~/types/api';
 
-definePageMeta({ middleware: 'admin' });
+definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
 
 interface Engagement {
@@ -182,7 +182,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <AdminShell>
+  <div>
+    <AdminPageHeader title="Controle ao vivo" subtitle="Monitore as partidas e atualize placares e status em tempo real." />
     <div class="live-grid">
       <!-- menu -->
       <div class="card menu">
@@ -337,7 +338,7 @@ onMounted(async () => {
       </div>
       <div v-else class="card placeholder">Selecione uma partida ao lado para controlar o placar.</div>
     </div>
-  </AdminShell>
+  </div>
 </template>
 
 <style scoped>

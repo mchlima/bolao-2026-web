@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Competition, CompetitionType } from '~/types/api';
 
-definePageMeta({ middleware: 'admin' });
+definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
 const { page, search, data, load } = useAdminList<Competition & { seasonCount?: number }>(
   '/competitions',
@@ -95,16 +95,18 @@ onMounted(load);
 </script>
 
 <template>
-  <AdminShell>
-    <div class="card panel">
-      <div class="p-head">
-        <h3 class="font-display">Competições</h3>
-        <button class="btn btn-primary" @click="openNew">+ Criar nova</button>
-      </div>
-      <p class="hint">
+  <div>
+    <AdminPageHeader title="Competições">
+      <template #subtitle>
         A competição é o torneio atemporal (ex.: "Copa do Mundo FIFA", "Brasileirão Série A").
         Guarda o <code>slug</code> e o <code>espnLeagueSlug</code> que o robô usa pra puxar placares.
-      </p>
+      </template>
+      <template #actions>
+        <button class="btn btn-primary" @click="openNew">+ Criar nova</button>
+      </template>
+    </AdminPageHeader>
+
+    <div class="card panel">
       <input v-model="search" class="input search" placeholder="Buscar competição..." />
 
       <SkeletonList v-if="!data" variant="row" :count="6" />
@@ -151,15 +153,11 @@ onMounted(load);
         <button class="btn btn-primary" :disabled="saving" @click="submit">{{ editing ? 'Salvar' : 'Criar' }}</button>
       </template>
     </AppModal>
-  </AdminShell>
+  </div>
 </template>
 
 <style scoped>
 .panel { padding: 16px; }
-.p-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.p-head h3 { font-weight: 600; font-size: 17px; text-transform: uppercase; }
-.hint { font-size: 12.5px; color: var(--muted); margin: 0 0 12px; }
-.hint code { background: var(--bg-base); border-radius: 4px; padding: 0 4px; }
 .search { margin-bottom: 14px; }
 .rows { border: 1px solid var(--border); border-radius: 13px; overflow: hidden; }
 .rhead, .row { display: grid; grid-template-columns: minmax(0,1fr) 160px 150px 80px 84px; gap: 10px; padding: 11px 14px; align-items: center; }

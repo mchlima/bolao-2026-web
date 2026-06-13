@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Team, TeamFacets } from '~/types/api';
 
-definePageMeta({ middleware: 'admin' });
+definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
 
 // Country/continent are stored in the international (English) standard, like the
@@ -135,16 +135,17 @@ onMounted(() => { load(); loadFacets(); });
 </script>
 
 <template>
-  <AdminShell>
-    <div class="card panel">
-      <div class="p-head">
-        <div class="title">
-          <h3 class="font-display">Times</h3>
-          <span v-if="facets" class="total">{{ facets.total }} no total · {{ facets.withLogo }} com escudo</span>
-        </div>
+  <div>
+    <AdminPageHeader
+      title="Times"
+      :subtitle="facets ? `${facets.total} no total · ${facets.withLogo} com escudo` : 'Seleções e clubes — escudos, cores e país.'"
+    >
+      <template #actions>
         <button class="btn btn-primary" @click="openNew">+ Criar novo</button>
-      </div>
+      </template>
+    </AdminPageHeader>
 
+    <div class="card panel">
       <!-- Search -->
       <div class="searchbar">
         <svg class="si" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -286,15 +287,11 @@ onMounted(() => { load(); loadFacets(); });
         <button class="btn btn-primary" :disabled="saving" @click="submit">{{ editing ? 'Salvar' : 'Criar' }}</button>
       </template>
     </AppModal>
-  </AdminShell>
+  </div>
 </template>
 
 <style scoped>
 .panel { padding: 16px; }
-.p-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.title { display: flex; flex-direction: column; gap: 2px; }
-.title h3 { font-weight: 600; font-size: 17px; text-transform: uppercase; }
-.total { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 
 /* search */
 .searchbar { position: relative; display: flex; align-items: center; margin-bottom: 10px; }
