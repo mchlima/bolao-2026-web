@@ -33,6 +33,19 @@ const thirds = computed<StandingsRow[]>(() => {
     // own group). This drives both the "#" column and the top-8 highlight.
     .map((r, i) => ({ ...r, position: i + 1 }));
 });
+
+// Significado das siglas das colunas da tabela de classificação.
+const ABBR: [string, string][] = [
+  ['P', 'Pontos'],
+  ['J', 'Jogos'],
+  ['V', 'Vitórias'],
+  ['E', 'Empates'],
+  ['D', 'Derrotas'],
+  ['GP', 'Gols pró'],
+  ['GC', 'Gols contra'],
+  ['SG', 'Saldo de gols'],
+  ['%', 'Aproveitamento'],
+];
 </script>
 
 <template>
@@ -61,6 +74,10 @@ const thirds = computed<StandingsRow[]>(() => {
         <span v-if="qualifyCount > 0" class="lg"><span class="dot green" /> Classificação direta</span>
         <span v-if="bestThirds > 0" class="lg"><span class="dot yellow" /> Pode avançar como melhor 3º</span>
       </div>
+      <!-- legenda das siglas das colunas -->
+      <dl class="abbr">
+        <div v-for="[k, v] in ABBR" :key="k" class="ab"><dt>{{ k }}</dt><dd>{{ v }}</dd></div>
+      </dl>
     </section>
 
     <section v-if="thirds.length" class="block">
@@ -125,5 +142,31 @@ const thirds = computed<StandingsRow[]>(() => {
 }
 .dot.yellow {
   background: rgba(232, 176, 7, 0.78);
+}
+/* Legenda das siglas */
+.abbr {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 10px 0 0;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--bg-base);
+}
+.abbr .ab {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.abbr dt {
+  font-weight: 800;
+  color: var(--text);
+  min-width: 16px;
+}
+.abbr dd {
+  margin: 0;
 }
 </style>
