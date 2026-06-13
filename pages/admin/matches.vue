@@ -13,7 +13,7 @@ const tournamentFilter = ref('');
 const statusFilter = ref('');
 const { page, search, data, load } = useAdminList<Match>('/matches', () => {
   const parts: string[] = [];
-  if (tournamentFilter.value) parts.push(`tournamentId=${tournamentFilter.value}`);
+  if (tournamentFilter.value) parts.push(`seasonId=${tournamentFilter.value}`);
   if (statusFilter.value) parts.push(`status=${statusFilter.value}`);
   return parts.join('&');
 });
@@ -26,7 +26,7 @@ const stadiums = ref<Stadium[]>([]);
 async function loadOptions() {
   const api = useApi();
   const [tt, s1, s2, s3, st] = await Promise.all([
-    api<Paginated<Tournament>>('/tournaments?pageSize=100'),
+    api<Paginated<Tournament>>('/seasons?pageSize=100'),
     api<Paginated<Team>>('/teams?page=1&pageSize=100'),
     api<Paginated<Team>>('/teams?page=2&pageSize=100'),
     api<Paginated<Team>>('/teams?page=3&pageSize=100'),
@@ -44,7 +44,7 @@ const STATUS_COLOR: Record<string, string> = { SCHEDULED: 'var(--azure)', LIVE: 
 const modalOpen = ref(false);
 const editing = ref<Match | null>(null);
 const form = reactive<Record<string, string>>({
-  tournamentId: '', homeTeamId: '', awayTeamId: '', stadiumId: '',
+  seasonId: '', homeTeamId: '', awayTeamId: '', stadiumId: '',
   kickoffAt: '', phaseLabel: '', groupName: '', matchNumber: '', status: 'SCHEDULED',
   homeScore: '', awayScore: '',
 });
@@ -52,13 +52,13 @@ const saving = ref(false);
 
 function openNew() {
   editing.value = null;
-  Object.assign(form, { tournamentId: tournaments.value[0]?.id ?? '', homeTeamId: '', awayTeamId: '', stadiumId: '', kickoffAt: '', phaseLabel: '', groupName: '', matchNumber: '', status: 'SCHEDULED', homeScore: '', awayScore: '' });
+  Object.assign(form, { seasonId: tournaments.value[0]?.id ?? '', homeTeamId: '', awayTeamId: '', stadiumId: '', kickoffAt: '', phaseLabel: '', groupName: '', matchNumber: '', status: 'SCHEDULED', homeScore: '', awayScore: '' });
   modalOpen.value = true;
 }
 function openEdit(m: Match) {
   editing.value = m;
   Object.assign(form, {
-    tournamentId: m.tournamentId, homeTeamId: m.homeTeam?.id ?? '', awayTeamId: m.awayTeam?.id ?? '',
+    seasonId: m.seasonId, homeTeamId: m.homeTeam?.id ?? '', awayTeamId: m.awayTeam?.id ?? '',
     stadiumId: m.stadium?.id ?? '', kickoffAt: utcToZonedInput(m.kickoffAt, tz.value), phaseLabel: m.phaseLabel ?? '',
     groupName: m.groupName ?? '', matchNumber: m.matchNumber?.toString() ?? '', status: m.status,
     homeScore: m.homeScore?.toString() ?? '', awayScore: m.awayScore?.toString() ?? '',
@@ -67,11 +67,11 @@ function openEdit(m: Match) {
 }
 
 async function submit() {
-  if (!form.tournamentId) return ui.toast('error', 'Selecione o torneio');
+  if (!form.seasonId) return ui.toast('error', 'Selecione o torneio');
   if (!form.kickoffAt) return ui.toast('error', 'Informe a data/hora');
   saving.value = true;
   const body: Record<string, unknown> = {
-    tournamentId: form.tournamentId,
+    seasonId: form.seasonId,
     homeTeamId: form.homeTeamId || undefined,
     awayTeamId: form.awayTeamId || undefined,
     stadiumId: form.stadiumId || undefined,
@@ -164,7 +164,7 @@ onMounted(async () => {
     <AppModal v-if="modalOpen" :title="editing ? 'Editar partida' : 'Nova partida'" wide @close="modalOpen = false">
       <div class="form">
         <label>Torneio</label>
-        <select v-model="form.tournamentId" class="input">
+        <select v-model="form.seasonId" class="input">
           <option v-for="t in tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
         </select>
         <div class="two">

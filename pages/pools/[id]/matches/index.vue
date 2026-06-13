@@ -23,7 +23,7 @@ const { data, pending, refresh } = await useAsyncData(
       let totalPages = 1;
       do {
         const res = await api<Paginated<Match>>(
-          `/matches?tournamentId=${tid}&page=${page}&pageSize=100`,
+          `/matches?seasonId=${tid}&page=${page}&pageSize=100`,
         );
         all.push(...res.data);
         totalPages = res.pagination.totalPages;
@@ -38,7 +38,7 @@ const { data, pending, refresh } = await useAsyncData(
       // the cards can show + edit them right here (same flow as the tournament page).
       let predictions: Prediction[] = [];
       if (auth.token) {
-        predictions = await api<Prediction[]>(`/predictions/me?tournamentId=${tid}`);
+        predictions = await api<Prediction[]>(`/predictions/me?seasonId=${tid}`);
       }
       return { matches: all, predictions };
     } catch (e) {
