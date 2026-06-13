@@ -1,50 +1,98 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'landing' });
-useHead({ title: 'Amigos do Bolão · Copa 2026' });
+useHead({
+  title: 'Amigos do Bolão · O bolão da Copa 2026 com a sua turma',
+  meta: [
+    {
+      name: 'description',
+      content:
+        'Palpite nos 104 jogos da Copa 2026, crie bolões privados com os amigos e acompanhe o ranking mudar ao vivo a cada gol. Placares automáticos, classificação completa e pontuação por proximidade. Grátis.',
+    },
+  ],
+});
+
+// Números reais do torneio semeado.
+const stats = [
+  { v: '104', l: 'partidas' },
+  { v: '48', l: 'seleções' },
+  { v: '12', l: 'grupos' },
+  { v: '16', l: 'sedes' },
+];
 
 const steps = [
   {
     n: '01',
-    title: 'Faça seu palpite',
-    text: 'Cravou o placar de cada partida antes do apito. Dá pra ajustar até a bola rolar.',
+    title: 'Crie ou entre num bolão',
+    text: 'Monte um grupo com a turma e convide por um link. Seu palpite vale em todos os bolões que você participa.',
+    color: 'var(--emerald)',
   },
   {
     n: '02',
-    title: 'Pontue por acerto',
-    text: 'Acertou o vencedor já vale. Chegou perto do placar vale mais. Cravar vale o máximo.',
+    title: 'Crave os placares',
+    text: 'Palpite o resultado de cada jogo antes do apito. Quanto mais perto do placar real, mais pontos você leva.',
+    color: 'var(--gold)',
   },
   {
     n: '03',
-    title: 'Suba no ranking',
-    text: 'Acompanhe sua posição ao vivo, partida a partida, e dispute o topo com a galera.',
+    title: 'Suba no ranking ao vivo',
+    text: 'Acompanhe sua posição se mexer a cada gol, partida a partida, e dispute o topo com os amigos.',
+    color: 'var(--azure)',
   },
+];
+
+// Mesma partida real (mandante 2 × 1 visitante), variando só o palpite — o
+// gradiente de "cravou" a "errou" da pontuação por proximidade.
+const ladder = [
+  { guess: '2:1', label: 'Cravou', pts: '10', color: 'var(--emerald)' },
+  { guess: '2:0', label: 'Quase exato', pts: '8', color: 'var(--azure)' },
+  { guess: '3:2', label: 'Quase', pts: '6', color: 'var(--gold)' },
+  { guess: '5:3', label: 'Só o vencedor', pts: '4', color: 'var(--magenta)' },
+  { guess: '1:2', label: 'Errou o vencedor', pts: '0', color: 'var(--muted)' },
 ];
 
 const features = [
   {
-    title: 'Todas as partidas',
-    text: 'Da fase de grupos à final — palpite em cada jogo do torneio.',
+    title: 'Bolões privados',
+    text: 'Crie quantos bolões quiser e convide a galera por um link. Cada grupo tem o seu próprio ranking — só entre quem você conhece.',
     color: 'var(--emerald)',
-    icon: '<path d="M3 10.5 12 3l9 7.5M5 9.5V20h14V9.5"/>',
+    icon: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
   },
   {
-    title: 'Pontuação por proximidade',
-    text: 'Quanto mais perto do placar real, mais pontos. Cravar é a glória.',
-    color: 'var(--gold)',
-    icon: '<path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/>',
-  },
-  {
-    title: 'Ranking ao vivo',
-    text: 'Sua pontuação muda em tempo real conforme o placar acontece.',
+    title: 'Tudo no automático',
+    text: 'Os placares entram sozinhos, direto do feed oficial dos jogos. Ninguém precisa digitar resultado nem atualizar a página na mão.',
     color: 'var(--azure)',
-    icon: '<path d="M3 3v18h18"/><path d="m7 14 3-3 3 2 4-5"/>',
+    icon: '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/>',
   },
   {
-    title: 'Placares automáticos',
-    text: 'Os resultados entram sozinhos — sem ninguém precisar atualizar na mão.',
-    color: 'var(--magenta)',
-    icon: '<path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/>',
+    title: 'Ao vivo de verdade',
+    text: 'A cada gol, o placar e o seu ranking se mexem na tela na hora — sem recarregar. Sentiu o gol, sentiu a pontuação.',
+    color: 'var(--scarlet)',
+    icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
   },
+  {
+    title: 'Torneio completo',
+    text: 'Grupos, classificação, mata-mata e os 8 melhores terceiros. Até o desempate por fair play, contando os cartões automaticamente.',
+    color: 'var(--gold)',
+    icon: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  },
+  {
+    title: 'Escudos e cores reais',
+    text: 'Mais de 1.500 times com escudo e cores oficiais — das seleções aos clubes. Bonito de ver e fácil de reconhecer.',
+    color: 'var(--magenta)',
+    icon: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/>',
+  },
+  {
+    title: 'Dois rankings, com pódio',
+    text: 'Um do torneio inteiro e um de cada partida. Empatou? Quem palpitou primeiro fica na frente. Os palpites ficam à mostra pra todos.',
+    color: 'var(--azure)',
+    icon: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  },
+];
+
+const ranking = [
+  { pos: 1, name: 'Você', pts: 84, you: true },
+  { pos: 2, name: 'Rafa', pts: 81 },
+  { pos: 3, name: 'Bia', pts: 79 },
 ];
 </script>
 
@@ -56,24 +104,29 @@ const features = [
       <div class="glow glow-b" aria-hidden="true" />
       <div class="hero-grid">
         <div class="hero-text">
-          <span class="eyebrow">Copa do Mundo · 2026</span>
+          <span class="eyebrow">Copa do Mundo FIFA · 2026</span>
           <h1 class="font-display title">
-            O bolão da<br />Copa com<br /><span class="hl">os amigos</span>
+            O bolão da Copa<br />que a sua turma<br /><span class="hl">vai levar a sério</span>
           </h1>
           <p class="lead">
-            Palpite nos 104 jogos, pontue por acerto e dispute o topo do ranking
-            em tempo real. Grátis, rápido e entre quem você conhece.
+            Crave os placares dos 104 jogos, monte bolões privados com a galera e
+            veja o ranking se mexer <b>ao vivo</b> a cada gol. Placares automáticos,
+            classificação completa e pontuação que premia chegar perto.
           </p>
           <div class="cta">
             <NuxtLink to="/register" class="btn btn-gold big">Criar conta grátis</NuxtLink>
             <NuxtLink to="/login" class="btn big">Já tenho conta</NuxtLink>
           </div>
+          <p class="trust">
+            <span class="dot-ok" /> Grátis · sem app pra instalar · pronto em 1 minuto
+          </p>
         </div>
 
-        <div class="hero-card" aria-hidden="true">
-          <div class="card mock">
+        <div class="hero-art" aria-hidden="true">
+          <!-- live match card -->
+          <div class="card mock live">
             <div class="mock-top">
-              <span class="mlbl">Grupo A · hoje</span>
+              <span class="mlbl">Grupo C · 2º tempo</span>
               <span class="mstatus"><span class="d" />Ao vivo</span>
             </div>
             <div class="mock-row">
@@ -82,32 +135,70 @@ const features = [
               <div class="mteam"><b>ARG</b><span class="flag">🇦🇷</span></div>
             </div>
             <div class="mock-foot">
-              <span class="mchip">Seu palpite 2:1 · Cravou +10</span>
+              <span class="mchip">Seu palpite 2:1</span>
+              <span class="mpts font-numeric">+10</span>
             </div>
           </div>
+
+          <!-- floating ranking -->
+          <div class="card mock rank">
+            <span class="rk-cap">Ranking do bolão</span>
+            <div v-for="r in ranking" :key="r.pos" class="rk-row" :class="{ me: r.you }">
+              <span class="rk-pos" :class="`p${r.pos}`">{{ r.pos }}</span>
+              <span class="rk-name">{{ r.name }}</span>
+              <span class="rk-pts font-numeric">{{ r.pts }}</span>
+            </div>
+          </div>
+
+          <span class="float-badge font-display">CRAVOU! <b>+10</b></span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div v-for="s in stats" :key="s.l" class="stat">
+          <span class="font-numeric sv">{{ s.v }}</span>
+          <span class="sl">{{ s.l }}</span>
         </div>
       </div>
     </section>
 
     <!-- HOW IT WORKS -->
     <section class="block">
-      <h2 class="font-display sec-title">Como funciona</h2>
+      <h2 class="font-display sec-title">Em 3 passos</h2>
       <div class="steps">
         <div v-for="s in steps" :key="s.n" class="step card">
-          <span class="font-display snum">{{ s.n }}</span>
+          <span class="font-display snum" :style="{ color: s.color }">{{ s.n }}</span>
           <h3>{{ s.title }}</h3>
           <p>{{ s.text }}</p>
         </div>
       </div>
     </section>
 
+    <!-- SCORING -->
+    <section class="block scoring">
+      <div class="sc-head">
+        <h2 class="font-display sec-title">Cravar é a glória</h2>
+        <p class="sc-sub">
+          Não é só acertar quem ganha. Cada gol que você chega perto vale ponto.
+          O mesmo jogo (<b>2 × 1</b>), do palpite perfeito ao furo:
+        </p>
+      </div>
+      <div class="ladder">
+        <div v-for="c in ladder" :key="c.guess" class="lad" :style="{ '--c': c.color }">
+          <span class="lad-pts font-numeric">{{ c.pts }}</span>
+          <span class="lad-guess font-numeric">{{ c.guess }}</span>
+          <span class="lad-label">{{ c.label }}</span>
+        </div>
+      </div>
+    </section>
+
     <!-- FEATURES -->
     <section class="block">
-      <h2 class="font-display sec-title">Por que jogar aqui</h2>
+      <h2 class="font-display sec-title">Por que joga aqui</h2>
       <div class="feats">
         <div v-for="f in features" :key="f.title" class="feat card">
-          <span class="fic" :style="{ color: f.color, borderColor: f.color }">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="f.icon" />
+          <span class="fic" :style="{ color: f.color, background: `color-mix(in srgb, ${f.color} 14%, transparent)` }">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="f.icon" />
           </span>
           <h3>{{ f.title }}</h3>
           <p>{{ f.text }}</p>
@@ -115,11 +206,67 @@ const features = [
       </div>
     </section>
 
+    <!-- POOLS HIGHLIGHT -->
+    <section class="split">
+      <div class="split-text">
+        <span class="kicker">Bolões</span>
+        <h2 class="font-display">Chame a galera. <span class="hl-e">Junto é melhor.</span></h2>
+        <p>
+          Crie um bolão do trabalho, da família, do grupo do churrasco — quantos
+          quiser. Você palpita <b>uma vez</b> e a pontuação conta em todos os bolões
+          que participa. Cada grupo tem o seu próprio ranking e ninguém de fora vê.
+        </p>
+        <ul class="checks">
+          <li>Convite por link — entrou, já está dentro</li>
+          <li>Ranking só entre os seus amigos</li>
+          <li>Palpites à mostra: dá pra zoar quem furou</li>
+        </ul>
+        <NuxtLink to="/register" class="btn btn-primary big">Criar meu bolão</NuxtLink>
+      </div>
+      <div class="split-art" aria-hidden="true">
+        <div class="card pool">
+          <div class="pool-top">
+            <div>
+              <span class="pool-name font-display">Galera do Trampo</span>
+              <span class="pool-meta">12 participantes · privado</span>
+            </div>
+            <span class="pool-badge">🏆</span>
+          </div>
+          <div class="pool-rk">
+            <div v-for="r in ranking" :key="r.pos" class="rk-row" :class="{ me: r.you }">
+              <span class="rk-pos" :class="`p${r.pos}`">{{ r.pos }}</span>
+              <span class="rk-name">{{ r.name }}</span>
+              <span class="rk-pts font-numeric">{{ r.pts }}</span>
+            </div>
+          </div>
+          <div class="pool-invite">
+            <span class="inv-ic">🔗</span>
+            <span class="inv-link">amigos.bolao/entrar/x7k2</span>
+            <span class="inv-copy">Copiar</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE BANNER -->
+    <section class="livebanner">
+      <div class="glow glow-live" aria-hidden="true" />
+      <div class="lb-in">
+        <span class="lb-tag"><span class="d" />Tempo real</span>
+        <h2 class="font-display">O juiz apitou? O ranking já sabe.</h2>
+        <p>
+          Enquanto a bola rola, o placar entra sozinho e a sua pontuação muda a
+          cada gol — provisória até o fim do jogo. Você acompanha a virada
+          acontecer sem mexer um dedo.
+        </p>
+      </div>
+    </section>
+
     <!-- FINAL CTA -->
     <section class="final">
       <div class="glow glow-c" aria-hidden="true" />
       <h2 class="font-display">Bora cravar esse placar?</h2>
-      <p>Crie sua conta e comece a palpitar em minutos.</p>
+      <p>Crie sua conta, monte o bolão e chame a turma. Leva 1 minuto.</p>
       <div class="cta">
         <NuxtLink to="/register" class="btn btn-gold big">Criar conta grátis</NuxtLink>
         <NuxtLink to="/login" class="btn big">Entrar</NuxtLink>
@@ -127,7 +274,7 @@ const features = [
     </section>
 
     <footer class="lfoot">
-      Amigos do Bolão · Copa do Mundo 2026
+      Amigos do Bolão · Copa do Mundo FIFA 2026
     </footer>
   </div>
 </template>
@@ -136,8 +283,14 @@ const features = [
 .land-page {
   padding: 8px 0 24px;
 }
+.hl {
+  color: var(--gold);
+}
+.hl-e {
+  color: var(--emerald);
+}
 
-/* hero */
+/* ===== hero ===== */
 .hero {
   position: relative;
   overflow: hidden;
@@ -151,28 +304,30 @@ const features = [
   position: absolute;
   border-radius: 50%;
   pointer-events: none;
-  filter: blur(6px);
+  filter: blur(8px);
 }
 .glow-a {
-  width: 320px;
-  height: 320px;
-  right: -80px;
-  top: -90px;
+  width: 340px;
+  height: 340px;
+  right: -90px;
+  top: -100px;
   background: radial-gradient(circle, rgba(244, 184, 30, 0.26), transparent 70%);
+  animation: spotShift 9s ease-in-out infinite;
 }
 .glow-b {
-  width: 280px;
-  height: 280px;
-  left: -90px;
-  bottom: -110px;
+  width: 300px;
+  height: 300px;
+  left: -100px;
+  bottom: -120px;
   background: radial-gradient(circle, rgba(15, 179, 107, 0.22), transparent 70%);
+  animation: spotShift 11s ease-in-out infinite reverse;
 }
 .hero-grid {
   position: relative;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1.05fr 0.95fr;
   align-items: center;
-  gap: 32px;
+  gap: 36px;
 }
 .eyebrow {
   display: inline-block;
@@ -185,19 +340,19 @@ const features = [
 }
 .title {
   font-weight: 700;
-  font-size: clamp(36px, 6.5vw, 60px);
-  line-height: 0.95;
+  font-size: clamp(34px, 6vw, 58px);
+  line-height: 0.96;
   text-transform: uppercase;
-}
-.hl {
-  color: var(--gold);
 }
 .lead {
   margin-top: 18px;
-  max-width: 460px;
+  max-width: 480px;
   color: var(--muted);
   font-size: clamp(14px, 2.4vw, 16px);
-  line-height: 1.55;
+  line-height: 1.6;
+}
+.lead b {
+  color: var(--text);
 }
 .cta {
   display: flex;
@@ -209,19 +364,39 @@ const features = [
   font-size: 15px;
   padding: 13px 22px;
 }
+.trust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.dot-ok {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 10px 1px rgba(15, 179, 107, 0.6);
+}
 
-/* hero mock card */
-.hero-card {
+/* hero art */
+.hero-art {
+  position: relative;
   display: flex;
   justify-content: center;
+  min-height: 280px;
 }
 .mock {
-  width: 100%;
-  max-width: 320px;
   border-radius: 18px;
   padding: 16px;
-  transform: rotate(2deg);
   box-shadow: var(--shadow);
+}
+.mock.live {
+  width: min(100%, 320px);
+  transform: rotate(-2deg);
+  border-color: color-mix(in srgb, var(--scarlet) 30%, var(--border));
 }
 .mock-top {
   display: flex;
@@ -247,11 +422,13 @@ const features = [
   border-radius: 999px;
   padding: 4px 9px;
 }
-.mstatus .d {
+.mstatus .d,
+.lb-tag .d {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--scarlet);
+  animation: liveDot 1.1s ease-in-out infinite;
 }
 .mock-row {
   display: grid;
@@ -263,7 +440,7 @@ const features = [
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 15px;
 }
 .mteam:last-child {
@@ -274,7 +451,7 @@ const features = [
   line-height: 1;
 }
 .mscore {
-  font-size: 40px;
+  font-size: 42px;
   line-height: 0.8;
 }
 .mscore span {
@@ -286,40 +463,158 @@ const features = [
   padding-top: 12px;
   border-top: 1px solid var(--border);
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
 }
 .mchip {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
+  color: var(--muted);
+}
+.mpts {
+  font-size: 26px;
+  line-height: 1;
   color: var(--emerald);
-  border: 1px solid var(--emerald);
-  border-radius: 999px;
-  padding: 4px 11px;
 }
 
-/* sections */
+/* floating ranking card */
+.mock.rank {
+  position: absolute;
+  right: -6px;
+  bottom: -8px;
+  width: 200px;
+  padding: 12px 13px;
+  transform: rotate(3deg);
+  background: var(--bg-elevated);
+}
+.rk-cap {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.rk-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+}
+.rk-row.me {
+  font-weight: 800;
+}
+.rk-pos {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--bg-base);
+  color: var(--muted);
+}
+.rk-pos.p1 {
+  background: var(--gold);
+  color: #0a0e14;
+}
+.rk-pos.p2 {
+  background: #c7ccd4;
+  color: #0a0e14;
+}
+.rk-pos.p3 {
+  background: #d8924a;
+  color: #0a0e14;
+}
+.rk-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rk-row.me .rk-name {
+  color: var(--emerald);
+}
+.rk-pts {
+  font-size: 17px;
+  line-height: 1;
+}
+.float-badge {
+  position: absolute;
+  left: -8px;
+  top: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #0a0e14;
+  background: var(--gold);
+  border-radius: 10px;
+  padding: 7px 12px;
+  box-shadow: 0 10px 24px -10px rgba(244, 184, 30, 0.8);
+  transform: rotate(-7deg);
+  animation: ignite 2.6s ease-in-out infinite;
+}
+.float-badge b {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 17px;
+}
+
+/* stats strip */
+.stats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: clamp(28px, 5vw, 44px);
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+.stat {
+  text-align: center;
+}
+.sv {
+  display: block;
+  font-size: clamp(28px, 5vw, 40px);
+  line-height: 0.9;
+  background: var(--grad-trophy);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.sl {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+/* ===== sections ===== */
 .block {
-  margin: 36px 0;
+  margin: 44px 0;
 }
 .sec-title {
   font-weight: 600;
-  font-size: clamp(20px, 3.5vw, 26px);
+  font-size: clamp(20px, 3.5vw, 28px);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin-bottom: 18px;
 }
 .steps {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 14px;
 }
 .step {
   border-radius: 18px;
-  padding: 22px;
+  padding: 24px;
 }
 .snum {
-  font-size: 30px;
-  color: var(--gold);
+  font-size: 32px;
   font-weight: 700;
 }
 .step h3,
@@ -333,28 +628,274 @@ const features = [
 .feat p {
   color: var(--muted);
   font-size: 13.5px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
+
+/* scoring ladder */
+.scoring {
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  padding: clamp(22px, 4vw, 34px);
+}
+.sc-head {
+  margin-bottom: 20px;
+}
+.sc-sub {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 560px;
+  margin-top: 8px;
+}
+.sc-sub b {
+  color: var(--text);
+}
+.ladder {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+.lad {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--c) 40%, var(--border));
+  background: color-mix(in srgb, var(--c) 8%, var(--bg-base));
+  border-radius: 14px;
+  padding: 16px 12px;
+  text-align: center;
+}
+.lad-pts {
+  display: block;
+  font-size: 38px;
+  line-height: 0.8;
+  color: var(--c);
+}
+.lad-guess {
+  display: block;
+  font-size: 18px;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin: 8px 0 2px;
+  opacity: 0.85;
+}
+.lad-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+/* features */
 .feats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
   gap: 14px;
 }
 .feat {
   border-radius: 18px;
-  padding: 20px;
+  padding: 22px;
 }
 .fic {
   display: inline-grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  border: 1.5px solid;
-  background: var(--bg-base);
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
 }
 
-/* final cta */
+/* ===== pools split ===== */
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 36px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(15, 179, 107, 0.12), transparent 60%), var(--bg-surface);
+  padding: clamp(24px, 4vw, 44px);
+  margin: 44px 0;
+}
+.kicker {
+  display: inline-block;
+  background: color-mix(in srgb, var(--emerald) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--emerald) 40%, transparent);
+  color: var(--emerald);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.split-text h2 {
+  font-weight: 700;
+  font-size: clamp(24px, 4vw, 34px);
+  text-transform: uppercase;
+  line-height: 1;
+}
+.split-text > p {
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.6;
+  margin: 14px 0;
+  max-width: 460px;
+}
+.split-text b {
+  color: var(--text);
+}
+.checks {
+  list-style: none;
+  margin: 0 0 22px;
+  display: grid;
+  gap: 9px;
+}
+.checks li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.checks li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--emerald);
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6 9 17l-5-5'/></svg>") center / 12px no-repeat,
+    linear-gradient(#000, #000);
+  -webkit-mask-composite: source-out;
+  mask-composite: subtract;
+}
+
+/* pool mock */
+.split-art {
+  display: flex;
+  justify-content: center;
+}
+.pool {
+  width: min(100%, 340px);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+.pool-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.pool-name {
+  display: block;
+  font-weight: 700;
+  font-size: 18px;
+  text-transform: uppercase;
+}
+.pool-meta {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.pool-badge {
+  font-size: 22px;
+}
+.pool-rk {
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+.pool-rk .rk-pts {
+  font-size: 19px;
+}
+.pool-rk .rk-name {
+  font-size: 14px;
+}
+.pool-invite {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--bg-base);
+}
+.inv-ic {
+  font-size: 14px;
+}
+.inv-link {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inv-copy {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--emerald);
+}
+
+/* ===== live banner ===== */
+.livebanner {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--scarlet) 26%, var(--border));
+  background: linear-gradient(135deg, rgba(232, 54, 43, 0.12), rgba(224, 33, 138, 0.1)), var(--bg-surface);
+  padding: clamp(28px, 5vw, 46px) 20px;
+  margin: 44px 0;
+}
+.glow-live {
+  width: 360px;
+  height: 360px;
+  left: 50%;
+  top: -130px;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(232, 54, 43, 0.2), transparent 70%);
+}
+.lb-in {
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.lb-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--scarlet);
+  border: 1px solid var(--scarlet);
+  border-radius: 999px;
+  padding: 5px 12px;
+  margin-bottom: 14px;
+}
+.livebanner h2 {
+  font-weight: 700;
+  font-size: clamp(22px, 4.5vw, 34px);
+  text-transform: uppercase;
+  line-height: 1.02;
+}
+.livebanner p {
+  color: var(--muted);
+  margin-top: 10px;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+/* ===== final cta ===== */
 .final {
   position: relative;
   overflow: hidden;
@@ -362,8 +903,8 @@ const features = [
   border-radius: 24px;
   border: 1px solid var(--border);
   background: linear-gradient(135deg, rgba(244, 184, 30, 0.14), rgba(224, 33, 138, 0.12)), var(--bg-surface);
-  padding: clamp(30px, 6vw, 52px) 20px;
-  margin: 40px 0 26px;
+  padding: clamp(30px, 6vw, 54px) 20px;
+  margin: 44px 0 26px;
 }
 .glow-c {
   width: 340px;
@@ -376,7 +917,7 @@ const features = [
 .final h2 {
   position: relative;
   font-weight: 700;
-  font-size: clamp(24px, 5vw, 36px);
+  font-size: clamp(24px, 5vw, 38px);
   text-transform: uppercase;
 }
 .final p {
@@ -397,16 +938,41 @@ const features = [
   padding: 20px 0;
 }
 
-@media (max-width: 760px) {
-  .hero-grid {
+/* ===== responsive ===== */
+@media (max-width: 860px) {
+  .split {
     grid-template-columns: 1fr;
     gap: 26px;
   }
-  .hero-card {
+  .split-art {
     order: -1;
   }
-  .mock {
+}
+@media (max-width: 760px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .hero-art {
+    order: -1;
+    min-height: 240px;
+  }
+  .mock.live {
     transform: none;
+  }
+}
+@media (max-width: 620px) {
+  .ladder {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ladder .lad:last-child {
+    grid-column: span 2;
+  }
+}
+@media (max-width: 440px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 10px;
   }
 }
 </style>
