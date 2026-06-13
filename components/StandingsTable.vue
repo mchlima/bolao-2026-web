@@ -34,6 +34,16 @@ const inYellow = (pos: number) =>
 // StandingsTeam is a subset of Team; TeamBadge's helpers only read
 // logoUrl/countryCode/shortName/name, which are all present.
 const asTeam = (t: StandingsRow['team']) => t as unknown as Team;
+
+// Tooltip for the discipline column — exposes the fair-play points (the actual
+// tiebreak input) behind the visible card chips.
+const discTitle = (r: StandingsRow): string => {
+  if (!r.yellowCards && !r.redCards) return 'Sem cartões';
+  const parts = [`Fair play: ${r.fairPlay} pts`];
+  if (r.yellowCards) parts.push(`${r.yellowCards} amarelo${r.yellowCards > 1 ? 's' : ''}`);
+  if (r.redCards) parts.push(`${r.redCards} vermelho${r.redCards > 1 ? 's' : ''}`);
+  return parts.join(' · ');
+};
 </script>
 
 <template>
@@ -54,6 +64,9 @@ const asTeam = (t: StandingsRow['team']) => t as unknown as Team;
             <th class="num hide-sm">GC</th>
             <th class="num">SG</th>
             <th class="num hide-sm">%</th>
+            <th class="disc hide-sm" title="Cartões / fair play (critério de desempate)">
+              Cartões
+            </th>
             <th v-if="!compact" class="form hide-sm">Últimos</th>
           </tr>
         </thead>
@@ -88,6 +101,13 @@ const asTeam = (t: StandingsRow['team']) => t as unknown as Team;
             <td class="num hide-sm">{{ row.goalsAgainst }}</td>
             <td class="num">{{ row.goalDiff > 0 ? '+' + row.goalDiff : row.goalDiff }}</td>
             <td class="num hide-sm muted">{{ row.pct.toFixed(0) }}</td>
+            <td class="disc hide-sm" :title="discTitle(row)">
+              <span v-if="row.yellowCards || row.redCards" class="cards">
+                <span v-if="row.yellowCards" class="cc"><span class="card y" />{{ row.yellowCards }}</span>
+                <span v-if="row.redCards" class="cc"><span class="card r" />{{ row.redCards }}</span>
+              </span>
+              <span v-else class="muted">–</span>
+            </td>
             <td v-if="!compact" class="form hide-sm">
               <span
                 v-for="(r, i) in row.form"
@@ -252,6 +272,36 @@ tbody tr:last-child {
 }
 .tz {
   background: rgba(232, 176, 7, 0.13);
+}
+/* Discipline column — yellow/red card chips; fair play lives in the tooltip. */
+.disc {
+  min-width: 56px;
+}
+.cards {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  justify-content: center;
+}
+.cc {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.card {
+  width: 9px;
+  height: 13px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12) inset;
+}
+.card.y {
+  background: #e8b007;
+}
+.card.r {
+  background: #e5484d;
 }
 .form {
   display: flex;
