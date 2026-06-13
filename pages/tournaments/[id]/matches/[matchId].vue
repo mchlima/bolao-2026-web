@@ -7,9 +7,13 @@ const matchId = route.params.matchId as string;
 </script>
 
 <template>
-  <MatchRankingView
-    :match-id="matchId"
-    back-label="Voltar às partidas"
-    @back="navigateTo(`/tournaments/${id}`)"
-  />
+  <div>
+    <MatchRankingView
+      :match-id="matchId"
+      back-label="Voltar às partidas"
+      @back="navigateTo(`/tournaments/${id}`)"
+    />
+    <!-- Phase slice for this match: group (classification + rounds) or knockout tie. -->
+    <MatchPhaseContext :season-id="id" :match-id="matchId" />
+  </div>
 </template>

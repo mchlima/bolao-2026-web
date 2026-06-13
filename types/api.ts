@@ -205,6 +205,14 @@ export interface ScoreResult {
   points: number;
 }
 
+/** One matchday (round) of a group, with its fixtures — consumed by GroupRoundCard. */
+export interface RoundBlock {
+  roundId: string;
+  number: number;
+  label: string;
+  matches: Match[];
+}
+
 export interface Prediction {
   id: string;
   matchId: string;

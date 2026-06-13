@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import type { Match } from '~/types/api';
+import type { Match, RoundBlock } from '~/types/api';
 
-export interface RoundBlock {
-  roundId: string;
-  number: number;
-  label: string;
-  matches: Match[];
-}
-
-const props = defineProps<{ seasonId: string; rounds: RoundBlock[] }>();
+const props = defineProps<{
+  seasonId: string;
+  rounds: RoundBlock[];
+  // Open on this round (e.g. a given match's round); falls back to the current one.
+  initialRoundId?: string;
+}>();
 const tz = useTz();
 
-// Open on the round the group is currently in: the first round that still has a
-// match to play (SCHEDULED/LIVE); if every round is settled, the last one.
+// Default round: the explicit one if given; otherwise the round the group is in —
+// first round that still has a match to play (SCHEDULED/LIVE); else the last.
 const currentIndex = computed(() => {
+  if (props.initialRoundId) {
+    const j = props.rounds.findIndex((r) => r.roundId === props.initialRoundId);
+    if (j !== -1) return j;
+  }
   const i = props.rounds.findIndex((r) =>
     r.matches.some((m) => m.status === 'SCHEDULED' || m.status === 'LIVE'),
   );

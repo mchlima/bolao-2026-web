@@ -531,4 +531,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   .pv-score { font-size: 26px; }
   .pv-pts { font-size: 30px; }
 }
+/* Mobile: hide the tier tag (ex.: "Não pontuou") in the ranking rows — keep them compact. */
+@media (max-width: 560px) {
+  .rscore .tier { display: none; }
+}
 </style>

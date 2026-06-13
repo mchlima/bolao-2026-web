@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { GroupStandings, Match, StandingsRow } from '~/types/api';
-import type { RoundBlock } from './GroupRoundCard.vue';
+import type { GroupStandings, Match, RoundBlock, StandingsRow } from '~/types/api';
 
 const props = withDefaults(
   defineProps<{
@@ -22,31 +21,7 @@ const props = withDefaults(
 // each group shows its standings beside a round-by-round fixtures card.
 const roundsByGroup = computed<Map<string, RoundBlock[]>>(() => {
   const out = new Map<string, RoundBlock[]>();
-  const byGroup = new Map<string, Match[]>();
-  for (const m of props.matches) {
-    if (!m.groupName) continue;
-    (byGroup.get(m.groupName) ?? byGroup.set(m.groupName, []).get(m.groupName)!).push(m);
-  }
-  for (const [groupName, ms] of byGroup) {
-    const byRound = new Map<string, Match[]>();
-    for (const m of ms) {
-      const key = m.roundId ?? `n${m.matchNumber ?? 0}`;
-      (byRound.get(key) ?? byRound.set(key, []).get(key)!).push(m);
-    }
-    const blocks = [...byRound.values()]
-      .map((matches) => {
-        const sorted = [...matches].sort(
-          (a, b) =>
-            (a.matchNumber ?? 0) - (b.matchNumber ?? 0) ||
-            a.kickoffAt.localeCompare(b.kickoffAt),
-        );
-        const minNum = Math.min(...sorted.map((m) => m.matchNumber ?? Number.MAX_SAFE_INTEGER));
-        return { roundId: sorted[0].roundId ?? sorted[0].id, matches: sorted, minNum };
-      })
-      .sort((a, b) => a.minNum - b.minNum)
-      .map((b, i): RoundBlock => ({ roundId: b.roundId, number: i + 1, label: `Rodada ${i + 1}`, matches: b.matches }));
-    out.set(groupName, blocks);
-  }
+  for (const g of props.groups) out.set(g.groupName, buildGroupRounds(props.matches, g.groupName));
   return out;
 });
 
