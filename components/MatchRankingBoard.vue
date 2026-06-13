@@ -424,7 +424,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .pred-vs {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: center;
+  gap: 18px;
   background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -438,15 +439,15 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .pred-vs.settled {
   border-color: color-mix(in srgb, var(--emerald) 35%, var(--border));
 }
-.pv-block { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
-.pv-block.pts { align-items: flex-end; margin-left: auto; text-align: right; }
+.pv-block { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.pv-block.pts { align-items: center; text-align: center; }
 .pv-cap { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
 .pv-score { font-size: 30px; line-height: 0.85; letter-spacing: 0.03em; }
 .pv-arrow { color: var(--muted); flex: none; }
 .pv-pts { font-size: 34px; line-height: 0.8; }
 .pv-block.pts .tier { margin-top: 4px; }
 .pv-block.pts.pulse .pv-pts { animation: livePulse 1.8s infinite; border-radius: 8px; }
-.pv-wait { margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: right; max-width: 130px; }
+.pv-wait { font-size: 11.5px; font-weight: 600; color: var(--muted); text-align: center; max-width: 150px; }
 
 .nopred {
   display: flex;
