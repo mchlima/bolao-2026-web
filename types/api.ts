@@ -114,6 +114,9 @@ export interface StandingsRow {
   goalDiff: number; // SG
   points: number; // P
   pct: number; // % (aproveitamento)
+  yellowCards: number; // disciplina
+  redCards: number;
+  fairPlay: number; // pontos de fair play FIFA (≤ 0) — critério de desempate
   form: ('W' | 'D' | 'L')[]; // last 5, oldest → newest
   live: boolean; // team has a match in progress — row is provisional
 }

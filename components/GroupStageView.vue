@@ -12,8 +12,9 @@ const props = withDefaults(
   { qualifyCount: 2, bestThirds: 0 },
 );
 
-// Third-placed team of every group, ranked across groups (points → SG → GP).
-// Display approximation of the FIFA combination table; the actual slot assignment
+// Third-placed team of every group, ranked across groups by the FIFA criteria:
+// points → SG → GP → fair play → (sorteio, aqui aproximado pelo nome). Mirrors
+// the server-side bestThirdLetter ranking; the actual slot assignment (Anexo C)
 // is resolved server-side / by admin.
 const thirds = computed<StandingsRow[]>(() => {
   if (!props.bestThirds) return [];
@@ -25,6 +26,7 @@ const thirds = computed<StandingsRow[]>(() => {
         b.points - a.points ||
         b.goalDiff - a.goalDiff ||
         b.goalsFor - a.goalsFor ||
+        (b.fairPlay ?? 0) - (a.fairPlay ?? 0) ||
         a.team.name.localeCompare(b.team.name, 'pt-BR'),
     )
     // Re-rank 1..12 across groups (each row otherwise carries position 3 from its
