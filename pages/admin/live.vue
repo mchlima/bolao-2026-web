@@ -11,27 +11,14 @@ interface Engagement {
 
 const tournaments = ref<Tournament[]>([]);
 const tournamentId = ref('');
-type MatchStatusFilter = 'LIVE' | 'SCHEDULED' | 'FINISHED' | 'CANCELLED';
-const statusPick = ref<MatchStatusFilter>('LIVE');
-const STATUS_TABS: Array<{ v: MatchStatusFilter; label: string; icon: string }> = [
-  { v: 'LIVE', label: 'Ao vivo', icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="8.5"/></svg>' },
-  { v: 'SCHEDULED', label: 'Agendadas', icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4.2l3 1.8"/></svg>' },
-  { v: 'FINISHED', label: 'Encerradas', icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4.5h13l-2.5 4 2.5 4H5"/></svg>' },
-  { v: 'CANCELLED', label: 'Canceladas', icon: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9 9l6 6M15 9l-6 6"/></svg>' },
-];
-const menu = ref<Match[]>([]);
+const allMatches = ref<Match[]>([]); // every match of the tournament(s); grouped client-side
 const selected = ref<Match | null>(null);
 const engagement = ref<Engagement | null>(null);
 const tz = useTz();
+const now = useNow(30000); // ticks → "Hoje" and the default day roll over at midnight
 const leader = ref<{ name: string; points: number } | null>(null);
 const participants = ref(0);
 const menuSearch = ref('');
-// Default the range to today (account tz); both bounds remain clearable.
-const todayKey = new Intl.DateTimeFormat('en-CA', {
-  timeZone: tz.value, year: 'numeric', month: '2-digit', day: '2-digit',
-}).format(new Date());
-const startDate = ref(todayKey); // yyyy-mm-dd; '' = open-ended
-const endDate = ref(todayKey);
 const settingsOpen = ref(false); // collapsible "Configurações" area
 
 const STATUS_LABEL: Record<string, string> = {
@@ -41,47 +28,91 @@ const STATUS_COLOR: Record<string, string> = {
   SCHEDULED: 'var(--azure)', LIVE: 'var(--scarlet)', FINISHED: 'var(--muted)', CANCELLED: 'var(--muted)',
 };
 
-function localDateKey(iso: string) {
+// ---- date helpers (account tz) ----
+/** "YYYY-MM-DD" of an instant as seen in the account tz (en-CA → ISO order). */
+function dayKey(d: string | number | Date): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: tz.value, year: 'numeric', month: '2-digit', day: '2-digit',
-  }).format(new Date(iso));
+  }).format(new Date(d));
+}
+/** Calendar ±n days on a YYYY-MM-DD string (DST-safe — pure date math). */
+function shiftKey(ymd: string, n: number): string {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + n);
+  const p = (x: number) => String(x).padStart(2, '0');
+  return `${dt.getUTCFullYear()}-${p(dt.getUTCMonth() + 1)}-${p(dt.getUTCDate())}`;
 }
 function timeOnly(iso: string) {
   return new Intl.DateTimeFormat('pt-BR', {
     timeZone: tz.value, hour: '2-digit', minute: '2-digit',
   }).format(new Date(iso));
 }
-function dayLabel(iso: string) {
-  return new Intl.DateTimeFormat('pt-BR', {
-    timeZone: tz.value, weekday: 'short', day: '2-digit', month: 'short',
-  }).format(new Date(iso));
-}
+const byKick = (a: Match, b: Match) =>
+  new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime();
 
-const filteredMenu = computed(() => {
-  let list = menu.value;
-  // Range filter on the match's local date (yyyy-mm-dd strings compare safely).
-  if (startDate.value) list = list.filter((m) => localDateKey(m.kickoffAt) >= startDate.value);
-  if (endDate.value) list = list.filter((m) => localDateKey(m.kickoffAt) <= endDate.value);
-  const q = menuSearch.value.trim().toLowerCase();
-  if (!q) return list;
-  return list.filter((m) =>
-    [
-      m.homeTeam?.name, m.homeTeam?.shortName, m.awayTeam?.name, m.awayTeam?.shortName,
-      m.phaseLabel, m.groupName, m.stadium?.name, m.stadium?.city,
-      formatKickoff(m.kickoffAt, tz.value),
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-      .includes(q),
-  );
+const selectedDay = ref(dayKey(Date.now())); // YYYY-MM-DD of the day being operated
+const todayKey = computed(() => dayKey(now.value));
+const isToday = computed(() => selectedDay.value === todayKey.value);
+const dayTitle = computed(() => {
+  const lbl = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: tz.value, weekday: 'short', day: '2-digit', month: 'short',
+  }).format(new Date(`${selectedDay.value}T12:00:00Z`));
+  if (selectedDay.value === todayKey.value) return `Hoje · ${lbl}`;
+  if (selectedDay.value === shiftKey(todayKey.value, 1)) return `Amanhã · ${lbl}`;
+  if (selectedDay.value === shiftKey(todayKey.value, -1)) return `Ontem · ${lbl}`;
+  return lbl;
 });
 
+// ---- search + grouping ----
+function matchesSearch(m: Match): boolean {
+  const q = menuSearch.value.trim().toLowerCase();
+  if (!q) return true;
+  return [
+    m.homeTeam?.name, m.homeTeam?.shortName, m.awayTeam?.name, m.awayTeam?.shortName,
+    m.phaseLabel, m.groupName, m.stadium?.name, m.stadium?.city,
+    formatKickoff(m.kickoffAt, tz.value),
+  ]
+    .filter(Boolean).join(' ').toLowerCase().includes(q);
+}
+const filtered = computed(() => allMatches.value.filter(matchesSearch));
+
+// Live is shown regardless of the selected day (live is live). The day groups are
+// scoped to selectedDay so the operator works one match-day at a time.
+const liveGroup = computed(() => filtered.value.filter((m) => m.status === 'LIVE').sort(byKick));
+const dayMatches = computed(() => filtered.value.filter((m) => dayKey(m.kickoffAt) === selectedDay.value));
+const dayScheduled = computed(() => dayMatches.value.filter((m) => m.status === 'SCHEDULED').sort(byKick));
+const dayFinished = computed(() => dayMatches.value.filter((m) => m.status === 'FINISHED').sort(byKick));
+const dayCancelled = computed(() => dayMatches.value.filter((m) => m.status === 'CANCELLED').sort(byKick));
+
+interface Group { key: string; title: string; muted?: boolean; matches: Match[]; }
+const dayGroups = computed<Group[]>(() => {
+  const g: Group[] = [];
+  if (dayScheduled.value.length) g.push({ key: 'sched', title: 'Agendadas', matches: dayScheduled.value });
+  if (dayFinished.value.length) g.push({ key: 'fin', title: 'Encerradas', muted: true, matches: dayFinished.value });
+  if (dayCancelled.value.length) g.push({ key: 'canc', title: 'Canceladas', muted: true, matches: dayCancelled.value });
+  return g;
+});
+const dayCount = computed(() => dayMatches.value.length);
+
+// ---- data ----
 async function loadMenu() {
-  const q = new URLSearchParams({ pageSize: '100', status: statusPick.value });
-  if (tournamentId.value) q.set('seasonId', tournamentId.value);
-  const res = await useApi()<Paginated<Match>>(`/matches?${q.toString()}`);
-  menu.value = res.data.filter((m) => m.homeTeam && m.awayTeam);
+  // Fetch every match of the tournament so we can group by day/status client-side
+  // (the API caps pageSize at 100 and has no date filter, so page through).
+  const api = useApi();
+  const url = (page: number) => {
+    const q = new URLSearchParams({ pageSize: '100', page: String(page) });
+    if (tournamentId.value) q.set('seasonId', tournamentId.value);
+    return `/matches?${q.toString()}`;
+  };
+  const first = await api<Paginated<Match>>(url(1));
+  let all = first.data;
+  const totalPages = first.pagination.totalPages;
+  for (let p = 2; p <= totalPages && p <= 20; p++) {
+    const next = await api<Paginated<Match>>(url(p));
+    all = all.concat(next.data);
+  }
+  allMatches.value = all.filter((m) => m.homeTeam && m.awayTeam);
 }
 
 async function select(m: Match) {
@@ -162,6 +193,13 @@ const maxCount = computed(() =>
   Math.max(1, ...(engagement.value?.distribution ?? []).map((d) => d.count)),
 );
 
+// Auto-focus the action: prefer a live match, else the next scheduled today.
+function autoSelect() {
+  if (selected.value) return;
+  const first = liveGroup.value[0] ?? dayScheduled.value[0] ?? null;
+  if (first) select(first);
+}
+
 useRealtime(
   () => {
     const r: string[] = [];
@@ -172,73 +210,102 @@ useRealtime(
   () => (selected.value ? refreshSelected() : loadMenu()),
 );
 
-watch([tournamentId, statusPick], loadMenu);
+watch(tournamentId, async () => {
+  await loadMenu();
+});
 onMounted(async () => {
   const tt = await useApi()<Paginated<Tournament>>('/seasons?pageSize=100');
   tournaments.value = tt.data;
   tournamentId.value = tt.data.find((t) => t.status === 'ONGOING')?.id ?? '';
   await loadMenu();
+  autoSelect();
 });
 </script>
 
 <template>
   <div>
-    <AdminPageHeader title="Controle ao vivo" subtitle="Monitore as partidas e atualize placares e status em tempo real." />
+    <AdminPageHeader title="Controle ao vivo" subtitle="Acompanhe as partidas ao vivo e as do dia, e atualize placar e status em tempo real." />
     <div class="live-grid">
       <!-- menu -->
       <div class="card menu">
-        <div class="menu-head">Partidas</div>
         <div class="picker">
           <select v-model="tournamentId" class="input sm">
             <option value="">Todos os torneios</option>
             <option v-for="t in tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
           </select>
-          <div class="seg">
-            <button
-              v-for="t in STATUS_TABS"
-              :key="t.v"
-              class="seg-b"
-              :class="{ on: statusPick === t.v }"
-              :title="t.label"
-              :aria-label="t.label"
-              @click="statusPick = t.v"
-            ><span class="seg-ico" v-html="t.icon" /></button>
+          <input v-model="menuSearch" class="input sm" placeholder="Buscar time, fase, estádio…" />
+          <div class="daynav">
+            <button class="dn-arrow" title="Dia anterior" aria-label="Dia anterior" @click="selectedDay = shiftKey(selectedDay, -1)">‹</button>
+            <button class="dn-day" :class="{ today: isToday }" @click="selectedDay = todayKey">
+              <span class="dn-title">{{ dayTitle }}</span>
+              <span class="dn-count">{{ dayCount }} {{ dayCount === 1 ? 'jogo' : 'jogos' }}</span>
+            </button>
+            <button class="dn-arrow" title="Próximo dia" aria-label="Próximo dia" @click="selectedDay = shiftKey(selectedDay, 1)">›</button>
           </div>
-          <input v-model="menuSearch" class="input sm" placeholder="Buscar time, fase…" />
-          <div class="drange">
-            <label class="dr-f"><span>De</span><input v-model="startDate" type="date" :max="endDate || undefined" class="input sm" /></label>
-            <label class="dr-f"><span>Até</span><input v-model="endDate" type="date" :min="startDate || undefined" class="input sm" /></label>
-            <button v-if="startDate || endDate" class="dr-clear" title="Limpar datas" @click="startDate = ''; endDate = ''">✕</button>
-          </div>
+          <button v-if="!isToday" class="dn-today" @click="selectedDay = todayKey">↩ Voltar para hoje</button>
         </div>
+
         <div class="menu-list">
-          <button
-            v-for="m in filteredMenu"
-            :key="m.id"
-            class="mitem"
-            :class="{ active: selected?.id === m.id }"
-            @click="select(m)"
-          >
-            <div v-if="m.season" class="mi-tour">{{ m.season.name }}</div>
-            <div class="mi-meta">
-              <span v-if="m.status === 'LIVE'" class="ld" />
-              <span class="mi-time font-numeric">{{ timeOnly(m.kickoffAt) }}</span>
-              <span class="mi-phase">{{ m.phaseLabel }}<template v-if="m.groupName"> · {{ m.groupName }}</template></span>
-              <span class="mi-day">{{ dayLabel(m.kickoffAt) }}</span>
+          <!-- LIVE — sticky so it's always one click away while browsing the day -->
+          <div v-if="liveGroup.length" class="grp grp-live">
+            <div class="grp-head live">
+              <span class="ld" /> Ao vivo agora
+              <span class="grp-count live">{{ liveGroup.length }}</span>
             </div>
-            <div class="mi-teams">
-              <TeamBadge :team="m.homeTeam" :size="22" />
-              <span class="mi-name r">{{ m.homeTeam?.name }}</span>
-              <span class="sc font-numeric">{{ m.homeScore ?? 0 }}-{{ m.awayScore ?? 0 }}</span>
-              <span class="mi-name l">{{ m.awayTeam?.name }}</span>
-              <TeamBadge :team="m.awayTeam" :size="22" />
+            <button
+              v-for="m in liveGroup"
+              :key="m.id"
+              class="mitem live"
+              :class="{ active: selected?.id === m.id }"
+              @click="select(m)"
+            >
+              <div class="mi-meta">
+                <span class="mi-live"><span class="ld" />AO VIVO</span>
+                <span v-if="m.season && !tournamentId" class="mi-tour">{{ m.season.name }}</span>
+                <span class="mi-phase">{{ m.phaseLabel }}<template v-if="m.groupName"> · {{ m.groupName }}</template></span>
+              </div>
+              <div class="mi-teams">
+                <TeamBadge :team="m.homeTeam" :size="22" />
+                <span class="mi-name r">{{ m.homeTeam?.shortName ?? m.homeTeam?.name }}</span>
+                <span class="sc font-numeric">{{ m.homeScore ?? 0 }}-{{ m.awayScore ?? 0 }}</span>
+                <span class="mi-name l">{{ m.awayTeam?.shortName ?? m.awayTeam?.name }}</span>
+                <TeamBadge :team="m.awayTeam" :size="22" />
+              </div>
+            </button>
+          </div>
+
+          <!-- DAY GROUPS -->
+          <div v-for="g in dayGroups" :key="g.key" class="grp">
+            <div class="grp-head" :class="{ muted: g.muted }">
+              {{ g.title }}<span class="grp-count">{{ g.matches.length }}</span>
             </div>
-          </button>
-          <p v-if="!menu.length" class="muted hint">
-            Nenhuma partida {{ STATUS_TABS.find((t) => t.v === statusPick)?.label.toLowerCase() }}.<template v-if="statusPick === 'SCHEDULED'"> Selecione uma e marque "Ao vivo" para iniciar.</template>
-          </p>
-          <p v-else-if="!filteredMenu.length" class="muted hint">
-            Nenhuma partida nesta data ou busca.
+            <button
+              v-for="m in g.matches"
+              :key="m.id"
+              class="mitem"
+              :class="{ active: selected?.id === m.id, dim: g.muted }"
+              @click="select(m)"
+            >
+              <div class="mi-meta">
+                <span class="mi-time font-numeric">{{ timeOnly(m.kickoffAt) }}</span>
+                <span v-if="m.season && !tournamentId" class="mi-tour">{{ m.season.name }}</span>
+                <span class="mi-phase">{{ m.phaseLabel }}<template v-if="m.groupName"> · {{ m.groupName }}</template></span>
+                <span v-if="m.status === 'FINISHED'" class="mi-tag">FIM</span>
+                <span v-else-if="m.status === 'CANCELLED'" class="mi-tag">CANC</span>
+              </div>
+              <div class="mi-teams">
+                <TeamBadge :team="m.homeTeam" :size="22" />
+                <span class="mi-name r">{{ m.homeTeam?.shortName ?? m.homeTeam?.name }}</span>
+                <span class="sc font-numeric">{{ m.homeScore ?? 0 }}-{{ m.awayScore ?? 0 }}</span>
+                <span class="mi-name l">{{ m.awayTeam?.shortName ?? m.awayTeam?.name }}</span>
+                <TeamBadge :team="m.awayTeam" :size="22" />
+              </div>
+            </button>
+          </div>
+
+          <p v-if="!liveGroup.length && !dayGroups.length" class="muted hint">
+            <template v-if="menuSearch">Nenhuma partida para “{{ menuSearch }}”.</template>
+            <template v-else>Nenhuma partida ao vivo nem agendada para este dia. Use ‹ › para mudar de dia.</template>
           </p>
         </div>
       </div>
@@ -299,6 +366,11 @@ onMounted(async () => {
 
         <!-- 3) Placar -->
         <div class="card scoreboard">
+          <div class="sb-status">
+            <span class="chip" :style="{ color: STATUS_COLOR[selected.status], borderColor: STATUS_COLOR[selected.status] }">
+              <span v-if="selected.status === 'LIVE'" class="ld" />{{ STATUS_LABEL[selected.status] }}
+            </span>
+          </div>
           <div class="sides">
             <div class="bside">
               <TeamBadge :team="selected.homeTeam" :size="58" />
@@ -342,39 +414,57 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.live-grid { display: grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; }
+.live-grid { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
 @media (max-width: 820px) { .live-grid { grid-template-columns: 1fr; } }
 .menu { padding: 12px; }
-.menu-head { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); padding: 4px 6px 10px; }
-.picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
 .input.sm { padding: 9px 11px; font-size: 13px; }
-.seg { display: flex; gap: 2px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 3px; }
-.seg-b { flex: 1; display: grid; place-items: center; padding: 8px; border: none; border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer; }
-.seg-ico { display: inline-flex; }
-.seg-ico :deep(svg) { display: block; }
-.seg-b.on { background: var(--bg-surface); color: var(--text); box-shadow: var(--shadow); }
-.drange { display: flex; align-items: flex-end; gap: 8px; }
-.dr-f { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.dr-f span { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); padding-left: 2px; }
-.dr-f .input.sm { width: 100%; }
-.dr-clear { flex: 0 0 auto; height: 34px; width: 32px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); cursor: pointer; font-size: 12px; }
-.menu-list { display: flex; flex-direction: column; gap: 7px; max-height: 70vh; overflow: auto; }
-.mitem { display: flex; flex-direction: column; gap: 7px; padding: 10px 11px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); cursor: pointer; text-align: left; }
-.mitem.active { border: 1.5px solid var(--scarlet); background: color-mix(in srgb, var(--scarlet) 14%, transparent); box-shadow: inset 4px 0 0 0 var(--scarlet); }
-.mi-tour { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--azure); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* day navigator */
+.daynav { display: flex; align-items: stretch; gap: 6px; }
+.dn-arrow { flex: 0 0 auto; width: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-size: 20px; line-height: 1; cursor: pointer; }
+.dn-arrow:hover { border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); }
+.dn-day { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 6px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); cursor: pointer; }
+.dn-day.today { border-color: color-mix(in srgb, var(--azure) 50%, var(--border)); background: color-mix(in srgb, var(--azure) 8%, var(--bg-base)); }
+.dn-title { font-size: 12.5px; font-weight: 800; text-transform: capitalize; color: var(--text); }
+.dn-count { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.dn-today { padding: 7px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--azure); font-weight: 700; font-size: 12px; cursor: pointer; }
+
+/* grouped list */
+.menu-list { display: flex; flex-direction: column; gap: 4px; max-height: 74vh; overflow: auto; padding-right: 2px; }
+.grp { display: flex; flex-direction: column; gap: 6px; }
+.grp + .grp { margin-top: 10px; }
+.grp-head { display: flex; align-items: center; gap: 7px; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text); padding: 4px 4px 2px; }
+.grp-head.muted { color: var(--muted); }
+.grp-head.live { color: var(--scarlet); }
+.grp-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 6px; border-radius: 999px; font-size: 10.5px; font-weight: 800; color: var(--muted); background: var(--bg-base); border: 1px solid var(--border); }
+.grp-count.live { color: #fff; background: var(--scarlet); border-color: var(--scarlet); }
+
+/* keep the live group pinned while the day list scrolls */
+.grp-live { position: sticky; top: 0; z-index: 3; background: var(--bg-surface); padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--border); }
+
+.mitem { display: flex; flex-direction: column; gap: 7px; padding: 9px 11px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); cursor: pointer; text-align: left; transition: border-color 0.12s, background 0.12s; }
+.mitem:hover { border-color: color-mix(in srgb, var(--azure) 40%, var(--border)); }
+.mitem.dim { opacity: 0.72; }
+.mitem.live { border-color: color-mix(in srgb, var(--scarlet) 38%, var(--border)); background: color-mix(in srgb, var(--scarlet) 7%, var(--bg-base)); }
+.mitem.active { border: 1.5px solid var(--scarlet); background: color-mix(in srgb, var(--scarlet) 14%, transparent); box-shadow: inset 4px 0 0 0 var(--scarlet); opacity: 1; }
 .mi-meta { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.mi-time { font-size: 12.5px; font-weight: 700; color: var(--text); flex: 0 0 auto; }
+.mi-live { display: inline-flex; align-items: center; gap: 5px; font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; color: var(--scarlet); flex: 0 0 auto; }
+.mi-time { font-size: 12.5px; font-weight: 800; color: var(--text); flex: 0 0 auto; }
+.mi-tour { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--azure); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mi-phase { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mi-day { margin-left: auto; font-size: 10.5px; font-weight: 600; color: var(--muted); white-space: nowrap; text-transform: capitalize; flex: 0 0 auto; }
+.mi-tag { margin-left: auto; font-size: 9.5px; font-weight: 800; letter-spacing: 0.04em; color: var(--muted); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; flex: 0 0 auto; }
 .mi-teams { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr) auto; align-items: center; gap: 7px; }
-.mi-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mi-name { font-size: 12.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mi-name.r { text-align: right; }
 .mi-name.l { text-align: left; }
 .ld { width: 7px; height: 7px; border-radius: 50%; background: var(--scarlet); animation: liveDot 1.2s infinite; flex: 0 0 auto; }
 .sc { font-size: 16px; text-align: center; flex: 0 0 auto; }
-.hint { padding: 10px 6px; font-size: 12px; line-height: 1.5; }
+.hint { padding: 14px 8px; font-size: 12.5px; line-height: 1.5; }
+
 .board { display: flex; flex-direction: column; gap: 14px; }
 .scoreboard { padding: clamp(16px, 4vw, 28px); border-color: rgba(232, 54, 43, 0.4); background: linear-gradient(180deg, rgba(232, 54, 43, 0.1), transparent), var(--bg-surface); }
+.sb-status { display: flex; justify-content: center; margin-bottom: 6px; }
 .infocard { padding: 16px 18px; }
 .ic-head { display: flex; flex-direction: column; gap: 3px; margin-bottom: 12px; }
 .ic-tour { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
@@ -384,16 +474,11 @@ onMounted(async () => {
 .ic-k { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
 .ic-v { font-size: 12.5px; font-weight: 600; color: var(--text); min-width: 0; }
 .ic-v b { font-weight: 800; }
-.bmeta { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 18px; text-align: center; }
-.bt { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold); }
-.bv { font-size: 12px; font-weight: 600; color: var(--muted); }
-.bstats { font-size: 11.5px; font-weight: 600; color: var(--muted); }
-.bstats b { color: var(--text); }
 .settings { padding: 0; overflow: hidden; }
 .set-head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 16px; background: none; border: none; cursor: pointer; color: var(--text); text-align: left; }
 .set-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); flex: 0 0 auto; }
 .set-summary { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; min-width: 0; }
-.chip { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; color: var(--muted); white-space: nowrap; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; border: 1px solid var(--border); border-radius: 999px; padding: 3px 9px; color: var(--muted); white-space: nowrap; }
 .chip.ok { color: var(--emerald); border-color: color-mix(in srgb, var(--emerald) 45%, var(--border)); }
 .chip.no { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
 .set-chev { margin-left: auto; font-size: 10px; color: var(--muted); flex: 0 0 auto; }
