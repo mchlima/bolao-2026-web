@@ -3,6 +3,7 @@ import type {
   BracketStage,
   Paginated,
   StageFormat,
+  Stadium,
   Team,
   Tournament,
 } from '~/types/api';
@@ -24,6 +25,7 @@ interface StructMatch {
   awayScore: number | null;
   groupId: string | null;
   tieId: string | null;
+  stadiumId: string | null;
   homeSourceLabel: string | null;
   awaySourceLabel: string | null;
   homeTeam: Team | null;
@@ -61,6 +63,7 @@ interface StructSeason {
 
 const seasons = ref<Tournament[]>([]);
 const teams = ref<Team[]>([]);
+const stadiums = ref<Stadium[]>([]);
 const seasonId = ref('');
 const struct = ref<StructSeason | null>(null);
 const bracket = ref<BracketStage[]>([]);
@@ -97,6 +100,17 @@ async function loadTeams() {
   }
   teams.value = all.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 }
+async function loadStadiums() {
+  const all: Stadium[] = [];
+  let page = 1;
+  for (;;) {
+    const res = await api<Paginated<Stadium>>(`/stadiums?pageSize=100&page=${page}`);
+    all.push(...res.data);
+    if (res.data.length === 0 || page >= res.pagination.totalPages) break;
+    page++;
+  }
+  stadiums.value = all.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+}
 async function loadStructure() {
   if (!seasonId.value) return;
   loading.value = true;
@@ -113,7 +127,7 @@ async function loadStructure() {
 }
 watch(seasonId, loadStructure);
 onMounted(async () => {
-  await Promise.all([loadSeasons(), loadTeams()]);
+  await Promise.all([loadSeasons(), loadTeams(), loadStadiums()]);
   await loadStructure();
 });
 
@@ -240,12 +254,15 @@ async function patchKickoff(m: StructMatch, local: string) {
   if (!local) return;
   try { await api(`/admin/matches/${m.id}`, { method: 'PATCH', body: { kickoffAt: zonedInputToUtc(local, tz.value) } }); ui.toast('success', 'Horário salvo'); await loadStructure(); } catch (e) { err(e); }
 }
+async function patchStadium(m: StructMatch, stadiumId: string) {
+  try { await api(`/admin/matches/${m.id}`, { method: 'PATCH', body: { stadiumId: stadiumId || null } }); ui.toast('success', 'Estádio salvo'); await loadStructure(); } catch (e) { err(e); }
+}
 
 // Group-stage "add game" draft, keyed by roundId.
-interface GMDraft { groupId: string; home: string; away: string; kickoff: string; }
+interface GMDraft { groupId: string; home: string; away: string; kickoff: string; stadiumId: string; }
 const gmDraft = reactive<Record<string, GMDraft>>({});
 function gmd(roundId: string): GMDraft {
-  if (!gmDraft[roundId]) gmDraft[roundId] = { groupId: '', home: '', away: '', kickoff: '' };
+  if (!gmDraft[roundId]) gmDraft[roundId] = { groupId: '', home: '', away: '', kickoff: '', stadiumId: '' };
   return gmDraft[roundId];
 }
 function groupOf(st: StructStage, id: string) {
@@ -262,19 +279,20 @@ async function addGroupMatch(st: StructStage, r: StructRound) {
       body: {
         seasonId: seasonId.value, stageId: st.id, groupId: d.groupId, roundId: r.id,
         homeTeamId: d.home, awayTeamId: d.away,
+        stadiumId: d.stadiumId || undefined,
         kickoffAt: zonedInputToUtc(d.kickoff, tz.value),
         phaseLabel: st.name, groupName: g?.name, status: 'SCHEDULED',
       },
     });
-    gmDraft[r.id] = { groupId: '', home: '', away: '', kickoff: '' };
+    gmDraft[r.id] = { groupId: '', home: '', away: '', kickoff: '', stadiumId: '' };
     await loadStructure();
   } catch (e) { err(e); }
 }
 
 // Knockout "add leg" draft, keyed by tieId.
-const kmDraft = reactive<Record<string, { kickoff: string }>>({});
+const kmDraft = reactive<Record<string, { kickoff: string; stadiumId: string }>>({});
 function kmd(tieId: string) {
-  if (!kmDraft[tieId]) kmDraft[tieId] = { kickoff: '' };
+  if (!kmDraft[tieId]) kmDraft[tieId] = { kickoff: '', stadiumId: '' };
   return kmDraft[tieId];
 }
 // Matches of a knockout tie come from the round's match list (filtered by tieId).
@@ -295,11 +313,12 @@ async function addTieMatch(st: StructStage, r: StructRound, tie: { id: string; h
         homeTeamId: tie.home?.id, awayTeamId: tie.away?.id,
         homeSourceLabel: tie.home ? undefined : tie.homeSourceLabel || undefined,
         awaySourceLabel: tie.away ? undefined : tie.awaySourceLabel || undefined,
+        stadiumId: d.stadiumId || undefined,
         kickoffAt: zonedInputToUtc(d.kickoff, tz.value),
         phaseLabel: r.name || st.name, status: 'SCHEDULED',
       },
     });
-    kmDraft[tie.id] = { kickoff: '' };
+    kmDraft[tie.id] = { kickoff: '', stadiumId: '' };
     await loadStructure();
   } catch (e) { err(e); }
 }
@@ -471,6 +490,10 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
                   </span>
                   <span v-if="m.status !== 'SCHEDULED'" class="m-st" :class="m.status.toLowerCase()">{{ STATUS_LABEL[m.status] }}</span>
                   <input class="input xs m-dt" type="datetime-local" :value="utcToZonedInput(m.kickoffAt, tz)" @change="patchKickoff(m, ($event.target as HTMLInputElement).value)" />
+                  <select class="input xs m-stad" title="Estádio" :value="m.stadiumId ?? ''" @change="patchStadium(m, ($event.target as HTMLSelectElement).value)">
+                    <option value="">Sem estádio</option>
+                    <option v-for="s in stadiums" :key="s.id" :value="s.id">{{ s.name }}</option>
+                  </select>
                   <button class="ic del xs2" title="Excluir jogo" @click="delMatch(m)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in TRASH" :key="i" :d="d" /></svg></button>
                 </div>
                 <p v-if="!r.matches.length" class="ties-empty">Nenhum jogo nesta rodada.</p>
@@ -493,6 +516,10 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
                     <option v-for="gt in (groupOf(st, gmd(r.id).groupId)?.teams ?? [])" :key="gt.team.id" :value="gt.team.id">{{ gt.team.name }}</option>
                   </select>
                   <input v-model="gmd(r.id).kickoff" class="input sm" type="datetime-local" />
+                  <select v-model="gmd(r.id).stadiumId" class="input sm">
+                    <option value="">Estádio (opcional)…</option>
+                    <option v-for="s in stadiums" :key="s.id" :value="s.id">{{ s.name }} · {{ s.city }}</option>
+                  </select>
                   <button class="btn xs btn-primary" @click="addGroupMatch(st, r)">+ Adicionar</button>
                 </div>
               </div>
@@ -565,10 +592,18 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
                     <span class="leg-sc font-numeric">{{ m.status === 'SCHEDULED' ? '–' : `${m.homeScore ?? 0}-${m.awayScore ?? 0}` }}</span>
                     <span v-if="m.status !== 'SCHEDULED'" class="m-st" :class="m.status.toLowerCase()">{{ STATUS_LABEL[m.status] }}</span>
                     <input class="input xs m-dt" type="datetime-local" :value="utcToZonedInput(m.kickoffAt, tz)" @change="patchKickoff(m, ($event.target as HTMLInputElement).value)" />
+                    <select class="input xs m-stad" title="Estádio" :value="m.stadiumId ?? ''" @change="patchStadium(m, ($event.target as HTMLSelectElement).value)">
+                      <option value="">Sem estádio</option>
+                      <option v-for="s in stadiums" :key="s.id" :value="s.id">{{ s.name }}</option>
+                    </select>
                     <button class="ic del xs2" title="Excluir jogo" @click="delMatch(m)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path v-for="(d, i) in TRASH" :key="i" :d="d" /></svg></button>
                   </div>
                   <div v-if="tieMatches(r, tie.id).length < r.legs" class="leg-add">
                     <input v-model="kmd(tie.id).kickoff" class="input sm" type="datetime-local" />
+                    <select v-model="kmd(tie.id).stadiumId" class="input sm">
+                      <option value="">Estádio (opcional)…</option>
+                      <option v-for="s in stadiums" :key="s.id" :value="s.id">{{ s.name }} · {{ s.city }}</option>
+                    </select>
                     <button class="btn xs btn-primary" @click="addTieMatch(st, r, tie)">+ {{ r.legs >= 2 ? (tieMatches(r, tie.id).length === 0 ? 'Jogo de ida' : 'Jogo de volta') : 'Jogo' }}</button>
                   </div>
                   <p v-else-if="!tieMatches(r, tie.id).length" class="ties-empty">Sem jogo ainda.</p>
@@ -772,6 +807,7 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
 .m-st.finished { color: var(--muted); border: 1px solid var(--border); }
 .m-st.cancelled { color: var(--muted); border: 1px solid var(--border); text-decoration: line-through; }
 .input.xs { height: 32px; font-size: 12px; padding: 0 8px; width: auto; flex: none; }
+.m-stad { max-width: 150px; }
 .match-add { margin-top: 6px; padding: 10px; border: 1px dashed var(--border); border-radius: 10px; background: var(--bg-surface); }
 .ma-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; }
 .ma-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
