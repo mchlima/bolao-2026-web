@@ -9,17 +9,25 @@ const props = defineProps<{
 }>();
 const tz = useTz();
 
-// Default round: the explicit one if given; otherwise the round the group is in —
-// first round that still has a match to play (SCHEDULED/LIVE); else the last.
+// Default round: the explicit one if given; otherwise the round the competition
+// is currently on — the furthest round that already has a played (FINISHED/LIVE)
+// match. Using "latest played" rather than "first unplayed" is robust to
+// postponed games that linger as SCHEDULED in earlier rounds (common in a
+// league). Falls back to the first unplayed round, then the last.
 const currentIndex = computed(() => {
   if (props.initialRoundId) {
     const j = props.rounds.findIndex((r) => r.roundId === props.initialRoundId);
     if (j !== -1) return j;
   }
-  const i = props.rounds.findIndex((r) =>
+  let latestPlayed = -1;
+  props.rounds.forEach((r, i) => {
+    if (r.matches.some((m) => m.status === 'FINISHED' || m.status === 'LIVE')) latestPlayed = i;
+  });
+  if (latestPlayed !== -1) return latestPlayed;
+  const firstUnplayed = props.rounds.findIndex((r) =>
     r.matches.some((m) => m.status === 'SCHEDULED' || m.status === 'LIVE'),
   );
-  return i === -1 ? Math.max(0, props.rounds.length - 1) : i;
+  return firstUnplayed === -1 ? Math.max(0, props.rounds.length - 1) : firstUnplayed;
 });
 
 const sel = ref(0);

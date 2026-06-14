@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import type { StandingsRow, Team } from '~/types/api';
+import type { StandingsRow, StandingsZone, Team } from '~/types/api';
 
 const props = withDefaults(
   defineProps<{
     rows: StandingsRow[];
     title?: string | null;
+    // Classification colour bands (LEAGUE tables, e.g. Brasileirão). When given,
+    // these take over and the qualify/yellow/relegate props below are ignored.
+    zones?: StandingsZone[];
     // Green zone — highlight the top N positions (direct qualification), e.g. 2 for a WC
     // group, 4 for the Brasileirão (G4 → Libertadores).
     qualifyCount?: number;
@@ -28,6 +31,7 @@ const props = withDefaults(
   }>(),
   {
     title: null,
+    zones: () => [],
     qualifyCount: 0,
     qualifyLabel: 'Classificação direta',
     yellowFrom: 0,
@@ -51,6 +55,11 @@ const inYellow = (pos: number) =>
 
 const inRed = (pos: number) =>
   props.relegateFrom > 0 && pos >= props.relegateFrom && pos <= props.relegateTo;
+
+// Explicit colour bands (LEAGUE). When present they win over the legacy bands.
+const hasZones = computed(() => props.zones.length > 0);
+const zoneTone = (pos: number): StandingsZone['tone'] | null =>
+  props.zones.find((z) => pos >= z.from && pos <= z.to)?.tone ?? null;
 
 // StandingsTeam is a subset of Team; TeamBadge's helpers only read
 // logoUrl/countryCode/shortName/name, which are all present.
@@ -95,11 +104,15 @@ const discTitle = (r: StandingsRow): string => {
           <tr
             v-for="row in rows"
             :key="row.team.id"
-            :class="{
-              qz: qualifyCount > 0 && row.position <= qualifyCount,
-              tz: inYellow(row.position),
-              rz: inRed(row.position),
-            }"
+            :class="
+              hasZones
+                ? (zoneTone(row.position) ? `z-${zoneTone(row.position)}` : '')
+                : {
+                    qz: qualifyCount > 0 && row.position <= qualifyCount,
+                    tz: inYellow(row.position),
+                    rz: inRed(row.position),
+                  }
+            "
           >
             <td class="pos">
               <span class="pbadge">{{ row.position }}</span>
@@ -156,7 +169,10 @@ const discTitle = (r: StandingsRow): string => {
         </TransitionGroup>
       </table>
     </div>
-    <div v-if="showLegend && (qualifyCount > 0 || yellowFrom > 0 || relegateFrom > 0)" class="legend">
+    <div v-if="showLegend && hasZones" class="legend">
+      <span v-for="z in zones" :key="z.label" class="lg"><span class="dot" :class="z.tone" /> {{ z.label }}</span>
+    </div>
+    <div v-else-if="showLegend && (qualifyCount > 0 || yellowFrom > 0 || relegateFrom > 0)" class="legend">
       <span v-if="qualifyCount > 0" class="lg"><span class="dot green" /> {{ qualifyLabel }}</span>
       <span v-if="yellowFrom > 0" class="lg"><span class="dot yellow" /> {{ yellowLabel }}</span>
       <span v-if="relegateFrom > 0" class="lg"><span class="dot red" /> {{ relegateLabel }}</span>
@@ -343,6 +359,15 @@ tbody tr:last-child {
 .rz {
   background: rgba(229, 72, 77, 0.08);
 }
+/* Explicit colour bands (LEAGUE zones: Libertadores/Pré-Liber/Sul-Americana/Z4). */
+.z-green td:first-child { box-shadow: inset 3px 0 0 #1f9d55; }
+.z-green { background: rgba(31, 157, 85, 0.08); }
+.z-blue td:first-child { box-shadow: inset 3px 0 0 #3b82f6; }
+.z-blue { background: rgba(59, 130, 246, 0.09); }
+.z-teal td:first-child { box-shadow: inset 3px 0 0 #0d9488; }
+.z-teal { background: rgba(13, 148, 136, 0.1); }
+.z-red td:first-child { box-shadow: inset 3px 0 0 #e5484d; }
+.z-red { background: rgba(229, 72, 77, 0.08); }
 /* Discipline column — yellow/red card chips; fair play lives in the tooltip. */
 .disc {
   min-width: 56px;
@@ -426,6 +451,12 @@ tbody tr:last-child {
 }
 .dot.red {
   background: rgba(229, 72, 77, 0.7);
+}
+.dot.blue {
+  background: rgba(59, 130, 246, 0.75);
+}
+.dot.teal {
+  background: rgba(13, 148, 136, 0.8);
 }
 @media (max-width: 560px) {
   .hide-sm {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BracketStage, BracketTie, Match, Paginated, StageStandings } from '~/types/api';
+import type { BracketStage, BracketTie, Match, StageStandings } from '~/types/api';
 
 // The phase "slice" for a match: its group (classification + round card) or its
 // knockout tie. Reuses StandingsTable / GroupRoundCard / BracketTieCard.
@@ -7,13 +7,13 @@ const props = defineProps<{ seasonId: string; matchId: string }>();
 
 const { data, refresh } = await useAsyncData(`match-phase-${props.matchId}`, async () => {
   const api = useApi();
-  const [match, standings, bracket, matches] = await Promise.all([
+  const [match, standings, bracket, groupMatches] = await Promise.all([
     api<Match>(`/matches/${props.matchId}`),
     api<StageStandings[]>(`/seasons/${props.seasonId}/standings`),
     api<BracketStage[]>(`/seasons/${props.seasonId}/bracket`),
-    api<Paginated<Match>>(`/matches?seasonId=${props.seasonId}&pageSize=100`),
+    fetchAllMatches(api, props.seasonId),
   ]);
-  return { match, standings, bracket, groupMatches: matches.data };
+  return { match, standings, bracket, groupMatches };
 });
 
 // Standings, bracket and the round card all depend on every match in the season,
@@ -35,11 +35,12 @@ const rounds = computed(() =>
 );
 const bestThirds = computed(() => (groupStage.value?.groups.length === 12 ? 8 : 0));
 
-// A LEAGUE stage (pontos corridos, e.g. Brasileirão) is a single table: mark the
-// top 4 green (G4 → Libertadores) and the bottom 4 red (Z4 → rebaixamento). A
-// GROUP stage keeps the WC bands (direct-qualifiers green, best-third yellow).
+// A LEAGUE stage (pontos corridos, e.g. Brasileirão) is a single table coloured
+// by the persisted classification zones (Libertadores/Pré-Liber/Sul-Americana/Z4
+// from ge.globo). A GROUP stage keeps the WC bands (direct-qualifiers green,
+// best-third yellow).
 const isLeague = computed(() => groupStage.value?.format === 'LEAGUE');
-const rowCount = computed(() => group.value?.rows.length ?? 0);
+const zones = computed(() => (isLeague.value ? (groupStage.value?.zones ?? []) : []));
 const contextTitle = computed(() =>
   isLeague.value
     ? (groupStage.value?.stageName ?? 'Classificação')
@@ -47,31 +48,6 @@ const contextTitle = computed(() =>
 );
 const standingsTitle = computed(() =>
   isLeague.value ? 'Classificação' : `Grupo ${match.value?.groupName ?? ''}`,
-);
-const bands = computed(() =>
-  isLeague.value
-    ? {
-        qualifyCount: 4,
-        qualifyLabel: 'Libertadores (G4)',
-        yellowFrom: 0,
-        yellowTo: 0,
-        yellowLabel: '',
-        relegateFrom: Math.max(0, rowCount.value - 3),
-        relegateTo: rowCount.value,
-        relegateLabel: 'Rebaixamento (Z4)',
-        showLegend: true,
-      }
-    : {
-        qualifyCount: 2,
-        qualifyLabel: 'Classificação direta',
-        yellowFrom: bestThirds.value > 0 ? 3 : 0,
-        yellowTo: bestThirds.value > 0 ? 3 : 0,
-        yellowLabel: 'Pode avançar (melhor 3º)',
-        relegateFrom: 0,
-        relegateTo: 0,
-        relegateLabel: '',
-        showLegend: false,
-      },
 );
 
 // ── Knockout context ──
@@ -102,15 +78,12 @@ const hasContext = computed(() => (isGroup.value && !!group.value) || !!knockout
         <StandingsTable
           :title="standingsTitle"
           :rows="group.rows"
-          :qualify-count="bands.qualifyCount"
-          :qualify-label="bands.qualifyLabel"
-          :yellow-from="bands.yellowFrom"
-          :yellow-to="bands.yellowTo"
-          :yellow-label="bands.yellowLabel"
-          :relegate-from="bands.relegateFrom"
-          :relegate-to="bands.relegateTo"
-          :relegate-label="bands.relegateLabel"
-          :show-legend="bands.showLegend"
+          :zones="zones"
+          :qualify-count="isLeague ? 0 : 2"
+          :yellow-from="!isLeague && bestThirds > 0 ? 3 : 0"
+          :yellow-to="!isLeague && bestThirds > 0 ? 3 : 0"
+          yellow-label="Pode avançar (melhor 3º)"
+          :show-legend="isLeague"
           movement
           compact
         />

@@ -49,6 +49,14 @@ function variantFor(name: string | null): 'normal' | 'final' | 'third' {
 }
 const bestThirds = (s: StageStandings) =>
   s.format === 'GROUP' && s.groups.length === 12 ? 8 : 0;
+
+// League (pontos corridos) → table + round card, like the match page. Rounds are
+// bucketed from the season's matches (the parent fetches all of them).
+const leagueRounds = computed(() => {
+  const c = current.value;
+  if (!c || c.kind !== 'standings' || c.stage.format !== 'LEAGUE') return [];
+  return buildGroupRounds(props.matches ?? [], c.stage.groups[0]?.groupName ?? '');
+});
 </script>
 
 <template>
@@ -85,7 +93,18 @@ const bestThirds = (s: StageStandings) =>
               :qualify-count="2"
               :best-thirds="bestThirds(current.stage)"
             />
-            <StandingsTable v-else :rows="current.stage.groups[0]?.rows ?? []" movement />
+            <div v-else class="league">
+              <StandingsTable
+                :rows="current.stage.groups[0]?.rows ?? []"
+                :zones="current.stage.zones ?? []"
+                movement
+              />
+              <GroupRoundCard
+                v-if="leagueRounds.length"
+                :season-id="seasonId ?? ''"
+                :rounds="leagueRounds"
+              />
+            </div>
           </template>
 
           <!-- Knockout round → tie cards stacked full-width -->
@@ -165,6 +184,18 @@ const bestThirds = (s: StageStandings) =>
 }
 .phase {
   width: 100%;
+}
+/* League phase: classification + round card side by side (stacks on mobile). */
+.league {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
+}
+@media (min-width: 900px) {
+  .league {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+  }
 }
 .cards {
   display: flex;

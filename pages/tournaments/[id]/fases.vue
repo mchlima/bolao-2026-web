@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BracketStage, Match, Paginated, StageStandings } from '~/types/api';
+import type { BracketStage, StageStandings } from '~/types/api';
 
 const route = useRoute();
 const id = route.params.id as string;
@@ -11,12 +11,11 @@ const { data, pending, error, refresh } = await useAsyncData(
     const [standings, bracket, matches] = await Promise.all([
       api<StageStandings[]>(`/seasons/${id}/standings`),
       api<BracketStage[]>(`/seasons/${id}/bracket`),
-      // Group-stage fixtures for the per-group round cards. pageSize maxes at
-      // 100; group matches are numbered before the knockout (matchNumber asc),
-      // so the first 100 cover the whole group stage (72 for a World Cup).
-      api<Paginated<Match>>(`/matches?seasonId=${id}&pageSize=100`),
+      // All fixtures, for the per-group / per-round cards. A league (Brasileirão)
+      // has 380 matches across 38 rounds, so this pages past the 100 cap.
+      fetchAllMatches(api, id),
     ]);
-    return { standings, bracket, matches: matches.data };
+    return { standings, bracket, matches };
   },
 );
 useRealtime(() => [`tournament:${id}`], () => refresh());
