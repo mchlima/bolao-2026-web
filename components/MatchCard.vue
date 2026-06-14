@@ -31,6 +31,11 @@ const isOpen = useMatchOpen(() => props.match);
 const editable = computed(() => isOpen.value && auth.isAuthenticated);
 const hasPrediction = computed(() => !!props.prediction);
 const needsPrediction = computed(() => editable.value && !props.prediction);
+// Show the scoreline (0:0 default) once a SCHEDULED match has kicked off but the
+// robot hasn't flipped it to LIVE yet — closed for predictions, not "nothing".
+const showScore = computed(
+  () => hasResult.value || (props.match.status === 'SCHEDULED' && !isOpen.value),
+);
 
 const statusMeta = computed(() => {
   switch (props.match.status) {
@@ -178,8 +183,8 @@ const leftLabel = computed(() =>
           <span class="cap">{{ hasPrediction ? 'Seu palpite' : 'Faça seu palpite' }}</span>
         </template>
 
-        <!-- live / finished: actual scoreline -->
-        <template v-else-if="hasResult">
+        <!-- live / finished, or kicked-off-but-not-yet-live: scoreline (0:0 default) -->
+        <template v-else-if="showScore">
           <div class="score">
             <span>{{ shownHome }}</span><span class="colon">:</span><span>{{ shownAway }}</span>
           </div>
