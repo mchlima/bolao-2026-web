@@ -1,6 +1,7 @@
 // App-wide access gate + legacy-route redirects. The sporting content (hub,
-// agenda, tournaments, matches) is PUBLIC under /futebol/*; predictions, pools,
-// admin and the personal home stay private. Runs SSR + client (token in cookie).
+// agenda, tournaments, matches) is PUBLIC under /futebol/*; predictions, pools
+// and admin stay private. The personal home was merged into the portal home (/).
+// Runs SSR + client (token in cookie).
 
 // Public sporting content + the landing/auth/howto pages. Everything else private.
 const PUBLIC_EXACT = new Set(['/', '/login', '/register', '/howto']);
@@ -19,6 +20,8 @@ export default defineNuxtRouteMiddleware((to) => {
       redirectCode: 301,
     });
   }
+  // Personal home merged into the portal home — keep old links/bookmarks working.
+  if (to.path === '/home') return navigateTo('/');
 
   const auth = useAuthStore();
 
@@ -28,6 +31,6 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`);
   }
   if (auth.token && (to.path === '/login' || to.path === '/register')) {
-    return navigateTo('/home');
+    return navigateTo('/');
   }
 });

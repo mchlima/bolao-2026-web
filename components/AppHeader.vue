@@ -1,16 +1,14 @@
 <script setup lang="ts">
 const auth = useAuthStore();
-const router = useRouter();
 const route = useRoute();
 // On the auth screens the page already offers Entrar/Criar conta, so the header
 // CTA is redundant noise — hide it there.
 const onAuthPage = computed(() => route.path === '/login' || route.path === '/register');
 const colorMode = useColorMode();
+const toggleTheme = () => {
+  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
+};
 const menuOpen = ref(false);
-const primary = usePrimaryTournament();
-const rankingTo = computed(() =>
-  primary.value ? `/futebol/torneios/${primary.value.id}/ranking` : null,
-);
 
 const initials = computed(() => {
   const n = auth.user?.name?.trim();
@@ -18,38 +16,12 @@ const initials = computed(() => {
   const parts = n.split(/\s+/);
   return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
 });
-
-const ui = useUiStore();
-const ZONES = [
-  { v: 'America/Sao_Paulo', label: 'São Paulo (GMT-3)' },
-  { v: 'America/Manaus', label: 'Manaus (GMT-4)' },
-  { v: 'America/Mexico_City', label: 'Cidade do México (GMT-6)' },
-  { v: 'America/New_York', label: 'Nova York (GMT-4)' },
-  { v: 'Europe/Lisbon', label: 'Lisboa (GMT+1)' },
-  { v: 'UTC', label: 'UTC' },
-];
-async function setTz(e: Event) {
-  await auth.setTimezone((e.target as HTMLSelectElement).value);
-  ui.toast('success', 'Fuso horário atualizado');
-}
-
-const themes = [
-  { key: 'system', title: 'Sistema' },
-  { key: 'light', title: 'Claro' },
-  { key: 'dark', title: 'Escuro' },
-] as const;
-
-function logout() {
-  auth.logout();
-  menuOpen.value = false;
-  router.push('/');
-}
 </script>
 
 <template>
   <header class="header">
     <div class="container bar">
-      <NuxtLink :to="auth.isAuthenticated ? '/home' : '/'" class="brand">
+      <NuxtLink to="/" class="brand">
         <span class="logo">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A0E14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>
         </span>
@@ -60,12 +32,11 @@ function logout() {
       </NuxtLink>
 
       <nav class="topnav">
-        <NuxtLink :to="auth.isAuthenticated ? '/home' : '/'" class="nav-link">Início</NuxtLink>
+        <NuxtLink to="/" class="nav-link">Início</NuxtLink>
         <NuxtLink to="/futebol/jogos" class="nav-link">Jogos</NuxtLink>
         <NuxtLink to="/futebol/torneios" class="nav-link">Torneios</NuxtLink>
         <template v-if="auth.isAuthenticated">
           <NuxtLink to="/pools" class="nav-link">Bolões</NuxtLink>
-          <NuxtLink to="/predictions" class="nav-link">Palpites</NuxtLink>
         </template>
         <NuxtLink to="/howto" class="nav-link">Como funciona</NuxtLink>
       </nav>
@@ -75,58 +46,22 @@ function logout() {
           <div class="menu">
             <button class="avatar" @click="menuOpen = !menuOpen">{{ initials }}</button>
             <div v-if="menuOpen" class="dropdown" @click.stop>
-              <div class="who">
-                <div class="who-name">{{ auth.user?.name }}</div>
-                <div class="who-email">{{ auth.user?.email }}</div>
-              </div>
-              <div class="sep" />
-              <NuxtLink
-                v-if="rankingTo"
-                :to="rankingTo"
-                class="row"
-                @click="menuOpen = false"
-                >Ranking</NuxtLink
-              >
-              <NuxtLink to="/home" class="row" @click="menuOpen = false"
-                >Início</NuxtLink
-              >
-              <NuxtLink
-                v-if="auth.isAdmin"
-                to="/admin"
-                class="row"
-                @click="menuOpen = false"
-                >Admin</NuxtLink
-              >
-              <div class="sep" />
-              <div class="theme-block">
-                <div class="theme-lbl">Tema</div>
-                <div class="seg">
-                  <button
-                    v-for="t in themes"
-                    :key="t.key"
-                    class="seg-btn"
-                    :class="{ on: colorMode.preference === t.key }"
-                    :title="t.title"
-                    @click="colorMode.preference = t.key"
-                  >
-                    {{ t.title }}
-                  </button>
-                </div>
-              </div>
-              <div class="theme-block">
-                <div class="theme-lbl">Fuso horário</div>
-                <select class="tz-select" :value="auth.user?.timezone" @change="setTz">
-                  <option v-for="z in ZONES" :key="z.v" :value="z.v">{{ z.label }}</option>
-                </select>
-              </div>
-              <div class="sep" />
-              <button class="row danger" @click="logout">Sair</button>
+              <AccountMenu @close="menuOpen = false" />
             </div>
           </div>
         </template>
         <template v-else-if="!onAuthPage">
-          <NuxtLink to="/register" class="btn btn-gold">Criar conta</NuxtLink>
-          <NuxtLink to="/login" class="btn">Entrar</NuxtLink>
+          <button class="tgl" aria-label="Alternar tema" @click="toggleTheme">
+            <ClientOnly>
+              <svg v-if="colorMode.value === 'dark'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+              <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+              <template #fallback><span style="width:18px;height:18px;display:block" /></template>
+            </ClientOnly>
+          </button>
+          <div class="auth-cta">
+            <NuxtLink to="/register" class="btn btn-gold">Criar conta</NuxtLink>
+            <NuxtLink to="/login" class="btn">Entrar</NuxtLink>
+          </div>
         </template>
       </div>
     </div>
@@ -187,7 +122,36 @@ function logout() {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
+}
+.auth-cta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tgl {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--muted);
+  cursor: pointer;
+  flex: none;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tgl:hover {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+}
+/* On phones the bottom nav carries "Entrar" and the hero carries "Criar conta",
+   so the header auth buttons are redundant noise — keep just brand + theme. */
+@media (max-width: 560px) {
+  .auth-cta {
+    display: none;
+  }
 }
 .topnav {
   display: flex;
@@ -245,87 +209,10 @@ function logout() {
   padding: 8px;
   z-index: 60;
 }
-.who {
-  padding: 8px 10px 10px;
-}
-.who-name {
-  font-family: 'Oswald', sans-serif;
-  font-weight: 600;
-  font-size: 14px;
-}
-.who-email {
-  font-size: 12px;
-  color: var(--muted);
-}
-.theme-block {
-  padding: 8px 10px 4px;
-}
-.theme-lbl {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  margin-bottom: 7px;
-}
-.seg {
-  display: flex;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 3px;
-  gap: 2px;
-}
-.seg-btn {
-  flex: 1;
-  padding: 7px 2px;
-  border: none;
-  border-radius: 7px;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  background: transparent;
-}
-.seg-btn.on {
-  color: #0a0e14;
-  background: var(--gold);
-}
-.tz-select {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 9px;
-  border: 1px solid var(--border);
-  background: var(--bg-base);
-  color: var(--text);
-  font: inherit;
-  font-size: 12.5px;
-  cursor: pointer;
-}
-.sep {
-  height: 1px;
-  background: var(--border);
-  margin: 8px 6px;
-}
-.row {
-  display: block;
-  width: 100%;
-  text-align: left;
-  padding: 9px 10px;
-  border: none;
-  background: none;
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 9px;
-  cursor: pointer;
-}
-.row:hover {
-  background: var(--bg-base);
-}
-.row.danger {
-  color: var(--scarlet);
-  font-weight: 700;
+/* On mobile the avatar lives in the bottom nav instead — hide the header menu. */
+@media (max-width: 720px) {
+  .menu {
+    display: none;
+  }
 }
 </style>

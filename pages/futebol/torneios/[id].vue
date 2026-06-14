@@ -26,14 +26,11 @@ useSeoMeta({
 });
 const activeTab = computed(() => {
   if (route.path.endsWith('/ranking')) return 'ranking';
-  if (route.path.endsWith('/fases')) return 'fases';
-  return 'matches';
+  if (route.path.endsWith('/classificacao')) return 'classificacao';
+  if (route.path.endsWith('/jogos')) return 'jogos';
+  return 'overview';
 });
 
-function onPickTournament(e: Event) {
-  const v = (e.target as HTMLSelectElement).value;
-  if (v && v !== id) navigateTo(`/futebol/torneios/${v}`);
-}
 function badge(name: string): string {
   const w = name
     .split(/\s+/)
@@ -49,25 +46,16 @@ function badge(name: string): string {
       <div class="meta">
         <h1 class="font-display name">{{ current.name }}</h1>
         <div class="tags">
-          <span class="tag azure">Grupos + mata-mata</span>
           <span v-if="current.matchCount != null" class="tag">{{ current.matchCount }} partidas</span>
         </div>
       </div>
-      <select
-        v-if="(tournaments?.length ?? 0) > 1"
-        class="tourn-sel"
-        :value="id"
-        aria-label="Trocar de torneio"
-        @change="onPickTournament"
-      >
-        <option v-for="t in tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
-      </select>
     </div>
 
     <nav class="tabs">
-      <NuxtLink :to="`/futebol/torneios/${id}`" class="tab" :class="{ on: activeTab === 'matches' }">Partidas</NuxtLink>
+      <NuxtLink :to="`/futebol/torneios/${id}`" class="tab" :class="{ on: activeTab === 'overview' }">Visão geral</NuxtLink>
+      <NuxtLink :to="`/futebol/torneios/${id}/jogos`" class="tab" :class="{ on: activeTab === 'jogos' }">Jogos</NuxtLink>
+      <NuxtLink :to="`/futebol/torneios/${id}/classificacao`" class="tab" :class="{ on: activeTab === 'classificacao' }">Classificação</NuxtLink>
       <NuxtLink :to="`/futebol/torneios/${id}/ranking`" class="tab" :class="{ on: activeTab === 'ranking' }">Ranking</NuxtLink>
-      <NuxtLink :to="`/futebol/torneios/${id}/fases`" class="tab" :class="{ on: activeTab === 'fases' }">Fases</NuxtLink>
     </nav>
 
     <NuxtPage />
@@ -150,14 +138,20 @@ function badge(name: string): string {
   border-radius: 14px;
   padding: 5px;
   margin-bottom: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 .tab {
-  flex: 1;
+  flex: 1 1 auto;
   text-align: center;
-  padding: 10px;
+  padding: 10px 8px;
   border-radius: 10px;
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: clamp(11.5px, 2.9vw, 13.5px);
+  white-space: nowrap;
   color: var(--muted);
   cursor: pointer;
   text-decoration: none;

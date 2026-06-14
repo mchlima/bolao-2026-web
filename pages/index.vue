@@ -1,14 +1,39 @@
 <script setup lang="ts">
-import type { Match } from '~/types/api';
-definePageMeta({ layout: 'landing' });
+import type { Match, Paginated, Tournament } from '~/types/api';
+// Single home for everyone (default layout → AppHeader + bottom nav). Logged-out
+// visitors also get the marketing pitch below the portal; logged-in users see
+// just the portal (torneios + próximos jogos) — same início as the public one.
+definePageMeta({ layout: 'default' });
+const auth = useAuthStore();
 
-// Hub: real upcoming/live matches up top (public) — the scores are the hook;
-// the marketing pitch lives below. Pulls the cross-tournament agenda.
+// Portal: featured tournaments (quick access to each tournament's own hub) +
+// cross-tournament next/live matches up top; the marketing pitch lives below.
+const { data: torneios } = await useAsyncData('hub-torneios', () =>
+  useApi()<Paginated<Tournament>>('/seasons?pageSize=20').then((r) => r.data),
+);
 const { data: hub } = await useAsyncData('hub-agenda', () =>
   useApi()<{ days: { date: string; matches: Match[] }[] }>('/agenda?scope=upcoming'),
 );
+
+// Quick badge from the tournament name (skip FIFA/years/short words).
+function tBadge(name: string): string {
+  const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
+  return ((w[0]?.[0] ?? '') + (w[1]?.[0] ?? '')).toUpperCase();
+}
+const TSTATUS: Record<string, { label: string; color: string }> = {
+  DRAFT: { label: 'Em breve', color: 'var(--muted)' },
+  UPCOMING: { label: 'Em breve', color: 'var(--azure)' },
+  ONGOING: { label: 'Em andamento', color: 'var(--emerald)' },
+  FINISHED: { label: 'Encerrado', color: 'var(--muted)' },
+};
+// Postponed games carry a placeholder date and have no real kickoff — they'd
+// crowd the top of "próximos jogos" without telling the visitor anything. Keep
+// the strip to actual upcoming/live matches.
 const hubMatches = computed<Match[]>(() =>
-  (hub.value?.days ?? []).flatMap((d) => d.matches).slice(0, 6),
+  (hub.value?.days ?? [])
+    .flatMap((d) => d.matches)
+    .filter((m) => m.status !== 'POSTPONED')
+    .slice(0, 6),
 );
 const liveCount = computed(
   () =>
@@ -114,6 +139,27 @@ const ranking = [
 
 <template>
   <div class="land-page">
+    <!-- PORTAL: torneios em destaque → cada um abre o hub próprio -->
+    <section v-if="torneios?.length" class="hubnav-wrap">
+      <div class="hubnav-head">
+        <h2 class="font-display">Torneios</h2>
+        <NuxtLink to="/futebol/torneios" class="hubnav-all">Ver todos <AppIcon name="chevronRight" :size="13" :stroke="2.5" /></NuxtLink>
+      </div>
+      <div class="hubnav">
+        <NuxtLink v-for="t in torneios.slice(0, 4)" :key="t.id" :to="`/futebol/torneios/${t.id}`" class="hubtile">
+          <span class="ht-badge font-display">{{ tBadge(t.name) }}</span>
+          <span class="ht-txt">
+            <b>{{ t.name }}</b>
+            <small>
+              <span class="ht-stat" :style="{ color: (TSTATUS[t.status] ?? TSTATUS.UPCOMING).color }">{{ (TSTATUS[t.status] ?? TSTATUS.UPCOMING).label }}</span>
+              <span v-if="t.matchCount != null"> · {{ t.matchCount }} jogos</span>
+            </small>
+          </span>
+          <AppIcon name="chevronRight" :size="16" :stroke="2.4" class="ht-go" />
+        </NuxtLink>
+      </div>
+    </section>
+
     <!-- HUB: jogos reais (público) — o placar é o anzol -->
     <section v-if="hubMatches.length" class="hubstrip">
       <div class="hs-head">
@@ -128,6 +174,8 @@ const ranking = [
       </div>
     </section>
 
+    <!-- MARKETING — só para quem não está logado (logado vê só o portal acima) -->
+    <template v-if="!auth.isAuthenticated">
     <!-- HERO -->
     <section class="hero">
       <div class="glow glow-a" aria-hidden="true" />
@@ -311,12 +359,118 @@ const ranking = [
     <footer class="lfoot">
       Amigos do Bolão · Copa do Mundo FIFA 2026
     </footer>
+    </template>
   </div>
 </template>
 
 <style scoped>
 .land-page {
   padding: 8px 0 24px;
+}
+/* portal: torneios em destaque — quick access to each tournament's hub */
+.hubnav-wrap {
+  margin: 6px 0 18px;
+}
+.hubnav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.hubnav-head h2 {
+  font-weight: 600;
+  font-size: clamp(18px, 3vw, 24px);
+  text-transform: uppercase;
+}
+.hubnav-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--azure);
+  white-space: nowrap;
+}
+.hubnav {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+@media (min-width: 560px) {
+  .hubnav {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.hubtile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-surface);
+  transition: border-color 0.14s, transform 0.14s;
+}
+.hubtile:hover {
+  border-color: color-mix(in srgb, var(--azure) 40%, var(--border));
+  transform: translateY(-1px);
+}
+.ht-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--grad-pitch);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+}
+.ht-stat {
+  font-weight: 700;
+}
+.ht-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ht-txt b {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ht-txt small {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ht-go {
+  margin-left: auto;
+  flex: none;
+  color: var(--muted);
+}
+@media (max-width: 420px) {
+  .hubnav {
+    gap: 8px;
+  }
+  .hubtile {
+    padding: 11px 12px;
+    gap: 10px;
+  }
+  .ht-badge {
+    width: 40px;
+    height: 40px;
+  }
 }
 /* hub strip — real matches on top of the public landing */
 .hubstrip {

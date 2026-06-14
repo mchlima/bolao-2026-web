@@ -1,29 +1,20 @@
 <script setup lang="ts">
 import type { Competition, Match, Paginated } from '~/types/api';
 
-type Scope = 'upcoming' | 'live' | 'today' | 'past';
-interface AgendaDay {
-  date: string;
-  matches: Match[];
-}
-
 useSeoMeta({
   title: 'Jogos · Agenda — Amigos do Bolão',
   description:
-    'A agenda completa dos jogos: próximas partidas, jogos de hoje, ao vivo e encerrados, com placar e horário de cada torneio.',
+    'A agenda de jogos dia a dia: navegue pelas datas e veja as partidas de cada dia, de todos os torneios, com placar e horário.',
   ogTitle: 'Agenda de jogos — Amigos do Bolão',
-  ogDescription:
-    'Próximas partidas, jogos de hoje, ao vivo e encerrados — placar e horário de cada torneio.',
+  ogDescription: 'Os jogos de cada dia, de todos os torneios, com placar e horário.',
 });
 
-const TABS: { key: Scope; label: string }[] = [
-  { key: 'upcoming', label: 'Próximos' },
-  { key: 'today', label: 'Hoje' },
-  { key: 'live', label: 'Ao vivo' },
-  { key: 'past', label: 'Encerrados' },
-];
-
-const scope = ref<Scope>('upcoming');
+// The agenda groups matches by BRT calendar day server-side, so the day picker
+// works in BRT too (today = "now" in São Paulo).
+function brtToday(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+}
+const day = ref(brtToday());
 const competitionId = ref('');
 
 // Tournament filter options (public).
@@ -34,26 +25,37 @@ const { data: comps } = await useAsyncData('agenda-comps', () =>
 const { data, pending } = await useAsyncData(
   'agenda',
   () => {
-    const qs = new URLSearchParams({ scope: scope.value });
+    const qs = new URLSearchParams({ from: day.value, to: day.value });
     if (competitionId.value) qs.set('competitionId', competitionId.value);
-    return useApi()<{ scope: string; days: AgendaDay[] }>(`/agenda?${qs.toString()}`);
+    return useApi()<{ days: { date: string; matches: Match[] }[] }>(`/agenda?${qs.toString()}`);
   },
-  { watch: [scope, competitionId] },
+  { watch: [day, competitionId] },
 );
+const matches = computed<Match[]>(() => (data.value?.days ?? []).flatMap((d) => d.matches));
 
-const days = computed(() => data.value?.days ?? []);
+const isToday = computed(() => day.value === brtToday());
+function shiftDay(delta: number) {
+  const [y, m, d] = day.value.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + delta);
+  day.value = dt.toISOString().slice(0, 10);
+}
+function goToday() {
+  day.value = brtToday();
+}
 
-// BRT calendar-day string → "sáb, 30 de mai".
-function fmtDay(date: string): string {
+// "Qua, 14 de jun" — weekday + day + month, in BRT.
+function fmtDayLabel(date: string): string {
   const d = new Date(`${date}T12:00:00-03:00`);
-  return d
+  const s = d
     .toLocaleDateString('pt-BR', {
       weekday: 'short',
       day: '2-digit',
       month: 'short',
       timeZone: 'America/Sao_Paulo',
     })
-    .replace('.', '');
+    .replace(/\./g, '');
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 </script>
 
@@ -67,28 +69,25 @@ function fmtDay(date: string): string {
       </select>
     </header>
 
-    <div class="ag-tabs">
-      <button
-        v-for="t in TABS"
-        :key="t.key"
-        type="button"
-        class="ag-tab"
-        :class="{ on: scope === t.key }"
-        @click="scope = t.key"
-      >
-        {{ t.label }}
+    <!-- day navigator: opens on today, ‹ prev / next › -->
+    <div class="day-nav">
+      <button class="day-btn" aria-label="Dia anterior" @click="shiftDay(-1)">
+        <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
+      </button>
+      <div class="day-label">
+        <span class="dl-main">{{ fmtDayLabel(day) }}</span>
+        <button v-if="!isToday" class="dl-today" @click="goToday">Voltar para hoje</button>
+        <span v-else class="dl-today is">Hoje</span>
+      </div>
+      <button class="day-btn" aria-label="Próximo dia" @click="shiftDay(1)">
+        <AppIcon name="arrowRight" :size="18" :stroke="2.4" />
       </button>
     </div>
 
     <SkeletonList v-if="pending && !data" variant="match" :count="4" />
-    <p v-else-if="!days.length" class="muted ag-empty">Nenhum jogo nesta visão.</p>
-    <div v-else class="ag-days">
-      <section v-for="d in days" :key="d.date" class="ag-day">
-        <h2 class="ag-date">{{ fmtDay(d.date) }}</h2>
-        <div class="ag-list">
-          <MatchCard v-for="m in d.matches" :key="m.id" :match="m" />
-        </div>
-      </section>
+    <p v-else-if="!matches.length" class="muted ag-empty">Nenhum jogo neste dia.</p>
+    <div v-else class="ag-list">
+      <MatchCard v-for="m in matches" :key="m.id" :match="m" />
     </div>
   </div>
 </template>
@@ -113,44 +112,66 @@ function fmtDay(date: string): string {
 .ag-comp {
   max-width: 240px;
 }
-.ag-tabs {
+.day-nav {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px;
   margin-bottom: 18px;
 }
-.ag-tab {
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--muted);
-  border-radius: 999px;
-  padding: 7px 15px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.ag-tab.on {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: #0a0e14;
-}
-.ag-empty {
-  padding: 2rem 0;
-}
-.ag-days {
+.day-btn {
+  flex: none;
   display: grid;
-  gap: 22px;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.13s, color 0.13s;
 }
-.ag-date {
+.day-btn:hover {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+}
+.day-label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.dl-main {
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  margin-bottom: 10px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.02em;
+}
+.dl-today {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--azure);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.dl-today.is {
+  color: var(--emerald);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: default;
+}
+.ag-empty {
+  padding: 2.5rem 0;
+  text-align: center;
 }
 .ag-list {
   display: grid;
