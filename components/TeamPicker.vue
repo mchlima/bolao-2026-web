@@ -35,7 +35,7 @@ watch(q, (val) => {
       const score = (x: Team) => {
         const n = x.name.toLowerCase();
         const s = (x.shortName ?? '').toLowerCase();
-        const e = (x.espnAbbr ?? '').toLowerCase();
+        const e = (x.externalIds?.espn?.code ?? '').toLowerCase();
         if (n === t || s === t || e === t) return 0;
         if (n.startsWith(t)) return 1;
         if (n.includes(t) || s.includes(t) || e.includes(t)) return 2;
@@ -96,7 +96,7 @@ onBeforeUnmount(() => {
         <button v-for="t in results" :key="t.id" type="button" class="tp-opt" @click="pick(t)">
           <TeamBadge :team="t" :size="16" />
           <span class="tp-nm">{{ t.name }}</span>
-          <span class="tp-ab">{{ t.shortName }}<template v-if="t.espnAbbr && t.espnAbbr !== t.shortName"> · {{ t.espnAbbr }}</template></span>
+          <span class="tp-ab">{{ t.shortName }}<template v-if="t.externalIds?.espn?.code && t.externalIds.espn.code !== t.shortName"> · {{ t.externalIds.espn.code }}</template></span>
         </button>
         <div v-if="!loading && !results.length" class="tp-msg">Nenhum time encontrado.</div>
       </div>

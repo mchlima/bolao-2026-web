@@ -28,18 +28,24 @@ export interface AuthResponse {
   user: User;
 }
 
+// Unified external-provider references (ESPN, GE, …), stored as one JSON blob
+// per entity. Mirrors the API's externalIds column. Keys are sparse.
+export interface ExternalIds {
+  espn?: { id?: string; code?: string; slug?: string };
+  ge?: { id?: string; code?: string; championshipId?: string; phase?: string };
+}
+
 export interface Team {
   id: string;
   name: string;
   shortName: string;
-  espnAbbr: string | null;
   type: TeamType;
   countryCode: string | null;
   continent: string | null;
   country: string | null;
   logoUrl: string | null;
   logoDarkUrl: string | null;
-  espnId: string | null;
+  externalIds: ExternalIds | null;
   color: string | null;
   colorAlt: string | null;
 }
@@ -72,7 +78,7 @@ export interface Competition {
   country: string | null;
   confederation: string | null;
   logoUrl: string | null;
-  espnLeagueSlug: string | null;
+  externalIds: ExternalIds | null;
 }
 
 // "Tournament" in the UI = a Season (one edition) on the API. The name is kept

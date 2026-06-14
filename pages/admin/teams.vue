@@ -285,7 +285,7 @@ onMounted(() => { load(); loadFacets(); });
           <div><label>Escudo (claro)</label><ImageUploadField v-model="form.logoUrl" prefix="teams" /></div>
           <div><label>Escudo (escuro)</label><ImageUploadField v-model="form.logoDarkUrl" prefix="teams" /></div>
         </div>
-        <p v-if="editing?.espnId" class="espnote">Vinculado à ESPN — atualizado automaticamente pelo seed.</p>
+        <p v-if="editing?.externalIds?.espn?.id" class="espnote">Vinculado à ESPN — atualizado automaticamente pelo seed.</p>
       </div>
       <template #footer>
         <button class="btn" @click="modalOpen = false">Cancelar</button>

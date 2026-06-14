@@ -46,7 +46,7 @@ function openEdit(c: Competition) {
   editing.value = c;
   Object.assign(form, {
     name: c.name, slug: c.slug, type: c.type, country: c.country ?? '',
-    confederation: c.confederation ?? '', espnLeagueSlug: c.espnLeagueSlug ?? '',
+    confederation: c.confederation ?? '', espnLeagueSlug: c.externalIds?.espn?.slug ?? '',
     logoUrl: c.logoUrl ?? '',
   });
   modalOpen.value = true;
@@ -120,7 +120,7 @@ onMounted(load);
       <AdminTable :columns="COLS" :rows="data?.data" grid="minmax(0,1fr) 160px 150px 80px auto" :skeleton="6" empty="Nenhuma competição." empty-icon="trophy">
         <template #col-name="{ row }"><span class="nm">{{ row.name }} <code class="slug">{{ row.slug }}</code></span></template>
         <template #col-type="{ row }"><span class="muted">{{ TYPES.find((t) => t.v === row.type)?.l ?? row.type }}</span></template>
-        <template #col-espn="{ row }"><span class="muted mono">{{ row.espnLeagueSlug || '—' }}</span></template>
+        <template #col-espn="{ row }"><span class="muted mono">{{ row.externalIds?.espn?.slug || '—' }}</span></template>
         <template #col-seasons="{ row }"><span class="muted">{{ row.seasonCount ?? 0 }}</span></template>
         <template #col-actions="{ row }">
           <div class="acts">
