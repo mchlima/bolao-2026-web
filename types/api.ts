@@ -37,6 +37,7 @@ export interface ExternalIds {
 
 export interface Team {
   id: string;
+  sportId: string;
   name: string;
   shortName: string;
   type: TeamType;
@@ -72,6 +73,7 @@ export type CompetitionType = 'LEAGUE' | 'CUP' | 'LEAGUE_CUP';
 
 export interface Competition {
   id: string;
+  sportId: string;
   name: string;
   slug: string;
   type: CompetitionType;
