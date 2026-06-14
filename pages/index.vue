@@ -1,5 +1,21 @@
 <script setup lang="ts">
+import type { Match } from '~/types/api';
 definePageMeta({ layout: 'landing' });
+
+// Hub: real upcoming/live matches up top (public) — the scores are the hook;
+// the marketing pitch lives below. Pulls the cross-tournament agenda.
+const { data: hub } = await useAsyncData('hub-agenda', () =>
+  useApi()<{ days: { date: string; matches: Match[] }[] }>('/agenda?scope=upcoming'),
+);
+const hubMatches = computed<Match[]>(() =>
+  (hub.value?.days ?? []).flatMap((d) => d.matches).slice(0, 6),
+);
+const liveCount = computed(
+  () =>
+    (hub.value?.days ?? [])
+      .flatMap((d) => d.matches)
+      .filter((m) => m.status === 'LIVE').length,
+);
 useHead({
   title: 'Amigos do Bolão · O bolão da Copa 2026 com a sua turma',
   meta: [
@@ -100,6 +116,20 @@ const ranking = [
 
 <template>
   <div class="land-page">
+    <!-- HUB: jogos reais (público) — o placar é o anzol -->
+    <section v-if="hubMatches.length" class="hubstrip">
+      <div class="hs-head">
+        <h2 class="font-display">
+          Próximos jogos
+          <NuxtLink v-if="liveCount" to="/futebol/jogos?scope=live" class="hs-live"><span class="d" />{{ liveCount }} ao vivo</NuxtLink>
+        </h2>
+        <NuxtLink to="/futebol/jogos" class="hs-all">Agenda completa <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
+      </div>
+      <div class="hs-grid">
+        <MatchCard v-for="m in hubMatches" :key="m.id" :match="m" />
+      </div>
+    </section>
+
     <!-- HERO -->
     <section class="hero">
       <div class="glow glow-a" aria-hidden="true" />
@@ -289,6 +319,58 @@ const ranking = [
 <style scoped>
 .land-page {
   padding: 8px 0 24px;
+}
+/* hub strip — real matches on top of the public landing */
+.hubstrip {
+  margin: 14px 0 10px;
+}
+.hs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.hs-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: clamp(18px, 3vw, 24px);
+  text-transform: uppercase;
+}
+.hs-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--scarlet);
+  border: 1px solid var(--scarlet);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.hs-live .d {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--scarlet);
+  animation: liveDot 1.1s ease-in-out infinite;
+}
+.hs-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--azure);
+  white-space: nowrap;
+}
+.hs-grid {
+  display: grid;
+  gap: 10px;
 }
 .hl {
   color: var(--gold);
