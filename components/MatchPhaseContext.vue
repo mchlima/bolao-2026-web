@@ -35,6 +35,45 @@ const rounds = computed(() =>
 );
 const bestThirds = computed(() => (groupStage.value?.groups.length === 12 ? 8 : 0));
 
+// A LEAGUE stage (pontos corridos, e.g. Brasileirão) is a single table: mark the
+// top 4 green (G4 → Libertadores) and the bottom 4 red (Z4 → rebaixamento). A
+// GROUP stage keeps the WC bands (direct-qualifiers green, best-third yellow).
+const isLeague = computed(() => groupStage.value?.format === 'LEAGUE');
+const rowCount = computed(() => group.value?.rows.length ?? 0);
+const contextTitle = computed(() =>
+  isLeague.value
+    ? (groupStage.value?.stageName ?? 'Classificação')
+    : `${groupStage.value?.stageName ?? 'Fase de Grupos'} · Grupo ${match.value?.groupName ?? ''}`,
+);
+const standingsTitle = computed(() =>
+  isLeague.value ? 'Classificação' : `Grupo ${match.value?.groupName ?? ''}`,
+);
+const bands = computed(() =>
+  isLeague.value
+    ? {
+        qualifyCount: 4,
+        qualifyLabel: 'Libertadores (G4)',
+        yellowFrom: 0,
+        yellowTo: 0,
+        yellowLabel: '',
+        relegateFrom: Math.max(0, rowCount.value - 3),
+        relegateTo: rowCount.value,
+        relegateLabel: 'Rebaixamento (Z4)',
+        showLegend: true,
+      }
+    : {
+        qualifyCount: 2,
+        qualifyLabel: 'Classificação direta',
+        yellowFrom: bestThirds.value > 0 ? 3 : 0,
+        yellowTo: bestThirds.value > 0 ? 3 : 0,
+        yellowLabel: 'Pode avançar (melhor 3º)',
+        relegateFrom: 0,
+        relegateTo: 0,
+        relegateLabel: '',
+        showLegend: false,
+      },
+);
+
 // ── Knockout context ──
 const knockout = computed(() => {
   if (isGroup.value || !data.value) return null;
@@ -58,16 +97,20 @@ const hasContext = computed(() => (isGroup.value && !!group.value) || !!knockout
   <section v-if="hasContext" class="mpc">
     <!-- Group: classification + round card -->
     <template v-if="isGroup && group">
-      <h3 class="mpc-title font-display">{{ groupStage?.stageName ?? 'Fase de Grupos' }} · Grupo {{ match!.groupName }}</h3>
+      <h3 class="mpc-title font-display">{{ contextTitle }}</h3>
       <div class="grp">
         <StandingsTable
-          :title="`Grupo ${match!.groupName}`"
+          :title="standingsTitle"
           :rows="group.rows"
-          :qualify-count="2"
-          :yellow-from="bestThirds > 0 ? 3 : 0"
-          :yellow-to="bestThirds > 0 ? 3 : 0"
-          yellow-label="Pode avançar (melhor 3º)"
-          :show-legend="false"
+          :qualify-count="bands.qualifyCount"
+          :qualify-label="bands.qualifyLabel"
+          :yellow-from="bands.yellowFrom"
+          :yellow-to="bands.yellowTo"
+          :yellow-label="bands.yellowLabel"
+          :relegate-from="bands.relegateFrom"
+          :relegate-to="bands.relegateTo"
+          :relegate-label="bands.relegateLabel"
+          :show-legend="bands.showLegend"
           movement
           compact
         />

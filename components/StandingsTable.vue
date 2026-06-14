@@ -5,13 +5,20 @@ const props = withDefaults(
   defineProps<{
     rows: StandingsRow[];
     title?: string | null;
-    // Green zone — highlight the top N positions (direct qualification), e.g. 2 for a WC group.
+    // Green zone — highlight the top N positions (direct qualification), e.g. 2 for a WC
+    // group, 4 for the Brasileirão (G4 → Libertadores).
     qualifyCount?: number;
+    qualifyLabel?: string;
     // Yellow zone — highlight positions yellowFrom..yellowTo (e.g. the 3rd in a group, or
     // the best-8 thirds). Used for the "may advance / best third-placed" band.
     yellowFrom?: number;
     yellowTo?: number;
     yellowLabel?: string;
+    // Red zone — highlight positions relegateFrom..relegateTo (e.g. the bottom 4 of a
+    // league table → relegation / Z4).
+    relegateFrom?: number;
+    relegateTo?: number;
+    relegateLabel?: string;
     // Compact = group mini-table (fewer columns on small screens).
     compact?: boolean;
     // Render the color legend inside the card. Off when the parent shows a shared one.
@@ -22,9 +29,13 @@ const props = withDefaults(
   {
     title: null,
     qualifyCount: 0,
+    qualifyLabel: 'Classificação direta',
     yellowFrom: 0,
     yellowTo: 0,
     yellowLabel: 'Pode avançar (3º)',
+    relegateFrom: 0,
+    relegateTo: 0,
+    relegateLabel: 'Rebaixamento',
     compact: false,
     showLegend: true,
     movement: false,
@@ -37,6 +48,9 @@ const delta = (r: StandingsRow): number | null =>
 
 const inYellow = (pos: number) =>
   props.yellowFrom > 0 && pos >= props.yellowFrom && pos <= props.yellowTo;
+
+const inRed = (pos: number) =>
+  props.relegateFrom > 0 && pos >= props.relegateFrom && pos <= props.relegateTo;
 
 // StandingsTeam is a subset of Team; TeamBadge's helpers only read
 // logoUrl/countryCode/shortName/name, which are all present.
@@ -84,6 +98,7 @@ const discTitle = (r: StandingsRow): string => {
             :class="{
               qz: qualifyCount > 0 && row.position <= qualifyCount,
               tz: inYellow(row.position),
+              rz: inRed(row.position),
             }"
           >
             <td class="pos">
@@ -141,9 +156,10 @@ const discTitle = (r: StandingsRow): string => {
         </TransitionGroup>
       </table>
     </div>
-    <div v-if="showLegend && (qualifyCount > 0 || yellowFrom > 0)" class="legend">
-      <span v-if="qualifyCount > 0" class="lg"><span class="dot green" /> Classificação direta</span>
+    <div v-if="showLegend && (qualifyCount > 0 || yellowFrom > 0 || relegateFrom > 0)" class="legend">
+      <span v-if="qualifyCount > 0" class="lg"><span class="dot green" /> {{ qualifyLabel }}</span>
       <span v-if="yellowFrom > 0" class="lg"><span class="dot yellow" /> {{ yellowLabel }}</span>
+      <span v-if="relegateFrom > 0" class="lg"><span class="dot red" /> {{ relegateLabel }}</span>
     </div>
   </div>
 </template>
@@ -320,6 +336,13 @@ tbody tr:last-child {
 .tz {
   background: rgba(232, 176, 7, 0.13);
 }
+/* Relegation band (red) — bottom of a league table. */
+.rz td:first-child {
+  box-shadow: inset 3px 0 0 #e5484d;
+}
+.rz {
+  background: rgba(229, 72, 77, 0.08);
+}
 /* Discipline column — yellow/red card chips; fair play lives in the tooltip. */
 .disc {
   min-width: 56px;
@@ -400,6 +423,9 @@ tbody tr:last-child {
 }
 .dot.yellow {
   background: rgba(232, 176, 7, 0.75);
+}
+.dot.red {
+  background: rgba(229, 72, 77, 0.7);
 }
 @media (max-width: 560px) {
   .hide-sm {
