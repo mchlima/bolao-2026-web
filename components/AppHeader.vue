@@ -209,9 +209,10 @@ const initials = computed(() => {
   padding: 8px;
   z-index: 60;
 }
-/* On mobile the avatar lives in the bottom nav instead — hide the header menu. */
+/* On mobile the bottom nav carries the navigation and the account sheet, so the
+   global top header is hidden entirely. */
 @media (max-width: 720px) {
-  .menu {
+  .header {
     display: none;
   }
 }
