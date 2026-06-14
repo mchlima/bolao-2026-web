@@ -12,6 +12,18 @@ const { data: tournaments } = await useAsyncData('tournaments-list', () =>
 const current = computed(
   () => (tournaments.value ?? []).find((t) => t.id === id) ?? null,
 );
+useSeoMeta({
+  title: () => (current.value ? `${current.value.name} — Amigos do Bolão` : 'Torneio — Amigos do Bolão'),
+  description: () =>
+    current.value
+      ? `Classificação, fases, rodadas e ranking de ${current.value.name}. Palpite e acompanhe ao vivo.`
+      : 'Classificação, fases, rodadas e ranking do torneio.',
+  ogTitle: () => (current.value ? `${current.value.name} — Amigos do Bolão` : 'Torneio — Amigos do Bolão'),
+  ogDescription: () =>
+    current.value
+      ? `Classificação, fases e ranking de ${current.value.name}.`
+      : 'Classificação, fases e ranking do torneio.',
+});
 const activeTab = computed(() => {
   if (route.path.endsWith('/ranking')) return 'ranking';
   if (route.path.endsWith('/fases')) return 'fases';

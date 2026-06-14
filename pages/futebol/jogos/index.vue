@@ -7,7 +7,14 @@ interface AgendaDay {
   matches: Match[];
 }
 
-useHead({ title: 'Jogos · Agenda — Amigos do Bolão' });
+useSeoMeta({
+  title: 'Jogos · Agenda — Amigos do Bolão',
+  description:
+    'A agenda completa dos jogos: próximas partidas, jogos de hoje, ao vivo e encerrados, com placar e horário de cada torneio.',
+  ogTitle: 'Agenda de jogos — Amigos do Bolão',
+  ogDescription:
+    'Próximas partidas, jogos de hoje, ao vivo e encerrados — placar e horário de cada torneio.',
+});
 
 const TABS: { key: Scope; label: string }[] = [
   { key: 'upcoming', label: 'Próximos' },

@@ -22,6 +22,28 @@ const { data, pending, error, refresh } = await useAsyncData(
   },
 );
 useRealtime(() => [`match:${props.matchId}`], () => refresh());
+
+// Dynamic SEO from the fetched match (covers /futebol/jogos/:id and the
+// tournament-scoped match route, both of which render this component).
+const seoMatchup = computed(() => {
+  const m = data.value?.match;
+  if (!m) return null;
+  const home = m.homeTeam?.name ?? m.homeSourceLabel ?? 'A definir';
+  const away = m.awayTeam?.name ?? m.awaySourceLabel ?? 'A definir';
+  return `${home} x ${away}`;
+});
+useSeoMeta({
+  title: () => (seoMatchup.value ? `${seoMatchup.value} — Amigos do Bolão` : 'Partida — Amigos do Bolão'),
+  description: () =>
+    seoMatchup.value
+      ? `Palpites, placar ao vivo e ranking da partida ${seoMatchup.value}.`
+      : 'Palpites, placar ao vivo e ranking da partida.',
+  ogTitle: () => (seoMatchup.value ? `${seoMatchup.value} — Amigos do Bolão` : 'Partida — Amigos do Bolão'),
+  ogDescription: () =>
+    seoMatchup.value
+      ? `Placar ao vivo e ranking dos palpites de ${seoMatchup.value}.`
+      : 'Placar ao vivo e ranking dos palpites.',
+});
 </script>
 
 <template>

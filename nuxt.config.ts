@@ -20,6 +20,10 @@ export default defineNuxtConfig({
       // Overridden in prod by the NUXT_PUBLIC_API_BASE env var (Nuxt auto-maps
       // NUXT_PUBLIC_* onto runtimeConfig.public at runtime).
       apiBase: 'http://localhost:3000/api',
+      // Canonical origin — used to build absolute URLs for OG/Twitter meta so
+      // link unfurls (WhatsApp/Twitter — the main invite channel) resolve the
+      // image. Override in prod via NUXT_PUBLIC_SITE_URL.
+      siteUrl: 'https://bolao2026.kratinho.com.br',
     },
   },
 

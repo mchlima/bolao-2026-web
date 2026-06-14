@@ -3,6 +3,15 @@
 // dentro disso, quanto mais preciso o placar, mais pontos. Fonte da verdade:
 // ScoringService (api) + bolao-2026-docs/api/scoring.md. Rótulos/cores espelham
 // utils/format.ts e MatchCard.vue.
+useSeoMeta({
+  title: 'Como funciona — Amigos do Bolão',
+  description:
+    'Entenda a pontuação do bolão: cravar o placar vale mais, mas acertar o vencedor ou o empate já pontua. Veja todos os níveis e como o ranking é calculado.',
+  ogTitle: 'Como funciona o Amigos do Bolão',
+  ogDescription:
+    'A pontuação por proximidade: cravar o placar vale mais, mas acertar o vencedor já pontua.',
+});
+
 const tiers = [
   { label: 'Cravou', cond: 'Placar exato', pts: '25', color: 'var(--emerald)' },
   { label: 'Gols do vencedor', cond: 'Vencedor certo + os gols dele exatos', pts: '18', color: 'var(--azure)' },

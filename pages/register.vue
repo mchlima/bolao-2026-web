@@ -1,4 +1,6 @@
 <script setup lang="ts">
+useSeoMeta({ title: 'Criar conta — Amigos do Bolão', robots: 'noindex' });
+
 const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();

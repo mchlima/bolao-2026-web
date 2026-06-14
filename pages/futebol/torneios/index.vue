@@ -16,6 +16,15 @@ function tBadge(name: string): string {
   return (words[0]?.[0] ?? '') + (words[1]?.[0] ?? '');
 }
 
+useSeoMeta({
+  title: 'Torneios — Amigos do Bolão',
+  description:
+    'Os torneios disponíveis para palpitar e acompanhar: classificação, fases, rodadas e ranking de cada um.',
+  ogTitle: 'Torneios — Amigos do Bolão',
+  ogDescription:
+    'Escolha um torneio para palpitar e acompanhar a classificação, as fases e o ranking.',
+});
+
 const { data, pending } = await useAsyncData('tournaments', async () => {
   const list = await useApi()<Paginated<Tournament>>('/seasons');
   return list.data;
