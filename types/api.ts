@@ -71,9 +71,17 @@ export interface Stadium {
 export type SeasonFormat = 'LEAGUE' | 'GROUPS' | 'KNOCKOUT' | 'GROUPS_KNOCKOUT';
 export type CompetitionType = 'LEAGUE' | 'CUP' | 'LEAGUE_CUP';
 
+export interface Sport {
+  id: string;
+  slug: string;
+  name: string;
+  iconUrl?: string | null;
+}
+
 export interface Competition {
   id: string;
   sportId: string;
+  sport?: Pick<Sport, 'id' | 'slug' | 'name'>;
   name: string;
   slug: string;
   type: CompetitionType;
