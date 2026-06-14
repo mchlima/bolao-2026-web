@@ -70,6 +70,25 @@ const empty = computed(
     <SkeletonList v-if="pending && !data" variant="match" :count="3" />
     <p v-else-if="error || !data" class="muted load">Torneio não encontrado.</p>
     <div v-else class="hub">
+      <!-- MENU do torneio: cada entrada abre uma página com espaço total -->
+      <nav class="tnav">
+        <NuxtLink :to="`/futebol/torneios/${id}/jogos`" class="tnav-tile">
+          <span class="tn-ic" style="--c: var(--azure)"><AppIcon name="calendar" :size="20" :stroke="2" /></span>
+          <span class="tn-txt"><b>Jogos</b><small>Agenda e palpites</small></span>
+          <AppIcon name="chevronRight" :size="16" :stroke="2.4" class="tn-go" />
+        </NuxtLink>
+        <NuxtLink :to="`/futebol/torneios/${id}/classificacao`" class="tnav-tile">
+          <span class="tn-ic" style="--c: var(--gold)"><AppIcon name="trophy" :size="20" :stroke="2" /></span>
+          <span class="tn-txt"><b>Tabela</b><small>Classificação, grupos e fases</small></span>
+          <AppIcon name="chevronRight" :size="16" :stroke="2.4" class="tn-go" />
+        </NuxtLink>
+        <NuxtLink :to="`/futebol/torneios/${id}/ranking`" class="tnav-tile">
+          <span class="tn-ic" style="--c: var(--emerald)"><AppIcon name="users" :size="20" :stroke="2" /></span>
+          <span class="tn-txt"><b>Bolão</b><small>Ranking dos palpiteiros</small></span>
+          <AppIcon name="chevronRight" :size="16" :stroke="2.4" class="tn-go" />
+        </NuxtLink>
+      </nav>
+
       <!-- AO VIVO -->
       <section v-if="liveMatches.length" class="hb-sec">
         <div class="hb-head">
@@ -95,7 +114,7 @@ const empty = computed(
       <!-- CLASSIFICAÇÃO RESUMIDA -->
       <section v-if="miniRows.length" class="hb-sec">
         <div class="hb-head">
-          <h2 class="font-display">Classificação<span v-if="!isLeague && miniGroup" class="hb-grp"> · {{ miniGroup.group.groupName }}</span></h2>
+          <h2 class="font-display">Tabela<span v-if="!isLeague && miniGroup" class="hb-grp"> · {{ miniGroup.group.groupName }}</span></h2>
           <NuxtLink :to="`/futebol/torneios/${id}/classificacao`" class="hb-all">Tabela completa <AppIcon name="chevronRight" :size="13" :stroke="2.5" /></NuxtLink>
         </div>
         <StandingsTable :rows="miniRows" :zones="miniGroup?.stage.zones ?? []" compact :show-legend="false" />
@@ -112,6 +131,65 @@ const empty = computed(
 <style scoped>
 .load {
   padding: 2rem 0;
+}
+/* tournament menu tiles (Jogos / Tabela / Bolão) */
+.tnav {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+@media (min-width: 560px) {
+  .tnav {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.tnav-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-surface);
+  transition: border-color 0.14s, transform 0.14s;
+}
+.tnav-tile:hover {
+  border-color: color-mix(in srgb, var(--azure) 40%, var(--border));
+  transform: translateY(-1px);
+}
+.tn-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 14%, transparent);
+}
+.tn-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.tn-txt b {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+}
+.tn-txt small {
+  font-size: 11.5px;
+  color: var(--muted);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tn-go {
+  margin-left: auto;
+  flex: none;
+  color: var(--muted);
 }
 .hub {
   display: flex;

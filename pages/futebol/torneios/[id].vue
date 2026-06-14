@@ -1,6 +1,7 @@
 <script setup lang="ts">
-// Tournament layout: header + tab bar (Partidas · Ranking) + <NuxtPage>. Each
-// tab is its own route, so the URL reflects the tab and the chrome stays put.
+// Tournament shell: a slim contextual header (back + title) + <NuxtPage>. No tab
+// bar — the tournament home (index) is the menu into Jogos / Tabela / Bolão, and
+// each is its own full-space page. The header title/back adapt to the route.
 import type { Paginated, Tournament } from '~/types/api';
 
 const route = useRoute();
@@ -16,47 +17,58 @@ useSeoMeta({
   title: () => (current.value ? `${current.value.name} — Amigos do Bolão` : 'Torneio — Amigos do Bolão'),
   description: () =>
     current.value
-      ? `Classificação, fases, rodadas e ranking de ${current.value.name}. Palpite e acompanhe ao vivo.`
-      : 'Classificação, fases, rodadas e ranking do torneio.',
+      ? `Jogos, tabela de classificação e ranking do bolão de ${current.value.name}. Palpite e acompanhe ao vivo.`
+      : 'Jogos, tabela e ranking do torneio.',
   ogTitle: () => (current.value ? `${current.value.name} — Amigos do Bolão` : 'Torneio — Amigos do Bolão'),
   ogDescription: () =>
-    current.value
-      ? `Classificação, fases e ranking de ${current.value.name}.`
-      : 'Classificação, fases e ranking do torneio.',
-});
-const activeTab = computed(() => {
-  if (route.path.endsWith('/ranking')) return 'ranking';
-  if (route.path.endsWith('/classificacao')) return 'classificacao';
-  if (route.path.endsWith('/jogos')) return 'jogos';
-  return 'overview';
+    current.value ? `Jogos, tabela e ranking de ${current.value.name}.` : 'Jogos, tabela e ranking do torneio.',
 });
 
+const SECTIONS: Record<string, string> = {
+  jogos: 'Jogos',
+  classificacao: 'Tabela',
+  ranking: 'Bolão',
+};
+const section = computed<string | null>(() => {
+  const p = route.path;
+  if (p.includes('/matches/')) return 'match';
+  if (p.endsWith('/jogos')) return 'jogos';
+  if (p.endsWith('/classificacao')) return 'classificacao';
+  if (p.endsWith('/ranking')) return 'ranking';
+  return null; // home
+});
+const isHome = computed(() => section.value === null);
+const isMatch = computed(() => section.value === 'match');
+// Section pages show the section label + tournament as subtitle; home/match show
+// the tournament name.
+const headTitle = computed(() =>
+  isHome.value || isMatch.value
+    ? (current.value?.name ?? 'Torneio')
+    : (SECTIONS[section.value!] ?? 'Torneio'),
+);
+const headSub = computed(() => (!isHome.value && !isMatch.value ? current.value?.name : null));
+const backTo = computed(() => (isHome.value ? '/futebol/torneios' : `/futebol/torneios/${id}`));
+// The match view has its own back button, so the shell omits its back there.
+const showBack = computed(() => !isMatch.value);
+
 function badge(name: string): string {
-  const w = name
-    .split(/\s+/)
-    .filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
+  const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
   return (w[0]?.[0] ?? '') + (w[1]?.[0] ?? '');
 }
 </script>
 
 <template>
   <div class="page">
-    <div v-if="current" class="thead">
-      <div class="badge font-display">{{ badge(current.name) }}</div>
-      <div class="meta">
-        <h1 class="font-display name">{{ current.name }}</h1>
-        <div class="tags">
-          <span v-if="current.matchCount != null" class="tag">{{ current.matchCount }} partidas</span>
-        </div>
+    <header class="thead">
+      <NuxtLink v-if="showBack" :to="backTo" class="back" aria-label="Voltar">
+        <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
+      </NuxtLink>
+      <div v-if="isHome && current" class="brandmark font-display">{{ badge(current.name) }}</div>
+      <div class="htitle">
+        <span class="ht-main font-display">{{ headTitle }}</span>
+        <span v-if="headSub" class="ht-sub">{{ headSub }}</span>
       </div>
-    </div>
-
-    <nav class="tabs">
-      <NuxtLink :to="`/futebol/torneios/${id}`" class="tab" :class="{ on: activeTab === 'overview' }">Visão geral</NuxtLink>
-      <NuxtLink :to="`/futebol/torneios/${id}/jogos`" class="tab" :class="{ on: activeTab === 'jogos' }">Jogos</NuxtLink>
-      <NuxtLink :to="`/futebol/torneios/${id}/classificacao`" class="tab" :class="{ on: activeTab === 'classificacao' }">Classificação</NuxtLink>
-      <NuxtLink :to="`/futebol/torneios/${id}/ranking`" class="tab" :class="{ on: activeTab === 'ranking' }">Ranking</NuxtLink>
-    </nav>
+    </header>
 
     <NuxtPage />
   </div>
@@ -64,100 +76,62 @@ function badge(name: string): string {
 
 <style scoped>
 .page {
-  padding: 18px 0 40px;
+  padding: 0 0 40px;
 }
 .thead {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 11px;
+  padding: 6px 0 14px;
+  min-width: 0;
 }
-.badge {
-  width: 54px;
-  height: 54px;
-  border-radius: 15px;
+.back {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text);
+}
+.back:hover {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+}
+.brandmark {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   background: var(--grad-pitch);
   display: grid;
   place-items: center;
-  font-weight: 700;
   color: #fff;
-  font-size: 17px;
-  flex: 0 0 auto;
-}
-.meta {
-  flex: 1;
-  min-width: 200px;
-}
-.name {
   font-weight: 700;
-  font-size: clamp(22px, 4vw, 30px);
-  text-transform: uppercase;
-  line-height: 1;
+  font-size: 14px;
 }
-.tags {
+.htitle {
+  min-width: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
+  flex-direction: column;
+  gap: 1px;
 }
-.tag {
-  font-size: 11.5px;
+.ht-main {
   font-weight: 700;
+  font-size: clamp(17px, 4.4vw, 24px);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px 10px;
-}
-.tag.azure {
-  color: var(--azure);
-  background: rgba(30, 127, 240, 0.14);
-  border-color: rgba(30, 127, 240, 0.3);
-}
-.tourn-sel {
-  flex: 0 1 auto;
-  max-width: 100%;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 0 10px;
-  height: 40px;
-  cursor: pointer;
-}
-.tabs {
-  display: flex;
-  gap: 5px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 5px;
-  margin-bottom: 16px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-.tabs::-webkit-scrollbar {
-  display: none;
-}
-.tab {
-  flex: 1 1 auto;
-  text-align: center;
-  padding: 10px 8px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: clamp(11.5px, 2.9vw, 13.5px);
+  line-height: 1.05;
   white-space: nowrap;
-  color: var(--muted);
-  cursor: pointer;
-  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.tab.on {
-  background: var(--grad-pitch);
-  color: #fff;
+.ht-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
