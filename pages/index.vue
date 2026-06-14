@@ -139,6 +139,9 @@ const ranking = [
 
 <template>
   <div class="land-page">
+    <!-- PWA: convite discreto p/ instalar (só aparece quando instalável) -->
+    <InstallBanner />
+
     <!-- PORTAL: torneios em destaque → cada um abre o hub próprio -->
     <section v-if="torneios?.length" class="hubnav-wrap">
       <div class="hubnav-head">

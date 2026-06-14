@@ -3,7 +3,42 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
   devtools: { enabled: true },
 
-  modules: ['@nuxtjs/color-mode', '@pinia/nuxt'],
+  modules: ['@nuxtjs/color-mode', '@pinia/nuxt', '@vite-pwa/nuxt'],
+
+  // PWA: installable app (Android "Instalar" prompt). Conservative service
+  // worker for an SSR site — precache static assets only, navigations stay on
+  // the network (no SPA fallback), SW disabled in dev so it never serves stale.
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'Amigos do Bolão',
+      short_name: 'Bolão',
+      description: 'O bolão da Copa 2026 com a sua turma',
+      lang: 'pt-BR',
+      theme_color: '#0A0E14',
+      background_color: '#0A0E14',
+      display: 'standalone',
+      orientation: 'portrait',
+      start_url: '/',
+      icons: [
+        { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+        { src: '/maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ],
+    },
+    workbox: {
+      navigateFallback: undefined,
+      globPatterns: ['**/*.{js,css,svg,png,ico,woff2}'],
+      cleanupOutdatedCaches: true,
+    },
+    client: {
+      // Track the install prompt ourselves ($pwa.showInstallPrompt / install()).
+      installPrompt: true,
+    },
+    devOptions: {
+      enabled: false,
+    },
+  },
 
   // dark / light / system theme — writes <html data-theme="..."> so the design
   // system's html[data-theme] selectors apply (Claude Design handoff).
@@ -39,6 +74,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         {
           rel: 'preconnect',
