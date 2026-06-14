@@ -9,7 +9,7 @@ const colorMode = useColorMode();
 const menuOpen = ref(false);
 const primary = usePrimaryTournament();
 const rankingTo = computed(() =>
-  primary.value ? `/tournaments/${primary.value.id}/ranking` : null,
+  primary.value ? `/futebol/torneios/${primary.value.id}/ranking` : null,
 );
 
 const initials = computed(() => {
@@ -61,7 +61,7 @@ function logout() {
 
       <nav v-if="auth.isAuthenticated" class="topnav">
         <NuxtLink to="/home" class="nav-link">Início</NuxtLink>
-        <NuxtLink to="/tournaments" class="nav-link">Torneios</NuxtLink>
+        <NuxtLink to="/futebol/torneios" class="nav-link">Torneios</NuxtLink>
         <NuxtLink to="/pools" class="nav-link">Bolões</NuxtLink>
         <NuxtLink to="/predictions" class="nav-link">Palpites</NuxtLink>
         <NuxtLink to="/howto" class="nav-link">Como funciona</NuxtLink>

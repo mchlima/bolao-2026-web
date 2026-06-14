@@ -1,23 +1,31 @@
-// App-wide access gate. Logged-out visitors may only see the public landing (/)
-// and the auth pages; everything else redirects them to /. Logged-in users may
-// still open the landing on purpose; only the auth pages bounce them to the app
-// home (/home). Runs SSR + client (token lives in a cookie).
-const PUBLIC = new Set(['/', '/login', '/register']);
+// App-wide access gate + legacy-route redirects. The sporting content (hub,
+// agenda, tournaments, matches) is PUBLIC under /futebol/*; predictions, pools,
+// admin and the personal home stay private. Runs SSR + client (token in cookie).
+
+// Public sporting content + the landing/auth/howto pages. Everything else private.
+const PUBLIC_EXACT = new Set(['/', '/login', '/register', '/howto']);
+const isPublicPath = (path: string): boolean =>
+  PUBLIC_EXACT.has(path) || path === '/futebol' || path.startsWith('/futebol/');
 
 export default defineNuxtRouteMiddleware((to) => {
-  const auth = useAuthStore();
-  const isPublic = PUBLIC.has(to.path);
+  // Legacy routes moved under the sport namespace — redirect (keeps old links/SEO).
+  if (to.path === '/tournaments' || to.path.startsWith('/tournaments/')) {
+    return navigateTo(to.fullPath.replace('/tournaments', '/futebol/torneios'), {
+      redirectCode: 301,
+    });
+  }
+  if (to.path === '/matches' || to.path.startsWith('/matches/')) {
+    return navigateTo(to.fullPath.replace('/matches', '/futebol/jogos'), {
+      redirectCode: 301,
+    });
+  }
 
-  if (!auth.token && !isPublic) {
-    // Invite deep-links must survive auth: send to login but keep the
-    // destination so the user lands back on the invite after logging in /
-    // signing up. Other protected routes just bounce to the landing.
-    if (to.path.startsWith('/pools/join/')) {
-      return navigateTo(
-        `/login?redirect=${encodeURIComponent(to.fullPath)}`,
-      );
-    }
-    return navigateTo('/');
+  const auth = useAuthStore();
+
+  // No dead-ends: a logged-out visitor on a private route goes to login keeping
+  // the destination, so they land back where they were after authenticating.
+  if (!auth.token && !isPublicPath(to.path)) {
+    return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`);
   }
   if (auth.token && (to.path === '/login' || to.path === '/register')) {
     return navigateTo('/home');

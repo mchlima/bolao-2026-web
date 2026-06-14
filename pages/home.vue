@@ -136,8 +136,8 @@ const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? '');
             <h1 class="font-display title">{{ data.primary.name }}</h1>
             <p class="sub">Faça seus palpites e dispute o topo do ranking.</p>
             <div class="cta">
-              <NuxtLink :to="`/tournaments/${data.primary.id}`" class="btn btn-gold">Ver torneio</NuxtLink>
-              <NuxtLink :to="`/tournaments/${data.primary.id}/ranking`" class="btn">Ver ranking</NuxtLink>
+              <NuxtLink :to="`/futebol/torneios/${data.primary.id}`" class="btn btn-gold">Ver torneio</NuxtLink>
+              <NuxtLink :to="`/futebol/torneios/${data.primary.id}/ranking`" class="btn">Ver ranking</NuxtLink>
             </div>
           </div>
           <div v-if="data.me" class="stats">
@@ -157,7 +157,7 @@ const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? '');
       <section v-else class="empty-hero">
         <h1 class="font-display title">Bem-vindo ao bolão</h1>
         <p class="sub">Ainda não há torneios disponíveis. Volte em breve!</p>
-        <NuxtLink to="/tournaments" class="btn btn-gold">Ver torneios</NuxtLink>
+        <NuxtLink to="/futebol/torneios" class="btn btn-gold">Ver torneios</NuxtLink>
       </section>
 
       <!-- HELP CTA -->
@@ -180,7 +180,7 @@ const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? '');
             {{ s.title }}
             <span class="count">{{ s.matches.length }}</span>
           </h2>
-          <NuxtLink v-if="data?.primary" :to="`/tournaments/${data.primary.id}`" class="see-all">Ver todas <AppIcon name="chevronRight" :size="13" :stroke="2.4" /></NuxtLink>
+          <NuxtLink v-if="data?.primary" :to="`/futebol/torneios/${data.primary.id}`" class="see-all">Ver todas <AppIcon name="chevronRight" :size="13" :stroke="2.4" /></NuxtLink>
         </div>
         <div class="matchlist">
           <MatchCard
@@ -201,7 +201,7 @@ const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? '');
         description="Não há jogos ao vivo ou agendados no momento."
       >
         <template #action>
-          <NuxtLink :to="`/tournaments/${data.primary.id}`" class="btn">Ver o torneio</NuxtLink>
+          <NuxtLink :to="`/futebol/torneios/${data.primary.id}`" class="btn">Ver o torneio</NuxtLink>
         </template>
       </EmptyState>
     </template>

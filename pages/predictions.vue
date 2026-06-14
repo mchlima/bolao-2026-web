@@ -227,7 +227,7 @@ function phaseText(m: Prediction['match']): string {
         description="Escolha um torneio e faça seus primeiros palpites para começar a pontuar."
       >
         <template #action>
-          <NuxtLink to="/tournaments" class="btn btn-gold">Ver torneios</NuxtLink>
+          <NuxtLink to="/futebol/torneios" class="btn btn-gold">Ver torneios</NuxtLink>
         </template>
       </EmptyState>
       <EmptyState
@@ -307,7 +307,7 @@ function phaseText(m: Prediction['match']): string {
 
           <NuxtLink
             v-if="p.match.homeTeam && p.match.awayTeam"
-            :to="`/matches/${p.match.id}`"
+            :to="`/futebol/jogos/${p.match.id}`"
             class="rank-link"
           >
             Ver partida

@@ -136,7 +136,7 @@ const unavailable = computed(() => {
             <span>{{ pool.memberCount }} {{ pool.memberCount === 1 ? 'membro' : 'membros' }}</span>
           </div>
           <p v-if="pool.description" class="pdesc">{{ pool.description }}</p>
-          <NuxtLink :to="`/tournaments/${pool.tournament.id}`" class="tour-link">
+          <NuxtLink :to="`/futebol/torneios/${pool.tournament.id}`" class="tour-link">
             {{ pool.tournament.name }} — palpitar <AppIcon name="chevronRight" :size="13" :stroke="2.4" />
           </NuxtLink>
         </div>

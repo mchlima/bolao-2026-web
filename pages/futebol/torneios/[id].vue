@@ -20,7 +20,7 @@ const activeTab = computed(() => {
 
 function onPickTournament(e: Event) {
   const v = (e.target as HTMLSelectElement).value;
-  if (v && v !== id) navigateTo(`/tournaments/${v}`);
+  if (v && v !== id) navigateTo(`/futebol/torneios/${v}`);
 }
 function badge(name: string): string {
   const w = name
@@ -53,9 +53,9 @@ function badge(name: string): string {
     </div>
 
     <nav class="tabs">
-      <NuxtLink :to="`/tournaments/${id}`" class="tab" :class="{ on: activeTab === 'matches' }">Partidas</NuxtLink>
-      <NuxtLink :to="`/tournaments/${id}/ranking`" class="tab" :class="{ on: activeTab === 'ranking' }">Ranking</NuxtLink>
-      <NuxtLink :to="`/tournaments/${id}/fases`" class="tab" :class="{ on: activeTab === 'fases' }">Fases</NuxtLink>
+      <NuxtLink :to="`/futebol/torneios/${id}`" class="tab" :class="{ on: activeTab === 'matches' }">Partidas</NuxtLink>
+      <NuxtLink :to="`/futebol/torneios/${id}/ranking`" class="tab" :class="{ on: activeTab === 'ranking' }">Ranking</NuxtLink>
+      <NuxtLink :to="`/futebol/torneios/${id}/fases`" class="tab" :class="{ on: activeTab === 'fases' }">Fases</NuxtLink>
     </nav>
 
     <NuxtPage />

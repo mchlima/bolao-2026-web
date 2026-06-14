@@ -7,7 +7,7 @@ const items = computed(() => {
   if (!auth.isAuthenticated) return [];
   const base = [
     { to: '/home', label: 'Início', icon: 'home' },
-    { to: '/tournaments', label: 'Torneios', icon: 'trophy' },
+    { to: '/futebol/torneios', label: 'Torneios', icon: 'trophy' },
     { to: '/pools', label: 'Bolões', icon: 'users' },
     { to: '/predictions', label: 'Palpites', icon: 'ticket' },
     { to: '/howto', label: 'Como', icon: 'book' },
