@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, Paginated, Tournament } from '~/types/api';
+import type { Match, Paginated, Prediction, Tournament } from '~/types/api';
 // Single home for everyone (default layout → AppHeader + bottom nav). Logged-out
 // visitors also get the marketing pitch below the portal; logged-in users see
 // just the portal (torneios + próximos jogos) — same início as the public one.
@@ -11,9 +11,26 @@ const auth = useAuthStore();
 const { data: torneios } = await useAsyncData('hub-torneios', () =>
   useApi()<Paginated<Tournament>>('/seasons?pageSize=20').then((r) => r.data),
 );
-const { data: hub } = await useAsyncData('hub-agenda', () =>
-  useApi()<{ days: { date: string; matches: Match[] }[] }>('/agenda?scope=upcoming'),
-);
+const { data: hub } = await useAsyncData('hub-agenda', async () => {
+  const api = useApi();
+  const [agenda, preds] = await Promise.all([
+    api<{ days: { date: string; matches: Match[] }[] }>('/agenda?scope=upcoming'),
+    // The strip is palpitável when logged in — load the user's predictions to
+    // seed the cards (so a saved guess shows instead of "Faça seu palpite").
+    auth.token ? api<Prediction[]>('/predictions/me') : Promise.resolve([] as Prediction[]),
+  ]);
+  return { agenda, preds };
+});
+// Prediction map for the strip cards (matchId → prediction); updated on save.
+const predMap = ref<Record<string, Prediction>>({});
+watchEffect(() => {
+  const m: Record<string, Prediction> = {};
+  for (const p of hub.value?.preds ?? []) m[p.matchId] = p;
+  predMap.value = m;
+});
+function onPredSaved(p: Prediction) {
+  predMap.value = { ...predMap.value, [p.matchId]: p };
+}
 
 // Quick badge from the tournament name (skip FIFA/years/short words).
 function tBadge(name: string): string {
@@ -30,14 +47,14 @@ const TSTATUS: Record<string, { label: string; color: string }> = {
 // crowd the top of "próximos jogos" without telling the visitor anything. Keep
 // the strip to actual upcoming/live matches.
 const hubMatches = computed<Match[]>(() =>
-  (hub.value?.days ?? [])
+  (hub.value?.agenda.days ?? [])
     .flatMap((d) => d.matches)
     .filter((m) => m.status !== 'POSTPONED')
     .slice(0, 6),
 );
 const liveCount = computed(
   () =>
-    (hub.value?.days ?? [])
+    (hub.value?.agenda.days ?? [])
       .flatMap((d) => d.matches)
       .filter((m) => m.status === 'LIVE').length,
 );
@@ -173,7 +190,7 @@ const ranking = [
         <NuxtLink to="/futebol/jogos" class="hs-all">Agenda completa <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
       </div>
       <div class="hs-grid">
-        <MatchCard v-for="m in hubMatches" :key="m.id" :match="m" />
+        <MatchCard v-for="m in hubMatches" :key="m.id" :match="m" :prediction="predMap[m.id] ?? null" @saved="onPredSaved" />
       </div>
     </section>
 

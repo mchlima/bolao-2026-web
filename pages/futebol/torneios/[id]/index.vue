@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import type { Match, StageStandings } from '~/types/api';
+import type { Match, Prediction, StageStandings } from '~/types/api';
 
 // Tournament hub (Visão geral): aggregates the interesting bits of this
 // tournament — live + next matches and a standings teaser — with links into the
 // Jogos / Classificação tabs. The header + tabs live in the layout ([id].vue).
 const route = useRoute();
+const auth = useAuthStore();
 const id = route.params.id as string;
 
 interface AgendaResp {
@@ -15,15 +16,28 @@ const { data, pending, error, refresh } = await useAsyncData(
   `tournament-hub-${id}`,
   async () => {
     const api = useApi();
-    const [upcoming, live, standings] = await Promise.all([
+    const [upcoming, live, standings, preds] = await Promise.all([
       api<AgendaResp>(`/agenda?seasonId=${id}&scope=upcoming`),
       api<AgendaResp>(`/agenda?seasonId=${id}&scope=live`),
       api<StageStandings[]>(`/seasons/${id}/standings`),
+      // Seed the palpite cards with the user's existing predictions.
+      auth.token ? api<Prediction[]>(`/predictions/me?seasonId=${id}`) : Promise.resolve([] as Prediction[]),
     ]);
-    return { upcoming, live, standings };
+    return { upcoming, live, standings, preds };
   },
 );
 useRealtime(() => [`tournament:${id}`], () => refresh());
+
+// Prediction map for the live/next cards (matchId → prediction); updated on save.
+const predMap = ref<Record<string, Prediction>>({});
+watchEffect(() => {
+  const m: Record<string, Prediction> = {};
+  for (const p of data.value?.preds ?? []) m[p.matchId] = p;
+  predMap.value = m;
+});
+function onPredSaved(p: Prediction) {
+  predMap.value = { ...predMap.value, [p.matchId]: p };
+}
 
 const liveMatches = computed<Match[]>(() =>
   (data.value?.live.days ?? []).flatMap((d) => d.matches).slice(0, 4),
@@ -63,7 +77,7 @@ const empty = computed(
           <NuxtLink :to="`/futebol/torneios/${id}/jogos`" class="hb-all">Todos os jogos <AppIcon name="chevronRight" :size="13" :stroke="2.5" /></NuxtLink>
         </div>
         <div class="hb-matches">
-          <MatchCard v-for="m in liveMatches" :key="m.id" :match="m" />
+          <MatchCard v-for="m in liveMatches" :key="m.id" :match="m" :prediction="predMap[m.id] ?? null" @saved="onPredSaved" />
         </div>
       </section>
 
@@ -74,7 +88,7 @@ const empty = computed(
           <NuxtLink :to="`/futebol/torneios/${id}/jogos`" class="hb-all">Todos os jogos <AppIcon name="chevronRight" :size="13" :stroke="2.5" /></NuxtLink>
         </div>
         <div class="hb-matches">
-          <MatchCard v-for="m in nextMatches" :key="m.id" :match="m" />
+          <MatchCard v-for="m in nextMatches" :key="m.id" :match="m" :prediction="predMap[m.id] ?? null" @saved="onPredSaved" />
         </div>
       </section>
 
