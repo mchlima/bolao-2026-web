@@ -59,11 +59,14 @@ function logout() {
         </span>
       </NuxtLink>
 
-      <nav v-if="auth.isAuthenticated" class="topnav">
-        <NuxtLink to="/home" class="nav-link">Início</NuxtLink>
+      <nav class="topnav">
+        <NuxtLink :to="auth.isAuthenticated ? '/home' : '/'" class="nav-link">Início</NuxtLink>
+        <NuxtLink to="/futebol/jogos" class="nav-link">Jogos</NuxtLink>
         <NuxtLink to="/futebol/torneios" class="nav-link">Torneios</NuxtLink>
-        <NuxtLink to="/pools" class="nav-link">Bolões</NuxtLink>
-        <NuxtLink to="/predictions" class="nav-link">Palpites</NuxtLink>
+        <template v-if="auth.isAuthenticated">
+          <NuxtLink to="/pools" class="nav-link">Bolões</NuxtLink>
+          <NuxtLink to="/predictions" class="nav-link">Palpites</NuxtLink>
+        </template>
         <NuxtLink to="/howto" class="nav-link">Como funciona</NuxtLink>
       </nav>
 
@@ -122,7 +125,8 @@ function logout() {
           </div>
         </template>
         <template v-else-if="!onAuthPage">
-          <NuxtLink to="/login" class="btn btn-gold">Entrar</NuxtLink>
+          <NuxtLink to="/register" class="btn btn-gold">Criar conta</NuxtLink>
+          <NuxtLink to="/login" class="btn">Entrar</NuxtLink>
         </template>
       </div>
     </div>
