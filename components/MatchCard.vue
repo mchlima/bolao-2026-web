@@ -149,8 +149,8 @@ const leftLabel = computed(() =>
     <!-- main row: home · center · away (single line, uniform height) -->
     <div class="row">
       <div class="side home" :class="{ win: homeWins, lose: awayWins }">
+        <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="44" />
         <span class="tname" :title="homeName">{{ homeName }}</span>
-        <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="46" />
       </div>
 
       <div class="center">
@@ -198,7 +198,7 @@ const leftLabel = computed(() =>
       </div>
 
       <div class="side away" :class="{ win: awayWins, lose: homeWins }">
-        <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="46" />
+        <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="44" />
         <span class="tname" :title="awayName">{{ awayName }}</span>
       </div>
     </div>
@@ -330,29 +330,22 @@ const leftLabel = computed(() =>
   max-width: 560px;
   margin: 2px auto 0;
 }
+/* Each team is a vertical stack — flag on top, name centered below — so every
+   card aligns the same way regardless of what's in the center (score, stepper,
+   ×) and the name always shows even when the editable stepper is wide. */
 .side {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
-}
-/* Flags sit next to the score (inner), names fill outward — so the badges stay
-   aligned regardless of name length. Home name hugs its flag on the right, away
-   on the left. */
-.side .tname {
-  flex: 1;
-  min-width: 0;
-}
-.side.home .tname {
-  text-align: right;
-}
-.side.away .tname {
-  text-align: left;
 }
 .tname {
-  font-size: 14.5px;
+  max-width: 100%;
+  font-size: 12.5px;
   font-weight: 700;
   line-height: 1.2;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -548,5 +541,31 @@ const leftLabel = computed(() =>
 }
 .rank-link:hover {
   color: var(--text);
+}
+
+/* Phones: compact the prediction stepper so the team names beside it keep room. */
+@media (max-width: 430px) {
+  .step {
+    width: 22px;
+    height: 22px;
+    font-size: 14px;
+  }
+  .num {
+    font-size: 24px;
+    min-width: 16px;
+  }
+  .edit .colon {
+    font-size: 22px;
+  }
+  .save {
+    width: 28px;
+    height: 28px;
+  }
+  .edit {
+    gap: 5px;
+  }
+  .col {
+    gap: 3px;
+  }
 }
 </style>
