@@ -14,6 +14,8 @@ export function useMatchOpen(match: () => Match | null | undefined) {
     const m = match();
     if (!m || !m.homeTeam || !m.awayTeam) return false;
     if (m.status === 'FINISHED' || m.status === 'CANCELLED') return false;
+    // Postponed (no real date yet): open until rescheduled — skip the kickoff gate.
+    if (m.status === 'POSTPONED') return m.predictionsOpen ?? true;
     // Hard gate: once kickoff passes (or the match is no longer SCHEDULED), the
     // window is closed regardless of the override.
     if (new Date(m.kickoffAt).getTime() <= now.value) return false;

@@ -68,7 +68,7 @@ function hasResult(m: Match) {
       >
         <div class="fx-top">
           <span class="venue">{{ m.stadium?.name ?? '' }}</span>
-          <span class="when">{{ formatKickoff(m.kickoffAt, tz) }}</span>
+          <span class="when">{{ m.status === 'POSTPONED' ? 'A definir' : formatKickoff(m.kickoffAt, tz) }}</span>
         </div>
         <div class="fx-main">
           <span class="t home">
@@ -86,6 +86,7 @@ function hasResult(m: Match) {
         </div>
         <div class="fx-foot">
           <StatusPill v-if="m.status === 'LIVE'" label="Ao vivo" tone="scarlet" live />
+          <span v-else-if="m.status === 'POSTPONED'" class="adiada">Adiada</span>
           <span class="detail">Ver detalhes <AppIcon name="chevronRight" :size="11" :stroke="2.4" /></span>
         </div>
       </NuxtLink>
@@ -224,6 +225,16 @@ function hasResult(m: Match) {
   justify-content: space-between;
   gap: 8px;
   margin-top: 8px;
+}
+.adiada {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
 }
 .detail {
   margin-left: auto;

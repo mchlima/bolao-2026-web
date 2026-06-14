@@ -40,10 +40,17 @@ const statusMeta = computed(() => {
       return { label: 'Encerrada', color: 'var(--muted)', live: false };
     case 'CANCELLED':
       return { label: 'Cancelada', color: 'var(--muted)', live: false };
+    case 'POSTPONED':
+      return { label: 'Adiada', color: 'var(--muted)', live: false };
     default:
       return { label: 'Agendada', color: 'var(--azure)', live: false };
   }
 });
+
+// Postponed games have no real date yet (placeholder kickoff) → show "a definir".
+const kickoffText = computed(() =>
+  props.match.status === 'POSTPONED' ? 'Data a definir' : formatKickoff(props.match.kickoffAt, tz.value),
+);
 
 const TIER_COLOR: Record<string, string> = {
   EXACT: 'var(--emerald)',
@@ -124,7 +131,7 @@ const leftLabel = computed(() =>
 
     <!-- header line -->
     <div class="top">
-      <span class="lbl">{{ leftLabel }}<template v-if="leftLabel"> · </template>{{ formatKickoff(match.kickoffAt, tz) }}</span>
+      <span class="lbl">{{ leftLabel }}<template v-if="leftLabel"> · </template>{{ kickoffText }}</span>
       <span
         class="status"
         :class="{ pulse: statusMeta.live }"

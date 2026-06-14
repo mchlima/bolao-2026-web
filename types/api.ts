@@ -3,7 +3,7 @@
 export type UserRole = 'USER' | 'ADMIN';
 export type TournamentStatus = 'DRAFT' | 'UPCOMING' | 'ONGOING' | 'FINISHED';
 export type TeamType = 'NATIONAL_TEAM' | 'CLUB';
-export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED';
+export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED' | 'POSTPONED';
 export type ScoreTier =
   | 'EXACT'
   | 'WINNER_GOALS'
