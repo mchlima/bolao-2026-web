@@ -41,7 +41,7 @@ const isMatch = computed(() => section.value === 'match');
 // gate (a conversion prompt). The data itself is members-only: the route shows
 // the gate and the API requires auth (see ranking.vue + rankings.controller).
 const tabs = computed(() => [
-  { key: 'jogos', label: 'Jogos', to: `/futebol/torneios/${id}/jogos` },
+  { key: 'jogos', label: 'Jogos', to: `/futebol/torneios/${id}` },
   { key: 'classificacao', label: 'Tabela', to: `/futebol/torneios/${id}/classificacao` },
   { key: 'ranking', label: 'Bolão', to: `/futebol/torneios/${id}/ranking` },
 ]);
