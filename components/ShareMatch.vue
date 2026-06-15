@@ -79,6 +79,10 @@ function download() {
 
 const homeShort = computed(() => props.match.homeTeam?.shortName ?? props.match.homeTeam?.name ?? '');
 const awayShort = computed(() => props.match.awayTeam?.shortName ?? props.match.awayTeam?.name ?? '');
+const homeFlag = computed(() => teamFlag(props.match.homeTeam));
+const awayFlag = computed(() => teamFlag(props.match.awayTeam));
+const homeColor = computed(() => teamColor(props.match.homeTeam));
+const awayColor = computed(() => teamColor(props.match.awayTeam));
 </script>
 
 <template>
@@ -108,6 +112,7 @@ const awayShort = computed(() => props.match.awayTeam?.shortName ?? props.match.
     <div ref="card" class="scard" :class="format">
       <div class="sc-top">
         <span class="sc-brand font-display">CRAVEI</span>
+        <div class="sc-accent" />
         <span class="sc-tourn">{{ tournamentName }}</span>
       </div>
 
@@ -115,12 +120,14 @@ const awayShort = computed(() => props.match.awayTeam?.shortName ?? props.match.
         <span class="sc-phase">{{ phaseTxt }}</span>
         <div class="sc-match">
           <div class="sc-team">
-            <TeamBadge :team="match.homeTeam" :size="format === 'story' ? 160 : 130" />
+            <div v-if="homeFlag" class="sc-flag" v-html="homeFlag" />
+            <div v-else class="sc-emblem font-display" :style="{ background: homeColor }">{{ homeShort.slice(0, 3) }}</div>
             <span class="sc-tn">{{ homeShort }}</span>
           </div>
           <div class="sc-score font-display">{{ hs }}<span class="sc-colon">:</span>{{ as }}</div>
           <div class="sc-team">
-            <TeamBadge :team="match.awayTeam" :size="format === 'story' ? 160 : 130" />
+            <div v-if="awayFlag" class="sc-flag" v-html="awayFlag" />
+            <div v-else class="sc-emblem font-display" :style="{ background: awayColor }">{{ awayShort.slice(0, 3) }}</div>
             <span class="sc-tn">{{ awayShort }}</span>
           </div>
         </div>
@@ -181,20 +188,26 @@ const awayShort = computed(() => props.match.awayTeam?.shortName ?? props.match.
 }
 .scard.story { width: 1080px; height: 1920px; padding: 110px 90px; }
 .scard.square { width: 1080px; height: 1080px; padding: 80px 80px; }
-.sc-top { display: flex; flex-direction: column; gap: 8px; }
+.sc-top { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.sc-accent { width: 110px; height: 8px; border-radius: 999px; background: var(--grad-pitch); }
 .sc-brand { font-size: 76px; font-weight: 700; letter-spacing: 2px; line-height: 1; }
 .scard.square .sc-brand { font-size: 56px; }
 .sc-tourn { font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
 .scard.square .sc-tourn { font-size: 24px; }
 .sc-mid { display: flex; flex-direction: column; align-items: center; gap: 36px; }
-.sc-phase { font-size: 30px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--emerald, #13c47a); }
-.sc-match { display: flex; align-items: center; justify-content: center; gap: 56px; width: 100%; }
-.sc-team { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 280px; }
-.sc-tn { font-size: 38px; font-weight: 800; text-align: center; }
-.scard.square .sc-tn { font-size: 30px; }
-.sc-score { font-size: 150px; font-weight: 700; line-height: 1; display: flex; align-items: center; gap: 10px; }
-.scard.square .sc-score { font-size: 110px; }
-.sc-colon { color: rgba(255,255,255,0.4); }
+.sc-phase { font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; color: #13c47a; white-space: nowrap; }
+.sc-match { display: flex; align-items: center; justify-content: center; gap: 48px; width: 100%; }
+.sc-team { display: flex; flex-direction: column; align-items: center; gap: 20px; width: 300px; }
+.sc-flag { width: 220px; height: 147px; border-radius: 16px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.45); display: flex; }
+.scard.square .sc-flag { width: 170px; height: 113px; }
+.sc-flag :deep(svg) { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sc-emblem { width: 220px; height: 147px; border-radius: 16px; display: grid; place-items: center; color: #fff; font-size: 56px; font-weight: 700; }
+.scard.square .sc-emblem { width: 170px; height: 113px; font-size: 44px; }
+.sc-tn { font-size: 40px; font-weight: 800; text-align: center; white-space: nowrap; }
+.scard.square .sc-tn { font-size: 32px; }
+.sc-score { font-size: 150px; font-weight: 700; line-height: 1; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+.scard.square .sc-score { font-size: 112px; }
+.sc-colon { color: rgba(255,255,255,0.35); }
 .sc-pred {
   border: 2px solid color-mix(in srgb, var(--tc) 55%, transparent);
   background: color-mix(in srgb, var(--tc) 14%, transparent);
