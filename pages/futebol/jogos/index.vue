@@ -53,10 +53,16 @@ const { data, pending, refresh } = await useAsyncData(
 );
 const matches = computed<Match[]>(() => (data.value?.days ?? []).flatMap((d) => d.matches));
 // Live games float to the top of the day; the rest follow status priority
-// (agendada → adiada → encerrada), finished sinking to the bottom.
-const liveMatches = computed(() => matches.value.filter((m) => m.status === 'LIVE'));
+// (agendada → adiada → encerrada), finished sinking to the bottom. A reactive
+// clock re-sorts live, and a just-kicked-off game is treated as live.
+const now = useNow();
+const liveMatches = computed(() =>
+  matches.value.filter((m) => effectiveMatchRank(m, now.value) === 0),
+);
 const restMatches = computed(() =>
-  matches.value.filter((m) => m.status !== 'LIVE').sort(compareMatchesForListing),
+  matches.value
+    .filter((m) => effectiveMatchRank(m, now.value) !== 0)
+    .sort(listingComparator(now.value)),
 );
 
 // Reflect live changes (goals/status): subscribe to every tournament shown today

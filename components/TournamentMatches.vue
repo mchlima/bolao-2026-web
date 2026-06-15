@@ -98,9 +98,11 @@ const filtered = computed(() => {
 
 // Matches are ordered by status priority (ao vivo → agendada → adiada →
 // encerrada), then sub-grouped under their calendar-day (account tz) header —
-// so finished games sink to the bottom. The phase select stays as a filter.
+// so finished games sink to the bottom. A reactive clock re-sorts live (a game
+// floats up the instant it kicks off). The phase select stays as a filter.
+const now = useNow();
 const sections = computed(() => {
-  const sorted = [...filtered.value].sort(compareMatchesForListing);
+  const sorted = [...filtered.value].sort(listingComparator(now.value));
   const out: Array<{ title: string; matches: Match[] }> = [];
   for (const m of sorted) {
     const title = formatDate(m.kickoffAt, tz.value);

@@ -88,11 +88,14 @@ const TSTATUS: Record<string, { label: string; color: string }> = {
 // Postponed games carry a placeholder date and have no real kickoff — they'd
 // crowd the top of "próximos jogos" without telling the visitor anything. Keep
 // the strip to actual upcoming/live matches.
+// Reactive clock so the strip re-sorts live (a match floats to the top the
+// instant it kicks off, not only after a refetch).
+const now = useNow();
 const hubMatches = computed<Match[]>(() =>
   (hub.value?.agenda.days ?? [])
     .flatMap((d) => d.matches)
     .filter((m) => m.status !== 'POSTPONED')
-    .sort(compareMatchesForListing)
+    .sort(listingComparator(now.value))
     .slice(0, 6),
 );
 const liveCount = computed(
