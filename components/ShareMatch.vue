@@ -115,7 +115,6 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
           <img class="sc-icon" src="/pwa-512x512.png" alt="" />
           <span class="sc-brand font-display">CRAVEI</span>
         </div>
-        <div class="sc-accent" />
         <span class="sc-tourn">{{ tournamentName }}</span>
       </div>
 
@@ -148,8 +147,11 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
       </div>
 
       <div class="sc-cta">
-        <span class="sc-cta-t">Faça seu palpite grátis</span>
-        <span class="sc-url font-display">cravei.app</span>
+        <span class="sc-cta-t">Faça seu palpite grátis em</span>
+        <div class="sc-cta-pill">
+          <span class="sc-url font-display">cravei.app</span>
+          <AppIcon class="sc-arrow" name="arrowRight" :size="54" :stroke="2.8" />
+        </div>
       </div>
     </div>
   </div>
@@ -191,14 +193,14 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
 }
 .scard.story { width: 1080px; height: 1920px; padding: 110px 90px; }
 .scard.square { width: 1080px; height: 1080px; padding: 80px 80px; }
-.sc-top { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
-.sc-accent { width: 110px; height: 8px; border-radius: 999px; background: var(--grad-pitch); }
+.sc-top { display: flex; flex-direction: column; gap: 24px; align-items: flex-start; padding-bottom: 36px; border-bottom: 2px solid rgba(255,255,255,0.10); }
+.scard.square .sc-top { gap: 18px; padding-bottom: 26px; }
 .sc-brandrow { display: flex; align-items: center; gap: 26px; }
 .sc-icon { width: 96px; height: 96px; border-radius: 24px; }
 .scard.square .sc-icon { width: 76px; height: 76px; border-radius: 19px; }
 .sc-brand { font-size: 76px; font-weight: 700; letter-spacing: 2px; line-height: 1; }
 .scard.square .sc-brand { font-size: 56px; }
-.sc-tourn { font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
+.sc-tourn { font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
 .scard.square .sc-tourn { font-size: 24px; }
 .sc-mid { display: flex; flex-direction: column; align-items: center; gap: 36px; }
 .sc-phase { font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; color: #13c47a; white-space: nowrap; }
@@ -221,18 +223,23 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
 }
 .scard.square .sc-pred { padding: 28px 36px; gap: 14px; }
 .sc-pred-row { display: flex; align-items: center; justify-content: space-between; }
-.sc-pl { font-size: 34px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
+.sc-pl { font-size: 34px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
 .scard.square .sc-pl { font-size: 26px; }
 .sc-pv { font-size: 64px; font-weight: 700; }
 .scard.square .sc-pv { font-size: 48px; }
-.sc-tier { display: flex; align-items: baseline; gap: 22px; }
-.sc-pts { font-size: 80px; font-weight: 700; color: var(--tc); line-height: 1; }
+.sc-tier { display: flex; align-items: flex-end; }
+.sc-pts { flex: none; font-size: 80px; font-weight: 700; color: var(--tc); line-height: 1; padding-right: 56px; }
+.scard.square .sc-pts { padding-right: 40px; }
 .scard.square .sc-pts { font-size: 58px; }
-.sc-tl { font-size: 40px; font-weight: 800; color: var(--tc); text-transform: uppercase; letter-spacing: 1px; }
-.scard.square .sc-tl { font-size: 30px; }
-.sc-cta { display: flex; flex-direction: column; gap: 6px; }
-.sc-cta-t { font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.65); }
+.sc-tl { font-size: 38px; font-weight: 800; color: var(--tc); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; line-height: 1; }
+.scard.square .sc-tl { font-size: 28px; }
+.sc-cta { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.scard.square .sc-cta { gap: 16px; }
+.sc-cta-t { font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 2px; white-space: nowrap; }
 .scard.square .sc-cta-t { font-size: 24px; }
-.sc-url { font-size: 60px; font-weight: 700; color: #fff; }
-.scard.square .sc-url { font-size: 46px; }
+.sc-cta-pill { display: inline-flex; align-items: center; background: var(--grad-pitch); border-radius: 999px; padding: 30px 64px; box-shadow: 0 20px 60px -10px rgba(30,127,240,0.6); }
+.scard.square .sc-cta-pill { padding: 22px 48px; }
+.sc-url { flex: none; font-size: 64px; font-weight: 700; color: #fff; line-height: 1; padding-right: 46px; }
+.scard.square .sc-url { font-size: 48px; padding-right: 34px; }
+.sc-arrow { color: #fff; }
 </style>
