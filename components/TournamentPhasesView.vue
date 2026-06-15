@@ -195,22 +195,19 @@ const leagueRounds = computed(() => {
 }
 .arrow {
   flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text);
-  font-size: 24px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 26px;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.15s, opacity 0.15s;
+  transition: color 0.15s, opacity 0.15s;
 }
 .arrow:hover:not(:disabled) {
-  background: var(--grad-pitch);
-  color: #fff;
-  border-color: transparent;
+  color: var(--text);
 }
 .arrow:disabled {
   opacity: 0.32;

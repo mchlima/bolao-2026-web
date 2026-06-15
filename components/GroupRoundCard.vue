@@ -116,17 +116,14 @@ function hasResult(m: Match) {
   place-items: center;
   width: 32px;
   height: 32px;
-  border-radius: 9px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text);
+  border: 0;
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
-  transition: background 0.13s, color 0.13s, opacity 0.13s;
+  transition: color 0.13s, opacity 0.13s;
 }
 .arrow:hover:not(:disabled) {
-  background: var(--grad-pitch);
-  color: #fff;
-  border-color: transparent;
+  color: var(--text);
 }
 .arrow:disabled {
   opacity: 0.32;
