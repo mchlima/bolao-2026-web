@@ -123,13 +123,12 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
             <span class="sc-tn">{{ awayShort }}</span>
           </div>
         </div>
+        <div v-if="guess" class="sc-myguess">
+          <span class="sc-mg-v font-display">{{ pred?.home }}<span class="sc-colon">:</span>{{ pred?.away }}</span>
+        </div>
       </div>
 
       <div v-if="guess" class="sc-pred" :style="{ '--tc': tierCol }">
-        <div class="sc-pred-row">
-          <span class="sc-pl">Meu palpite</span>
-          <span class="sc-pv font-display">{{ guess }}</span>
-        </div>
         <div class="sc-tier">
           <span class="sc-pts font-display">+{{ points }}</span>
           <span class="sc-tl">{{ tierTxt }}</span>
@@ -206,18 +205,21 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
 .sc-score { font-size: 150px; font-weight: 700; line-height: 1; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
 .scard.square .sc-score { font-size: 112px; }
 .sc-colon { color: rgba(255,255,255,0.35); }
+.sc-myguess {
+  align-self: center; display: inline-flex; align-items: center;
+  border: 2px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.05);
+  border-radius: 999px; padding: 12px 44px;
+}
+.scard.square .sc-myguess { padding: 10px 36px; }
+.sc-mg-v { flex: none; font-size: 60px; font-weight: 700; line-height: 1; }
+.scard.square .sc-mg-v { font-size: 46px; }
 .sc-pred {
   border: 2px solid color-mix(in srgb, var(--tc) 55%, transparent);
   background: color-mix(in srgb, var(--tc) 14%, transparent);
-  border-radius: 28px; padding: 40px 48px; display: flex; flex-direction: column; gap: 22px;
+  border-radius: 28px; padding: 36px 48px; display: flex; flex-direction: column;
 }
-.scard.square .sc-pred { padding: 28px 36px; gap: 14px; }
-.sc-pred-row { display: flex; align-items: center; justify-content: space-between; }
-.sc-pl { font-size: 34px; font-weight: 700; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
-.scard.square .sc-pl { font-size: 26px; }
-.sc-pv { font-size: 64px; font-weight: 700; }
-.scard.square .sc-pv { font-size: 48px; }
-.sc-tier { display: flex; align-items: flex-end; }
+.scard.square .sc-pred { padding: 28px 38px; }
+.sc-tier { display: flex; align-items: center; }
 .sc-pts { flex: none; font-size: 80px; font-weight: 700; color: var(--tc); line-height: 1; padding-right: 56px; }
 .scard.square .sc-pts { padding-right: 40px; }
 .scard.square .sc-pts { font-size: 58px; }
