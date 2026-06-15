@@ -19,14 +19,6 @@ const emit = defineEmits<{ back: []; refresh: [] }>();
 const auth = useAuthStore();
 const ui = useUiStore();
 
-const TIER_COLOR: Record<string, string> = {
-  EXACT: 'var(--emerald)',
-  WINNER_GOALS: 'var(--azure)',
-  GOAL_DIFF: 'var(--gold)',
-  OUTCOME: 'var(--magenta)',
-  LOSER_GOALS: 'var(--scarlet)',
-  NONE: 'var(--muted)',
-};
 const MEDALS = ['var(--gold)', '#C2CAD6', '#CD7F45'];
 const HEIGHTS = ['66px', '50px', '40px'];
 

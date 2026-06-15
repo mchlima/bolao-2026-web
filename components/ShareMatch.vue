@@ -5,16 +5,6 @@ import type { Match, RankingEntry } from '~/types/api';
 const props = defineProps<{ match: Match; me: RankingEntry | null; tournamentName?: string }>();
 const tournamentName = computed(() => props.tournamentName || props.match.season?.name || 'Cravei');
 
-const TIER_COLOR: Record<string, string> = {
-  EXACT: '#13c47a',
-  WINNER_GOALS: '#1e7ff0',
-  GOAL_DIFF: '#f5b73b',
-  LOSER_GOALS: '#ef5466',
-  WINNER: '#c879f0',
-  DRAW: '#c879f0',
-  MISS: '#7a8699',
-};
-
 const open = ref(false);
 const format = ref<'story' | 'square'>('story');
 const busy = ref(false);
@@ -31,7 +21,7 @@ const guess = computed(() => (pred.value ? `${pred.value.home}:${pred.value.away
 const points = computed(() => props.me?.points ?? 0);
 const tier = computed(() => props.me?.tier ?? null);
 const tierTxt = computed(() => (tier.value ? tierLabel(tier.value, isDraw.value) : ''));
-const tierCol = computed(() => (tier.value ? TIER_COLOR[tier.value] ?? '#13c47a' : '#13c47a'));
+const tierCol = computed(() => tierColor(tier.value));
 const phaseTxt = computed(() =>
   m.value.groupName ? `Grupo ${m.value.groupName}` : (m.value.phaseLabel ?? props.tournamentName),
 );

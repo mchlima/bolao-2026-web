@@ -57,17 +57,7 @@ const kickoffText = computed(() =>
   props.match.status === 'POSTPONED' ? 'Data a definir' : formatKickoff(props.match.kickoffAt, tz.value),
 );
 
-const TIER_COLOR: Record<string, string> = {
-  EXACT: 'var(--emerald)',
-  WINNER_GOALS: 'var(--azure)',
-  GOAL_DIFF: 'var(--gold)',
-  OUTCOME: 'var(--magenta)',
-  LOSER_GOALS: 'var(--scarlet)',
-  NONE: 'var(--muted)',
-};
-const tierColor = computed(() =>
-  props.prediction?.score ? TIER_COLOR[props.prediction.score.tier] : 'var(--muted)',
-);
+const tierAccent = computed(() => tierColor(props.prediction?.score?.tier));
 
 // Ranking link target — opens the match view inside the matching tabbed shell:
 // pool-scoped when in a pool, else tournament-scoped (same behavior). Falls back
@@ -210,7 +200,7 @@ const leftLabel = computed(() =>
         <span
           v-if="!editable && prediction"
           class="chip"
-          :style="{ color: tierColor, borderColor: tierColor }"
+          :style="{ color: tierAccent, borderColor: tierAccent }"
         >
           Palpite {{ prediction.homeScore }}:{{ prediction.awayScore }}
           <template v-if="prediction.score"> · {{ tierLabel(prediction.score.tier, hasResult && shownHome === shownAway) }} +{{ prediction.score.points }}</template>

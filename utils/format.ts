@@ -71,3 +71,19 @@ export function tierLabel(tier?: string | null, isDraw = false): string {
   if (tier === 'OUTCOME' && isDraw) return 'Acertou o empate';
   return TIER_LABEL[tier] ?? tier;
 }
+
+// Single source of truth for tier accent colors — shared by the match cards,
+// the live board and the generated share image (so they never drift apart).
+export const TIER_COLOR: Record<string, string> = {
+  EXACT: 'var(--emerald)',
+  WINNER_GOALS: 'var(--azure)',
+  GOAL_DIFF: 'var(--gold)',
+  OUTCOME: 'var(--magenta)',
+  LOSER_GOALS: 'var(--scarlet)',
+  NONE: 'var(--muted)',
+};
+
+/** Accent color for a tier, falling back to muted for unknown/absent tiers. */
+export function tierColor(tier?: string | null): string {
+  return (tier && TIER_COLOR[tier]) || 'var(--muted)';
+}
