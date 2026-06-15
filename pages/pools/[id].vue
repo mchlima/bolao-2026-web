@@ -19,7 +19,6 @@ const section = computed<string>(() => {
   if (p.endsWith('/ranking')) return 'ranking';
   if (p.endsWith('/members')) return 'members';
   if (p.endsWith('/invites')) return 'invites';
-  if (p.includes(`/pools/${id}/matches`)) return 'matches';
   return 'overview';
 });
 // Tabs are peers now (Resumo included), so back just leaves the pool.
@@ -28,7 +27,6 @@ const backTo = '/pools';
 const tabs = computed(() => {
   const t = [
     { key: 'overview', label: 'Resumo', to: `/pools/${id}` },
-    { key: 'matches', label: 'Jogos', to: `/pools/${id}/matches` },
     { key: 'ranking', label: 'Ranking', to: `/pools/${id}/ranking` },
     { key: 'members', label: 'Membros', to: `/pools/${id}/members` },
   ];

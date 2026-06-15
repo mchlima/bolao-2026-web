@@ -116,7 +116,7 @@ async function leavePool() {
         </div>
       </div>
 
-      <NuxtLink v-if="!me" :to="`/pools/${id}/matches`" class="hero-cta">
+      <NuxtLink v-if="!me" :to="`/futebol/torneios/${pool.tournament.id}`" class="hero-cta">
         Você ainda não palpitou — fazer palpites
         <AppIcon name="chevronRight" :size="14" :stroke="2.6" />
       </NuxtLink>
