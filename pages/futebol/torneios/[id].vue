@@ -37,11 +37,19 @@ const section = computed<string>(() => {
 });
 const isMatch = computed(() => section.value === 'match');
 
-const tabs = computed(() => [
-  { key: 'jogos', label: 'Jogos', to: `/futebol/torneios/${id}/jogos` },
-  { key: 'classificacao', label: 'Tabela', to: `/futebol/torneios/${id}/classificacao` },
-  { key: 'ranking', label: 'Bolão', to: `/futebol/torneios/${id}/ranking` },
-]);
+// The Bolão (ranking) exposes participants' names + scores — members only, so the
+// tab only shows when authenticated (the route itself also gates, see ranking.vue).
+const auth = useAuthStore();
+const tabs = computed(() => {
+  const t = [
+    { key: 'jogos', label: 'Jogos', to: `/futebol/torneios/${id}/jogos` },
+    { key: 'classificacao', label: 'Tabela', to: `/futebol/torneios/${id}/classificacao` },
+  ];
+  if (auth.isAuthenticated) {
+    t.push({ key: 'ranking', label: 'Bolão', to: `/futebol/torneios/${id}/ranking` });
+  }
+  return t;
+});
 
 function badge(name: string): string {
   const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));

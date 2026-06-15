@@ -1,18 +1,32 @@
 <script setup lang="ts">
 import type { RankingResponse } from '~/types/api';
 
+const auth = useAuthStore();
 const route = useRoute();
 const id = route.params.id as string;
 
+// The ranking is members-only (the API requires auth). Skip the request entirely
+// when logged out and show a login gate instead.
 const { data, pending, error, refresh } = await useAsyncData(`ranking-${id}`, () =>
-  useApi()<RankingResponse>(`/seasons/${id}/ranking`),
+  auth.token
+    ? useApi()<RankingResponse>(`/seasons/${id}/ranking`)
+    : Promise.resolve(null),
 );
-useRealtime(() => [`tournament:${id}`], () => refresh());
+useRealtime(() => (auth.token ? [`tournament:${id}`] : []), () => refresh());
 </script>
 
 <template>
   <div>
-    <SkeletonList v-if="pending && !data" variant="row" :count="8" />
+    <div v-if="!auth.isAuthenticated" class="gate">
+      <div class="gate-ic"><AppIcon name="users" :size="26" :stroke="1.8" /></div>
+      <h3 class="font-display">Entre para ver o ranking</h3>
+      <p class="muted">O ranking do bolão mostra a pontuação dos participantes — disponível para quem tem conta. Entre ou cadastre-se para acompanhar.</p>
+      <div class="gate-actions">
+        <NuxtLink to="/login" class="btn btn-gold">Entrar</NuxtLink>
+        <NuxtLink to="/register" class="btn">Criar conta</NuxtLink>
+      </div>
+    </div>
+    <SkeletonList v-else-if="pending && !data" variant="row" :count="8" />
     <p v-else-if="error || !data" class="muted load">Ranking indisponível.</p>
     <template v-else>
       <div class="head">
@@ -57,5 +71,41 @@ useRealtime(() => [`tournament:${id}`], () => refresh());
   font-size: 11.5px;
   color: var(--muted);
   font-weight: 600;
+}
+.gate {
+  max-width: 380px;
+  margin: 6vh auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.gate-ic {
+  width: 60px;
+  height: 60px;
+  border-radius: 17px;
+  display: grid;
+  place-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.gate h3 {
+  font-weight: 700;
+  font-size: clamp(18px, 4.6vw, 22px);
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.gate p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 4px;
 }
 </style>
