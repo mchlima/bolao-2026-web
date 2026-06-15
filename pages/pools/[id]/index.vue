@@ -90,37 +90,8 @@ async function leavePool() {
 
 <template>
   <section v-if="pool" class="ov">
-    <!-- standing hero: position + points + breakdown -->
-    <div class="hero">
-      <span class="hero-cap">Sua posição</span>
-      <div class="hero-rank font-display">
-        <template v-if="me">
-          <span class="num">{{ me.rank }}</span><span class="ord">º</span>
-          <span class="hero-of">de {{ total }} {{ total === 1 ? 'participante' : 'participantes' }}</span>
-        </template>
-        <span v-else class="num dim">—</span>
-      </div>
-
-      <div class="hero-stats">
-        <div class="hs">
-          <span class="hs-n font-display">{{ me?.points ?? 0 }}</span>
-          <span class="hs-l">pontos</span>
-        </div>
-        <div class="hs">
-          <span class="hs-n font-display">{{ me?.exactCount ?? 0 }}</span>
-          <span class="hs-l">cravadas</span>
-        </div>
-        <div class="hs">
-          <span class="hs-n font-display">{{ me?.scoredCount ?? 0 }}</span>
-          <span class="hs-l">pontuadas</span>
-        </div>
-      </div>
-
-      <NuxtLink v-if="!me" :to="`/futebol/torneios/${pool.tournament.id}`" class="hero-cta">
-        Você ainda não palpitou — fazer palpites
-        <AppIcon name="chevronRight" :size="14" :stroke="2.6" />
-      </NuxtLink>
-    </div>
+    <!-- member standing (shared component) -->
+    <StandingHero :me="me" :total="total" :cta-to="`/futebol/torneios/${pool.tournament.id}`" />
 
     <!-- tournament: jump to predictions -->
     <NuxtLink :to="`/futebol/torneios/${pool.tournament.id}`" class="tcard">
@@ -177,85 +148,6 @@ async function leavePool() {
 <style scoped>
 .ov {
   padding-top: 2px;
-}
-
-/* standing hero */
-.hero {
-  background: var(--grad-pitch);
-  border-radius: 18px;
-  padding: 20px;
-  color: #fff;
-}
-.hero-cap {
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.78);
-}
-.hero-rank {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  margin-top: 6px;
-}
-.hero-rank .num {
-  font-size: 46px;
-  font-weight: 700;
-  line-height: 1;
-}
-.hero-rank .num.dim {
-  opacity: 0.7;
-}
-.hero-rank .ord {
-  font-size: 26px;
-  font-weight: 700;
-}
-.hero-of {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.72);
-  margin-left: 10px;
-  align-self: center;
-}
-.hero-stats {
-  display: flex;
-  margin-top: 18px;
-  padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-}
-.hs {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.hs + .hs {
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
-  padding-left: 16px;
-}
-.hs-n {
-  font-size: 23px;
-  font-weight: 700;
-  line-height: 1;
-}
-.hs-l {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.74);
-}
-.hero-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-top: 16px;
-  font-size: 13px;
-  font-weight: 800;
-  color: #fff;
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 /* tournament card */

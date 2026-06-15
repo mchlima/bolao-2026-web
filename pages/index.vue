@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, Paginated, Prediction, Tournament } from '~/types/api';
+import type { Match, Paginated, Prediction, RankingResponse, Tournament } from '~/types/api';
 // Single home for everyone (default layout → AppHeader + bottom nav). Logged-out
 // visitors also get the marketing pitch below the portal; logged-in users see
 // just the portal (torneios + próximos jogos) — same início as the public one.
@@ -31,6 +31,27 @@ watchEffect(() => {
 function onPredSaved(p: Prediction) {
   predMap.value = { ...predMap.value, [p.matchId]: p };
 }
+
+// Logged-in: a personal greeting + the member's standing in the main (ongoing)
+// tournament — same StandingHero used on the pool home.
+const firstName = computed(() => (auth.user?.name ?? '').trim().split(/\s+/)[0] ?? '');
+const greeting = computed(() => {
+  const h = Number(
+    new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false }),
+  );
+  const part = h >= 5 && h < 12 ? 'Bom dia' : h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite';
+  return firstName.value ? `${part}, ${firstName.value}` : part;
+});
+const primarySeason = computed(
+  () => (torneios.value ?? []).find((t) => t.status === 'ONGOING') ?? (torneios.value ?? [])[0] ?? null,
+);
+const { data: standing } = await useAsyncData('home-standing', () =>
+  auth.token && primarySeason.value
+    ? useApi()<RankingResponse>(`/seasons/${primarySeason.value.id}/ranking`)
+    : Promise.resolve(null),
+);
+const standingMe = computed(() => standing.value?.currentUser ?? null);
+const standingTotal = computed(() => standing.value?.totalParticipants ?? 0);
 
 // Quick badge from the tournament name (skip FIFA/years/short words).
 function tBadge(name: string): string {
@@ -158,6 +179,17 @@ const ranking = [
   <div class="land-page">
     <!-- PWA: convite discreto p/ instalar (só aparece quando instalável) -->
     <InstallBanner />
+
+    <!-- logado: saudação + sua posição/pontos no torneio principal -->
+    <section v-if="auth.isAuthenticated" class="welcome">
+      <p class="greet">{{ greeting }}</p>
+      <StandingHero
+        v-if="primarySeason"
+        :me="standingMe"
+        :total="standingTotal"
+        :cta-to="`/futebol/torneios/${primarySeason.id}`"
+      />
+    </section>
 
     <!-- PORTAL: torneios em destaque → cada um abre o hub próprio -->
     <section v-if="torneios?.length" class="hubnav-wrap">
@@ -386,6 +418,15 @@ const ranking = [
 <style scoped>
 .land-page {
   padding: 8px 0 24px;
+}
+.welcome {
+  margin: 4px 0 22px;
+}
+.greet {
+  font-size: clamp(19px, 5vw, 23px);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 14px;
 }
 /* portal: torneios em destaque — quick access to each tournament's hub */
 .hubnav-wrap {
