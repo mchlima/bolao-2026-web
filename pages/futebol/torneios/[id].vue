@@ -144,8 +144,15 @@ function badge(name: string): string {
 .ttabs {
   display: flex;
   gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.ttabs::-webkit-scrollbar {
+  display: none;
 }
 .ttag {
+  flex: none;
   padding: 7px 15px;
   border-radius: 999px;
   border: 1px solid var(--border);

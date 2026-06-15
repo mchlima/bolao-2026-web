@@ -329,14 +329,21 @@ const unavailable = computed(() => {
   border-color: color-mix(in srgb, var(--scarlet) 40%, var(--border));
 }
 /* Section tabs — small pill tags (matches the tournament shell). Active uses the
-   pitch gradient; wraps to a second row when "Convites" makes it four. */
+   pitch gradient. Single row that scrolls sideways when it overflows the
+   container (e.g. when "Convites" makes it four) instead of wrapping. */
 .tabs {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 18px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 .tab {
+  flex: none;
   padding: 7px 15px;
   border-radius: 999px;
   border: 1px solid var(--border);
