@@ -5,21 +5,25 @@ const emit = defineEmits<{ close: [] }>();
 
 <template>
   <ClientOnly>
-    <div class="backdrop" @click="emit('close')">
-      <!-- stopPropagation: clicks inside must NOT close the modal (briefing requirement) -->
-      <div class="modal" :class="{ wide }" @click.stop>
-        <div class="m-head">
-          <h3 class="font-display">{{ title }}</h3>
-          <button class="x" @click="emit('close')" aria-label="Fechar">✕</button>
-        </div>
-        <div class="m-body">
-          <slot />
-        </div>
-        <div v-if="$slots.footer" class="m-foot">
-          <slot name="footer" />
+    <!-- Teleport to <body> so the overlay escapes any ancestor stacking context
+         (e.g. a positioned/z-indexed card) and always paints above the page. -->
+    <Teleport to="body">
+      <div class="backdrop" @click="emit('close')">
+        <!-- stopPropagation: clicks inside must NOT close the modal (briefing requirement) -->
+        <div class="modal" :class="{ wide }" @click.stop>
+          <div class="m-head">
+            <h3 class="font-display">{{ title }}</h3>
+            <button class="x" @click="emit('close')" aria-label="Fechar">✕</button>
+          </div>
+          <div class="m-body">
+            <slot />
+          </div>
+          <div v-if="$slots.footer" class="m-foot">
+            <slot name="footer" />
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </ClientOnly>
 </template>
 
