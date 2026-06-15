@@ -6,12 +6,12 @@
 const ogImage = `${useRuntimeConfig().public.siteUrl}/og-cover.png`;
 useSeoMeta({
   ogType: 'website',
-  ogSiteName: 'Amigos do Bolão',
+  ogSiteName: 'Cravei',
   ogLocale: 'pt_BR',
   ogImage,
   ogImageWidth: 1200,
   ogImageHeight: 630,
-  ogImageAlt: 'Amigos do Bolão — o bolão da Copa 2026 com a sua turma',
+  ogImageAlt: 'Cravei — o bolão da Copa 2026 com a sua turma',
   twitterCard: 'summary_large_image',
   twitterImage: ogImage,
 });

@@ -11,8 +11,8 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
-      name: 'Amigos do Bolão',
-      short_name: 'Bolão',
+      name: 'Cravei',
+      short_name: 'Cravei',
       description: 'O bolão da Copa 2026 com a sua turma',
       lang: 'pt-BR',
       theme_color: '#0A0E14',
@@ -58,7 +58,7 @@ export default defineNuxtConfig({
       // Canonical origin — used to build absolute URLs for OG/Twitter meta so
       // link unfurls (WhatsApp/Twitter — the main invite channel) resolve the
       // image. Override in prod via NUXT_PUBLIC_SITE_URL.
-      siteUrl: 'https://bolao2026.kratinho.com.br',
+      siteUrl: 'https://cravei.app',
     },
   },
 
@@ -67,7 +67,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'pt-BR' },
-      title: 'Amigos do Bolão',
+      title: 'Cravei',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

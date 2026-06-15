@@ -36,7 +36,7 @@ function dismiss() {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0E14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>
       </span>
       <div class="txt">
-        <b>Instalar o Amigos do Bolão</b>
+        <b>Instalar o Cravei</b>
         <small v-if="showIOS">No Safari: Compartilhar <span class="ish">⎙</span> → "Adicionar à Tela de Início"</small>
         <small v-else>Acesso rápido na tela inicial, como um app</small>
       </div>

@@ -14,12 +14,12 @@ const current = computed(
   () => (tournaments.value ?? []).find((t) => t.id === id) ?? null,
 );
 useSeoMeta({
-  title: () => (current.value ? `${current.value.name} — Amigos do Bolão` : 'Torneio — Amigos do Bolão'),
+  title: () => (current.value ? `${current.value.name} — Cravei` : 'Torneio — Cravei'),
   description: () =>
     current.value
       ? `Jogos, tabela de classificação e ranking do bolão de ${current.value.name}. Palpite e acompanhe ao vivo.`
       : 'Jogos, tabela e ranking do torneio.',
-  ogTitle: () => (current.value ? `${current.value.name} — Amigos do Bolão` : 'Torneio — Amigos do Bolão'),
+  ogTitle: () => (current.value ? `${current.value.name} — Cravei` : 'Torneio — Cravei'),
   ogDescription: () =>
     current.value ? `Jogos, tabela e ranking de ${current.value.name}.` : 'Jogos, tabela e ranking do torneio.',
 });

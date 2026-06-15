@@ -1,5 +1,5 @@
 <script setup lang="ts">
-useSeoMeta({ title: 'Criar conta — Amigos do Bolão', robots: 'noindex' });
+useSeoMeta({ title: 'Criar conta — Cravei', robots: 'noindex' });
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -51,7 +51,7 @@ async function submit() {
         <span class="logo">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0A0E14" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>
         </span>
-        <h1 class="font-display">Amigos do Bolão</h1>
+        <h1 class="font-display">Cravei</h1>
         <p class="tag">Crie sua conta para palpitar</p>
       </div>
 

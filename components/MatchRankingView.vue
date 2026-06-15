@@ -33,12 +33,12 @@ const seoMatchup = computed(() => {
   return `${home} x ${away}`;
 });
 useSeoMeta({
-  title: () => (seoMatchup.value ? `${seoMatchup.value} — Amigos do Bolão` : 'Partida — Amigos do Bolão'),
+  title: () => (seoMatchup.value ? `${seoMatchup.value} — Cravei` : 'Partida — Cravei'),
   description: () =>
     seoMatchup.value
       ? `Palpites, placar ao vivo e ranking da partida ${seoMatchup.value}.`
       : 'Palpites, placar ao vivo e ranking da partida.',
-  ogTitle: () => (seoMatchup.value ? `${seoMatchup.value} — Amigos do Bolão` : 'Partida — Amigos do Bolão'),
+  ogTitle: () => (seoMatchup.value ? `${seoMatchup.value} — Cravei` : 'Partida — Cravei'),
   ogDescription: () =>
     seoMatchup.value
       ? `Placar ao vivo e ranking dos palpites de ${seoMatchup.value}.`

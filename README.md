@@ -1,7 +1,7 @@
 # bolao-2026-web
 
 Frontend do **Bolão 2026** ("Amigos do Bolão"). **Nuxt 3** + TypeScript. Deploy na **Vercel** em
-`bolao2026.kratinho.com.br`. Consome a API em `https://api-bolao2026.kratinho.com.br`.
+`cravei.app`. Consome a API em `https://api.cravei.app`.
 
 > Identidade visual **"Estádio 26"** — seguir o protótipo Claude Design como referência canônica:
 > <https://api.anthropic.com/v1/design/h/uH_LKnJREAkR8Mw4s0jG9g?open_file=Amigos+do+Bol%C3%A3o.dc.html>
@@ -46,5 +46,5 @@ assets/css/         # tokens "Estádio 26" (placeholder)
 
 ## Deploy (Vercel)
 
-Importar o repo; env `NUXT_PUBLIC_API_BASE=https://api-bolao2026.kratinho.com.br`; domínio
-`bolao2026.kratinho.com.br` (CNAME no Cloudflare).
+Importar o repo; env `NUXT_PUBLIC_API_BASE=https://api.cravei.app`; domínio
+`cravei.app` (CNAME no Cloudflare).

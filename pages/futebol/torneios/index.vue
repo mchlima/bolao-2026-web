@@ -17,10 +17,10 @@ function tBadge(name: string): string {
 }
 
 useSeoMeta({
-  title: 'Torneios — Amigos do Bolão',
+  title: 'Torneios — Cravei',
   description:
     'Os torneios disponíveis para palpitar e acompanhar: classificação, fases, rodadas e ranking de cada um.',
-  ogTitle: 'Torneios — Amigos do Bolão',
+  ogTitle: 'Torneios — Cravei',
   ogDescription:
     'Escolha um torneio para palpitar e acompanhar a classificação, as fases e o ranking.',
 });

@@ -155,7 +155,7 @@ function logout() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0E14" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z" /><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6" /></svg>
         </span>
         <span class="brand-txt">
-          <span class="brand-name">Amigos do Bolão</span>
+          <span class="brand-name">Cravei</span>
           <span class="brand-sub">Painel admin</span>
         </span>
       </NuxtLink>

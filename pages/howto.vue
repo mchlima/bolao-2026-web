@@ -4,10 +4,10 @@
 // ScoringService (api) + bolao-2026-docs/api/scoring.md. Rótulos/cores espelham
 // utils/format.ts e MatchCard.vue.
 useSeoMeta({
-  title: 'Como funciona — Amigos do Bolão',
+  title: 'Como funciona — Cravei',
   description:
     'Entenda a pontuação do bolão: cravar o placar vale mais, mas acertar o vencedor ou o empate já pontua. Veja todos os níveis e como o ranking é calculado.',
-  ogTitle: 'Como funciona o Amigos do Bolão',
+  ogTitle: 'Como funciona o Cravei',
   ogDescription:
     'A pontuação por proximidade: cravar o placar vale mais, mas acertar o vencedor já pontua.',
 });

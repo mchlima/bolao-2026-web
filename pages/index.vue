@@ -61,9 +61,9 @@ const liveCount = computed(
 const desc =
   'Palpite nos 104 jogos da Copa 2026, crie bolões privados com os amigos e acompanhe o ranking mudar ao vivo a cada gol. Placares automáticos, classificação completa e pontuação por proximidade. Grátis.';
 useSeoMeta({
-  title: 'Amigos do Bolão · O bolão da Copa 2026 com a sua turma',
+  title: 'Cravei · O bolão da Copa 2026 com a sua turma',
   description: desc,
-  ogTitle: 'Amigos do Bolão · O bolão da Copa 2026 com a sua turma',
+  ogTitle: 'Cravei · O bolão da Copa 2026 com a sua turma',
   ogDescription: desc,
 });
 
@@ -377,7 +377,7 @@ const ranking = [
     </section>
 
     <footer class="lfoot">
-      Amigos do Bolão · Copa do Mundo FIFA 2026
+      Cravei · Copa do Mundo FIFA 2026
     </footer>
     </template>
   </div>

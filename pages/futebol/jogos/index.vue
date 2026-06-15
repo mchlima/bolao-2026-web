@@ -2,10 +2,10 @@
 import type { Competition, Match, Paginated } from '~/types/api';
 
 useSeoMeta({
-  title: 'Jogos · Agenda — Amigos do Bolão',
+  title: 'Jogos · Agenda — Cravei',
   description:
     'A agenda de jogos dia a dia: navegue pelas datas e veja as partidas de cada dia, de todos os torneios, com placar e horário.',
-  ogTitle: 'Agenda de jogos — Amigos do Bolão',
+  ogTitle: 'Agenda de jogos — Cravei',
   ogDescription: 'Os jogos de cada dia, de todos os torneios, com placar e horário.',
 });
 
