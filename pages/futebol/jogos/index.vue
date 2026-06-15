@@ -137,9 +137,12 @@ function fmtDayLabel(date: string): string {
       </button>
     </div>
 
+    <div v-if="pending && data" class="ag-busy" aria-live="polite">
+      <span class="ag-spin" />Carregando jogos…
+    </div>
     <SkeletonList v-if="pending && !data" variant="match" :count="4" />
     <p v-else-if="!matches.length" class="muted ag-empty">Nenhum jogo neste dia.</p>
-    <div v-else class="ag-list">
+    <div v-else class="ag-list" :class="{ busy: pending }">
       <template v-if="liveMatches.length">
         <span class="ag-live-lbl"><span class="lvdot" />Ao vivo</span>
         <MatchCard v-for="m in liveMatches" :key="m.id" :match="m" />
@@ -337,6 +340,34 @@ function fmtDayLabel(date: string): string {
 .ag-list {
   display: grid;
   gap: 10px;
+}
+.ag-list.busy {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.ag-busy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.ag-spin {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  border-top-color: var(--gold);
+  animation: ag-spin 0.7s linear infinite;
+}
+@keyframes ag-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .ag-live-lbl {
   display: inline-flex;
