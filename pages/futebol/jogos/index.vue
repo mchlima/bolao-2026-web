@@ -32,6 +32,9 @@ const { data, pending } = await useAsyncData(
   { watch: [day, competitionId] },
 );
 const matches = computed<Match[]>(() => (data.value?.days ?? []).flatMap((d) => d.matches));
+// Live games float to the top of the day; the rest stay in kickoff order.
+const liveMatches = computed(() => matches.value.filter((m) => m.status === 'LIVE'));
+const restMatches = computed(() => matches.value.filter((m) => m.status !== 'LIVE'));
 
 const isToday = computed(() => day.value === brtToday());
 function shiftDay(delta: number) {
@@ -87,7 +90,12 @@ function fmtDayLabel(date: string): string {
     <SkeletonList v-if="pending && !data" variant="match" :count="4" />
     <p v-else-if="!matches.length" class="muted ag-empty">Nenhum jogo neste dia.</p>
     <div v-else class="ag-list">
-      <MatchCard v-for="m in matches" :key="m.id" :match="m" />
+      <template v-if="liveMatches.length">
+        <span class="ag-live-lbl"><span class="lvdot" />Ao vivo</span>
+        <MatchCard v-for="m in liveMatches" :key="m.id" :match="m" />
+        <span v-if="restMatches.length" class="ag-live-lbl rest">Mais jogos do dia</span>
+      </template>
+      <MatchCard v-for="m in restMatches" :key="m.id" :match="m" />
     </div>
   </div>
 </template>
@@ -176,5 +184,28 @@ function fmtDayLabel(date: string): string {
 .ag-list {
   display: grid;
   gap: 10px;
+}
+.ag-live-lbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--scarlet);
+  margin: 2px 0 -2px;
+}
+.ag-live-lbl.rest {
+  color: var(--muted);
+  margin-top: 8px;
+}
+.lvdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--scarlet);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--scarlet) 22%, transparent);
+  animation: liveDot 1.1s ease-in-out infinite;
 }
 </style>
