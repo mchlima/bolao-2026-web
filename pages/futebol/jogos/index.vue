@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Competition, Match, Paginated } from '~/types/api';
+import type { Competition, Match, Paginated, Prediction } from '~/types/api';
 
 useSeoMeta({
   title: 'Jogos · Agenda — Cravei',
@@ -55,6 +55,24 @@ const matches = computed<Match[]>(() => (data.value?.days ?? []).flatMap((d) => 
 // Live games float to the top of the day; the rest stay in kickoff order.
 const liveMatches = computed(() => matches.value.filter((m) => m.status === 'LIVE'));
 const restMatches = computed(() => matches.value.filter((m) => m.status !== 'LIVE'));
+
+// The user's predictions (all seasons) so each card shows the saved palpite
+// instead of an empty editor. Loaded once — independent of the day/competition.
+const auth = useAuthStore();
+const { data: preds } = await useAsyncData('agenda-preds', () =>
+  auth.token
+    ? useApi()<Prediction[]>('/predictions/me')
+    : Promise.resolve([] as Prediction[]),
+);
+const predMap = ref<Record<string, Prediction>>({});
+watchEffect(() => {
+  const m: Record<string, Prediction> = {};
+  for (const p of preds.value ?? []) m[p.matchId] = p;
+  predMap.value = m;
+});
+function onSaved(p: Prediction) {
+  predMap.value = { ...predMap.value, [p.matchId]: p };
+}
 
 const isToday = computed(() => day.value === brtToday());
 function shiftDay(delta: number) {
@@ -145,10 +163,10 @@ function fmtDayLabel(date: string): string {
     <div v-else class="ag-list" :class="{ busy: pending }">
       <template v-if="liveMatches.length">
         <span class="ag-live-lbl"><span class="lvdot" />Ao vivo</span>
-        <MatchCard v-for="m in liveMatches" :key="m.id" :match="m" />
+        <MatchCard v-for="m in liveMatches" :key="m.id" :match="m" :prediction="predMap[m.id] ?? null" @saved="onSaved" />
         <span v-if="restMatches.length" class="ag-live-lbl rest">Mais jogos do dia</span>
       </template>
-      <MatchCard v-for="m in restMatches" :key="m.id" :match="m" />
+      <MatchCard v-for="m in restMatches" :key="m.id" :match="m" :prediction="predMap[m.id] ?? null" @saved="onSaved" />
     </div>
   </div>
 </template>
