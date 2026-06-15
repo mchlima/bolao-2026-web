@@ -1,100 +1,46 @@
 <script setup lang="ts">
-// Pool layout: header + tab bar + <NuxtPage>. Each tab is its own route
-// (/pools/:id/ranking|matches|members|invites), so the URL reflects the tab and
-// the chrome stays put while the content swaps.
+// Pool shell: a slim header (back + badge + name) with the section tabs as pill
+// tags, then <NuxtPage> — mirrors the tournament shell. The pool home/overview
+// (member standing, meta, manage/leave actions) is the base route (index.vue);
+// each tab is its own nested route, so switching swaps only the content.
 const route = useRoute();
 const id = route.params.id as string;
-const pools = usePools();
-const ui = useUiStore();
-const router = useRouter();
 
-const ROLE_LABEL: Record<string, string> = {
-  OWNER: 'Dono',
-  ADMIN: 'Admin',
-  MEMBER: 'Membro',
-};
+const { data: pool, pending, error } = await usePoolDetail(id);
 
-const { data: pool, pending, error, refresh: refreshPool } =
-  await usePoolDetail(id);
-
-const myRole = computed(() => pool.value?.myRole);
 const canManage = computed(
-  () => myRole.value === 'OWNER' || myRole.value === 'ADMIN',
+  () => pool.value?.myRole === 'OWNER' || pool.value?.myRole === 'ADMIN',
 );
-const isOwner = computed(() => myRole.value === 'OWNER');
 
-// Which tab is active (derived from the URL).
-const activeTab = computed(() => {
+// Active section from the URL. The base path is the overview (no tab lit); a
+// match-detail page keeps the Jogos tab lit.
+const section = computed<string>(() => {
   const p = route.path;
-  if (p.includes(`/pools/${id}/matches`)) return 'matches';
+  if (p.endsWith('/ranking')) return 'ranking';
   if (p.endsWith('/members')) return 'members';
   if (p.endsWith('/invites')) return 'invites';
-  return 'ranking';
+  if (p.includes(`/pools/${id}/matches`)) return 'matches';
+  return 'overview';
+});
+const isOverview = computed(() => section.value === 'overview');
+// Back climbs the hierarchy: a tab → the overview; the overview → the pools list.
+const backTo = computed(() => (isOverview.value ? '/pools' : `/pools/${id}`));
+
+const tabs = computed(() => {
+  const t = [
+    { key: 'matches', label: 'Jogos', to: `/pools/${id}/matches` },
+    { key: 'ranking', label: 'Ranking', to: `/pools/${id}/ranking` },
+    { key: 'members', label: 'Membros', to: `/pools/${id}/members` },
+  ];
+  if (canManage.value) t.push({ key: 'invites', label: 'Convites', to: `/pools/${id}/invites` });
+  return t;
 });
 
-// ── Edit (name + descriptions) ──
-const editOpen = ref(false);
-const editName = ref('');
-const editDescription = ref('');
-const editInviteDescription = ref('');
-const saving = ref(false);
-function openEdit() {
-  editName.value = pool.value?.name ?? '';
-  editDescription.value = pool.value?.description ?? '';
-  editInviteDescription.value = pool.value?.inviteDescription ?? '';
-  editOpen.value = true;
-}
-async function saveEdit() {
-  if (!editName.value.trim()) return;
-  saving.value = true;
-  try {
-    await pools.update(id, {
-      name: editName.value.trim(),
-      description: editDescription.value.trim(),
-      inviteDescription: editInviteDescription.value.trim(),
-    });
-    editOpen.value = false;
-    await refreshPool();
-    ui.toast('success', 'Bolão atualizado.');
-  } catch (e) {
-    ui.toast('error', poolError(e));
-  } finally {
-    saving.value = false;
-  }
-}
-
-async function delPool() {
-  const ok = await ui.confirm({
-    title: 'Excluir bolão',
-    msg: 'Isso remove o bolão, seus membros e links de convite. Esta ação não pode ser desfeita.',
-    confirmLabel: 'Excluir',
-    danger: true,
-  });
-  if (!ok) return;
-  try {
-    await pools.remove(id);
-    ui.toast('success', 'Bolão excluído.');
-    await router.push('/pools');
-  } catch (e) {
-    ui.toast('error', poolError(e));
-  }
-}
-
-async function leavePool() {
-  const ok = await ui.confirm({
-    title: 'Sair do bolão',
-    msg: 'Você deixará de ver o ranking deste bolão. Pode voltar com um novo convite.',
-    confirmLabel: 'Sair',
-    danger: true,
-  });
-  if (!ok) return;
-  try {
-    await pools.leave(id);
-    ui.toast('success', 'Você saiu do bolão.');
-    await router.push('/pools');
-  } catch (e) {
-    ui.toast('error', poolError(e));
-  }
+function badge(name: string): string {
+  const clean = name.trim();
+  const w = clean.split(/\s+/).filter((x) => x.length > 2 && !/^\d+$/.test(x));
+  if (w.length >= 2) return (w[0][0] + w[1][0]).toUpperCase();
+  return (w[0] ?? clean).slice(0, 2).toUpperCase();
 }
 
 const unavailable = computed(() => {
@@ -124,69 +70,42 @@ const unavailable = computed(() => {
     </div>
 
     <template v-else>
-      <NuxtLink to="/pools" class="back"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />Meus bolões</NuxtLink>
-
-      <!-- header -->
-      <header class="hd">
-        <div class="hd-main">
-          <h1 class="font-display title">{{ pool.name }}</h1>
-          <div class="meta">
-            <span class="pill role">{{ ROLE_LABEL[pool.myRole] }}</span>
-            <span class="dot">·</span>
-            <span>{{ pool.memberCount }} {{ pool.memberCount === 1 ? 'membro' : 'membros' }}</span>
-          </div>
-          <p v-if="pool.description" class="pdesc">{{ pool.description }}</p>
-          <NuxtLink :to="`/futebol/torneios/${pool.tournament.id}`" class="tour-link">
-            {{ pool.tournament.name }} — palpitar <AppIcon name="chevronRight" :size="13" :stroke="2.4" />
+      <header class="thead">
+        <div class="trow">
+          <NuxtLink :to="backTo" class="back" aria-label="Voltar">
+            <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
           </NuxtLink>
+          <NuxtLink :to="`/pools/${id}`" class="brandmark font-display" aria-label="Visão geral do bolão">
+            {{ badge(pool.name) }}
+          </NuxtLink>
+          <div class="htitle">
+            <span class="ht-main font-display">{{ pool.name }}</span>
+          </div>
         </div>
-        <div class="hd-actions">
-          <button v-if="canManage" class="btn sm" @click="openEdit">Editar</button>
-          <button v-if="isOwner" class="btn sm danger" @click="delPool">Excluir</button>
-          <button v-if="!isOwner" class="btn sm danger" @click="leavePool">Sair</button>
-        </div>
-      </header>
 
-      <!-- tabs (each is a route) -->
-      <nav class="tabs">
-        <NuxtLink :to="`/pools/${id}/ranking`" class="tab" :class="{ on: activeTab === 'ranking' }">Ranking</NuxtLink>
-        <NuxtLink :to="`/pools/${id}/matches`" class="tab" :class="{ on: activeTab === 'matches' }">Jogos</NuxtLink>
-        <NuxtLink :to="`/pools/${id}/members`" class="tab" :class="{ on: activeTab === 'members' }">Membros</NuxtLink>
-        <NuxtLink v-if="canManage" :to="`/pools/${id}/invites`" class="tab" :class="{ on: activeTab === 'invites' }">Convites</NuxtLink>
-      </nav>
+        <!-- Section tabs: route-based pill tags; clicking swaps only <NuxtPage>. -->
+        <nav class="tabs" aria-label="Seções do bolão">
+          <NuxtLink
+            v-for="t in tabs"
+            :key="t.key"
+            :to="t.to"
+            class="tab"
+            :class="{ on: section === t.key }"
+            :aria-current="section === t.key ? 'page' : undefined"
+          >
+            {{ t.label }}
+          </NuxtLink>
+        </nav>
+      </header>
 
       <NuxtPage />
     </template>
-
-    <!-- Edit modal -->
-    <AppModal v-if="editOpen" title="Editar bolão" @close="editOpen = false">
-      <form id="edit-pool" class="editform" @submit.prevent="saveEdit">
-        <div>
-          <label class="lbl">Nome do bolão</label>
-          <input v-model="editName" class="inp" maxlength="60" required />
-        </div>
-        <div>
-          <label class="lbl">Descrição interna (membros)</label>
-          <textarea v-model="editDescription" class="inp area" maxlength="500" rows="2" placeholder="Regras combinadas, prêmio…" />
-        </div>
-        <div>
-          <label class="lbl">Mensagem do convite</label>
-          <textarea v-model="editInviteDescription" class="inp area" maxlength="500" rows="2" placeholder="Aparece para quem abrir o link de convite." />
-        </div>
-      </form>
-      <template #footer>
-        <button class="btn" @click="editOpen = false">Cancelar</button>
-        <button class="btn btn-gold" form="edit-pool" type="submit" :disabled="saving">
-          {{ saving ? 'Salvando…' : 'Salvar' }}
-        </button>
-      </template>
-    </AppModal>
   </div>
 </template>
 
 <style scoped>
 .page {
-  padding: 18px 0 44px;
+  padding: 6px 0 44px;
 }
 .unavail {
   max-width: 420px;
@@ -218,130 +137,70 @@ const unavailable = computed(() => {
   line-height: 1.5;
   margin-bottom: 6px;
 }
-.back {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--muted);
-  font-weight: 700;
-  font-size: 13px;
-  margin-bottom: 14px;
-}
-.back:hover {
-  color: var(--text);
-}
-.hd {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 18px;
-}
-.title {
-  font-weight: 700;
-  font-size: clamp(24px, 5vw, 34px);
-  text-transform: uppercase;
-  line-height: 1;
-}
-.meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 600;
-}
-.dot {
-  opacity: 0.5;
-}
-.pill.role {
-  font-size: 10.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--azure);
-  border: 1px solid var(--azure);
-  border-radius: 999px;
-  padding: 2px 9px;
-}
-.pdesc {
-  margin-top: 10px;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--text);
-  max-width: 560px;
-  white-space: pre-line;
-}
-.tour-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-top: 10px;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--emerald);
-}
-.editform {
+
+/* Slim header (matches the tournament shell). */
+.thead {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  padding: 6px 0 16px;
 }
-.area {
-  resize: vertical;
-  min-height: 64px;
-  font-family: inherit;
+.trow {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
 }
-.inp {
-  width: 100%;
-  padding: 11px 13px;
+.back {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
   border-radius: 11px;
   border: 1px solid var(--border);
   background: var(--bg-surface);
   color: var(--text);
-  font: inherit;
+}
+.back:hover {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+}
+.brandmark {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: var(--grad-pitch);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
   font-size: 14px;
 }
-.inp:focus {
-  outline: none;
-  border-color: var(--emerald);
-}
-.lbl {
-  display: block;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
-.hd-actions {
+.htitle {
+  min-width: 0;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 1px;
 }
-.btn.sm {
-  padding: 8px 13px;
-  font-size: 13px;
+.ht-main {
+  font-weight: 700;
+  font-size: clamp(17px, 4.4vw, 24px);
+  text-transform: uppercase;
+  line-height: 1.05;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.btn.danger {
-  color: var(--scarlet);
-  border-color: color-mix(in srgb, var(--scarlet) 40%, var(--border));
-}
-/* Section tabs — small pill tags (matches the tournament shell). Active uses the
-   pitch gradient. Single row that scrolls sideways when it overflows the
-   container (e.g. when "Convites" makes it four) instead of wrapping. */
+
+/* Section tabs — small pill tags. Single row that scrolls sideways (full-bleed
+   to the screen edges) when it overflows the container, instead of wrapping. */
 .tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 18px;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* Full-bleed scroller: cancel the .container side padding (16px / 13px on
-     small screens) so tags scroll all the way to the screen edges instead of
-     being clipped inside the padding, then re-add it as inner padding so the
-     first/last tag still line up with the content at rest. */
   margin-left: -16px;
   margin-right: -16px;
   padding-left: 16px;
