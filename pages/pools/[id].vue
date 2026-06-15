@@ -19,6 +19,7 @@ const section = computed<string>(() => {
   if (p.endsWith('/ranking')) return 'ranking';
   if (p.endsWith('/members')) return 'members';
   if (p.endsWith('/invites')) return 'invites';
+  if (p.includes(`/pools/${id}/matches`)) return 'matches';
   return 'overview';
 });
 // Tabs are peers now (Resumo included), so back just leaves the pool.
@@ -28,6 +29,7 @@ const tabs = computed(() => {
   const t = [
     { key: 'overview', label: 'Resumo', to: `/pools/${id}` },
     { key: 'ranking', label: 'Ranking', to: `/pools/${id}/ranking` },
+    { key: 'matches', label: 'Resultados', to: `/pools/${id}/matches` },
     { key: 'members', label: 'Membros', to: `/pools/${id}/members` },
   ];
   if (canManage.value) t.push({ key: 'invites', label: 'Convites', to: `/pools/${id}/invites` });
