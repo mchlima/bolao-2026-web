@@ -328,28 +328,35 @@ const unavailable = computed(() => {
   color: var(--scarlet);
   border-color: color-mix(in srgb, var(--scarlet) 40%, var(--border));
 }
+/* Section tabs — small pill tags (matches the tournament shell). Active uses the
+   pitch gradient; wraps to a second row when "Convites" makes it four. */
 .tabs {
   display: flex;
-  gap: 5px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 5px;
-  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
 }
 .tab {
-  flex: 1;
-  text-align: center;
-  padding: 10px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 13.5px;
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
   color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.tab:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
 }
 .tab.on {
   background: var(--grad-pitch);
   color: #fff;
+  border-color: transparent;
 }
 </style>
