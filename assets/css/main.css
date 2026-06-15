@@ -285,3 +285,11 @@ select:focus-visible,
   color: var(--muted);
   background: var(--bg-surface);
 }
+
+/* Global route/data loading bar (Nuxt). Give it a glow so the feedback on page
+   navigation, tab switches and admin refetches reads clearly, not as a hairline. */
+.nuxt-loading-indicator {
+  box-shadow:
+    0 0 12px 1px #0fb36b,
+    0 1px 3px rgba(15, 179, 107, 0.55);
+}

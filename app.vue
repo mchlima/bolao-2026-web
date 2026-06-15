@@ -22,7 +22,7 @@ useHead({ meta: [{ name: 'theme-color', content: '#0A0E14' }] });
   <div>
     <VitePwaManifest />
     <NuxtRouteAnnouncer />
-    <NuxtLoadingIndicator :height="3" color="#0FB36B" :throttle="120" />
+    <NuxtLoadingIndicator :height="4" color="#0FB36B" :throttle="90" :duration="2200" />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
