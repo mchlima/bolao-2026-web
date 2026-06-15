@@ -22,6 +22,26 @@ const { data: comps } = await useAsyncData('agenda-comps', () =>
   useApi()<Paginated<Competition>>('/competitions?pageSize=100'),
 );
 
+// Tournament filter — custom dropdown (a native <select> can't show the badge).
+const compOpen = ref(false);
+const COMP_GRADS = ['var(--grad-pitch)', 'var(--grad-trophy)', 'var(--grad-live)'];
+const compList = computed(() => comps.value?.data ?? []);
+const selectedComp = computed(
+  () => compList.value.find((c) => c.id === competitionId.value) ?? null,
+);
+function compInitials(name: string): string {
+  const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
+  return ((w[0]?.[0] ?? name[0] ?? '') + (w[1]?.[0] ?? '')).toUpperCase();
+}
+function compGrad(c: Competition): string {
+  const i = compList.value.findIndex((x) => x.id === c.id);
+  return COMP_GRADS[(i < 0 ? 0 : i) % COMP_GRADS.length];
+}
+function pickComp(value: string) {
+  competitionId.value = value;
+  compOpen.value = false;
+}
+
 const { data, pending } = await useAsyncData(
   'agenda',
   () => {
@@ -66,10 +86,40 @@ function fmtDayLabel(date: string): string {
   <div class="agenda">
     <header class="ag-head">
       <h1 class="font-display">Jogos</h1>
-      <select v-model="competitionId" class="ag-comp input">
-        <option value="">Todos os torneios</option>
-        <option v-for="c in comps?.data ?? []" :key="c.id" :value="c.id">{{ c.name }}</option>
-      </select>
+      <div class="ag-comp">
+        <button type="button" class="csel" :aria-expanded="compOpen" @click="compOpen = !compOpen">
+          <span v-if="selectedComp" class="cbadge" :style="{ background: compGrad(selectedComp) }">
+            <img v-if="selectedComp.logoUrl" :src="selectedComp.logoUrl" alt="" />
+            <template v-else>{{ compInitials(selectedComp.name) }}</template>
+          </span>
+          <span v-else class="cbadge all"><AppIcon name="ball" :size="14" :stroke="2" /></span>
+          <span class="cname">{{ selectedComp?.name ?? 'Todos os torneios' }}</span>
+          <AppIcon name="chevronDown" :size="16" :stroke="2.4" class="ccaret" :class="{ up: compOpen }" />
+        </button>
+
+        <template v-if="compOpen">
+          <div class="csel-ov" @click="compOpen = false" />
+          <ul class="csel-menu">
+            <li>
+              <button type="button" class="csel-opt" :class="{ on: !competitionId }" @click="pickComp('')">
+                <span class="cbadge all"><AppIcon name="ball" :size="14" :stroke="2" /></span>
+                <span class="copt-name">Todos os torneios</span>
+                <AppIcon v-if="!competitionId" name="check" :size="15" :stroke="2.6" class="cok" />
+              </button>
+            </li>
+            <li v-for="c in compList" :key="c.id">
+              <button type="button" class="csel-opt" :class="{ on: competitionId === c.id }" @click="pickComp(c.id)">
+                <span class="cbadge" :style="{ background: compGrad(c) }">
+                  <img v-if="c.logoUrl" :src="c.logoUrl" alt="" />
+                  <template v-else>{{ compInitials(c.name) }}</template>
+                </span>
+                <span class="copt-name">{{ c.name }}</span>
+                <AppIcon v-if="competitionId === c.id" name="check" :size="15" :stroke="2.6" class="cok" />
+              </button>
+            </li>
+          </ul>
+        </template>
+      </div>
     </header>
 
     <!-- day navigator: opens on today, ‹ prev / next › -->
@@ -118,7 +168,116 @@ function fmtDayLabel(date: string): string {
   text-transform: uppercase;
 }
 .ag-comp {
-  max-width: 240px;
+  position: relative;
+  flex: 0 1 auto;
+}
+.csel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 230px;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+.csel:hover {
+  border-color: color-mix(in srgb, var(--gold) 40%, var(--border));
+}
+.cbadge {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 11px;
+  overflow: hidden;
+}
+.cbadge.all {
+  background: var(--bg-base);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.cbadge img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cname {
+  min-width: 0;
+  flex: 1;
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ccaret {
+  flex: none;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+.ccaret.up {
+  transform: rotate(180deg);
+}
+.csel-ov {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+}
+.csel-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 31;
+  min-width: 230px;
+  max-width: 280px;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.5);
+}
+.csel-opt {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.csel-opt:hover {
+  background: var(--bg-base);
+}
+.csel-opt.on {
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+}
+.copt-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cok {
+  flex: none;
+  color: var(--gold);
 }
 .day-nav {
   display: flex;
