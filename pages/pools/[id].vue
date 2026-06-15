@@ -338,9 +338,25 @@ const unavailable = computed(() => {
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  /* Full-bleed scroller: cancel the .container side padding (16px / 13px on
+     small screens) so tags scroll all the way to the screen edges instead of
+     being clipped inside the padding, then re-add it as inner padding so the
+     first/last tag still line up with the content at rest. */
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 .tabs::-webkit-scrollbar {
   display: none;
+}
+@media (max-width: 420px) {
+  .tabs {
+    margin-left: -13px;
+    margin-right: -13px;
+    padding-left: 13px;
+    padding-right: 13px;
+  }
 }
 .tab {
   flex: none;

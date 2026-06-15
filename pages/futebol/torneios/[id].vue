@@ -147,9 +147,25 @@ function badge(name: string): string {
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  /* Full-bleed scroller: cancel the .container side padding (16px / 13px on
+     small screens) so tags scroll to the screen edges instead of being clipped
+     inside the padding, then re-add it as inner padding so the first/last tag
+     still line up with the content at rest. */
+  margin-left: -16px;
+  margin-right: -16px;
+  padding-left: 16px;
+  padding-right: 16px;
 }
 .ttabs::-webkit-scrollbar {
   display: none;
+}
+@media (max-width: 420px) {
+  .ttabs {
+    margin-left: -13px;
+    margin-right: -13px;
+    padding-left: 13px;
+    padding-right: 13px;
+  }
 }
 .ttag {
   flex: none;
