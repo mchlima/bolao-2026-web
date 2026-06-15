@@ -96,12 +96,11 @@ const filtered = computed(() => {
   });
 });
 
-// Sections are grouped by calendar day (account tz), matches in kickoff order —
-// same shape as the pool matches screen. The phase select stays as a filter.
+// Matches are ordered by status priority (ao vivo → agendada → adiada →
+// encerrada), then sub-grouped under their calendar-day (account tz) header —
+// so finished games sink to the bottom. The phase select stays as a filter.
 const sections = computed(() => {
-  const sorted = [...filtered.value].sort(
-    (a, b) => new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
-  );
+  const sorted = [...filtered.value].sort(compareMatchesForListing);
   const out: Array<{ title: string; matches: Match[] }> = [];
   for (const m of sorted) {
     const title = formatDate(m.kickoffAt, tz.value);

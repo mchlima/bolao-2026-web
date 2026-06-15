@@ -92,6 +92,7 @@ const hubMatches = computed<Match[]>(() =>
   (hub.value?.agenda.days ?? [])
     .flatMap((d) => d.matches)
     .filter((m) => m.status !== 'POSTPONED')
+    .sort(compareMatchesForListing)
     .slice(0, 6),
 );
 const liveCount = computed(

@@ -52,9 +52,12 @@ const { data, pending, refresh } = await useAsyncData(
   { watch: [day, competitionId] },
 );
 const matches = computed<Match[]>(() => (data.value?.days ?? []).flatMap((d) => d.matches));
-// Live games float to the top of the day; the rest stay in kickoff order.
+// Live games float to the top of the day; the rest follow status priority
+// (agendada → adiada → encerrada), finished sinking to the bottom.
 const liveMatches = computed(() => matches.value.filter((m) => m.status === 'LIVE'));
-const restMatches = computed(() => matches.value.filter((m) => m.status !== 'LIVE'));
+const restMatches = computed(() =>
+  matches.value.filter((m) => m.status !== 'LIVE').sort(compareMatchesForListing),
+);
 
 // Reflect live changes (goals/status): subscribe to every tournament shown today
 // and re-fetch when the robot emits an update for it.
