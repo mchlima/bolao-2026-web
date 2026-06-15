@@ -111,7 +111,10 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
   <div class="capture-host" aria-hidden="true">
     <div ref="card" class="scard" :class="format">
       <div class="sc-top">
-        <span class="sc-brand font-display">CRAVEI</span>
+        <div class="sc-brandrow">
+          <img class="sc-icon" src="/pwa-512x512.png" alt="" />
+          <span class="sc-brand font-display">CRAVEI</span>
+        </div>
         <div class="sc-accent" />
         <span class="sc-tourn">{{ tournamentName }}</span>
       </div>
@@ -190,6 +193,9 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
 .scard.square { width: 1080px; height: 1080px; padding: 80px 80px; }
 .sc-top { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
 .sc-accent { width: 110px; height: 8px; border-radius: 999px; background: var(--grad-pitch); }
+.sc-brandrow { display: flex; align-items: center; gap: 26px; }
+.sc-icon { width: 96px; height: 96px; border-radius: 24px; }
+.scard.square .sc-icon { width: 76px; height: 76px; border-radius: 19px; }
 .sc-brand { font-size: 76px; font-weight: 700; letter-spacing: 2px; line-height: 1; }
 .scard.square .sc-brand { font-size: 56px; }
 .sc-tourn { font-size: 30px; font-weight: 700; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; }
