@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { RankingResponse } from '~/types/api';
-// Pool home ("tela inicial"): the member's own standing (position + points), the
-// pool meta that used to live in the header, and the manage/leave actions. The
-// slim header + section tabs live in the shell (pools/[id].vue).
+// Pool home ("tela inicial" / Resumo tab): the member's own standing (position +
+// points), the pool meta that used to live in the header, and the manage/leave
+// actions. The slim header + section tabs live in the shell (pools/[id].vue).
 const route = useRoute();
 const id = route.params.id as string;
 const pool = usePoolData(id);
@@ -90,38 +90,56 @@ async function leavePool() {
 
 <template>
   <section v-if="pool" class="ov">
-    <!-- member standing: position + points -->
-    <div class="stand">
-      <div v-if="me" class="rk">
-        <span class="rk-pos font-display">{{ me.rank }}º</span>
-        <div class="rk-meta">
-          <span class="rk-cap">Sua posição</span>
-          <span class="rk-sub">de {{ total }} {{ total === 1 ? 'participante' : 'participantes' }}</span>
+    <!-- standing hero: position + points + breakdown -->
+    <div class="hero">
+      <span class="hero-cap">Sua posição</span>
+      <div class="hero-rank font-display">
+        <template v-if="me">
+          <span class="num">{{ me.rank }}</span><span class="ord">º</span>
+          <span class="hero-of">de {{ total }} {{ total === 1 ? 'participante' : 'participantes' }}</span>
+        </template>
+        <span v-else class="num dim">—</span>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hs">
+          <span class="hs-n font-display">{{ me?.points ?? 0 }}</span>
+          <span class="hs-l">pontos</span>
+        </div>
+        <div class="hs">
+          <span class="hs-n font-display">{{ me?.exactCount ?? 0 }}</span>
+          <span class="hs-l">cravadas</span>
+        </div>
+        <div class="hs">
+          <span class="hs-n font-display">{{ me?.scoredCount ?? 0 }}</span>
+          <span class="hs-l">pontuadas</span>
         </div>
       </div>
-      <div v-else class="rk empty">
-        <span class="rk-cap">Você ainda não pontuou</span>
-        <NuxtLink :to="`/pools/${id}/matches`" class="rk-cta">Fazer palpites →</NuxtLink>
-      </div>
-      <div v-if="me" class="pts">
-        <span class="pts-n font-display">{{ me.points }}</span>
-        <span class="pts-cap">pontos</span>
-      </div>
-    </div>
-    <p v-if="me" class="substat">
-      <strong>{{ me.exactCount }}</strong> cravadas · <strong>{{ me.scoredCount }}</strong> pontuadas
-    </p>
 
-    <!-- pool meta (moved from the header) -->
+      <NuxtLink v-if="!me" :to="`/pools/${id}/matches`" class="hero-cta">
+        Você ainda não palpitou — fazer palpites
+        <AppIcon name="chevronRight" :size="14" :stroke="2.6" />
+      </NuxtLink>
+    </div>
+
+    <!-- tournament: jump to predictions -->
+    <NuxtLink :to="`/futebol/torneios/${pool.tournament.id}`" class="tcard">
+      <span class="tcard-ic"><AppIcon name="trophy" :size="20" :stroke="2" /></span>
+      <span class="tcard-txt">
+        <b>{{ pool.tournament.name }}</b>
+        <small>Ver jogos e fazer palpites</small>
+      </span>
+      <AppIcon name="chevronRight" :size="18" :stroke="2.4" class="tcard-go" />
+    </NuxtLink>
+
+    <p v-if="pool.description" class="pdesc">{{ pool.description }}</p>
+
+    <!-- meta -->
     <div class="meta">
       <span class="pill role">{{ ROLE_LABEL[pool.myRole] }}</span>
       <span class="dot">·</span>
       <span>{{ pool.memberCount }} {{ pool.memberCount === 1 ? 'membro' : 'membros' }}</span>
     </div>
-    <p v-if="pool.description" class="pdesc">{{ pool.description }}</p>
-    <NuxtLink :to="`/futebol/torneios/${pool.tournament.id}`" class="tour-link">
-      {{ pool.tournament.name }} — palpitar <AppIcon name="chevronRight" :size="14" :stroke="2.4" />
-    </NuxtLink>
 
     <!-- actions -->
     <div class="actions">
@@ -160,87 +178,150 @@ async function leavePool() {
 .ov {
   padding-top: 2px;
 }
-.stand {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 18px 20px;
+
+/* standing hero */
+.hero {
+  background: var(--grad-pitch);
+  border-radius: 18px;
+  padding: 20px;
+  color: #fff;
 }
-.rk {
+.hero-cap {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.78);
+}
+.hero-rank {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin-top: 6px;
+}
+.hero-rank .num {
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1;
+}
+.hero-rank .num.dim {
+  opacity: 0.7;
+}
+.hero-rank .ord {
+  font-size: 26px;
+  font-weight: 700;
+}
+.hero-of {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+  margin-left: 10px;
+  align-self: center;
+}
+.hero-stats {
+  display: flex;
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+.hs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.hs + .hs {
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 16px;
+}
+.hs-n {
+  font-size: 23px;
+  font-weight: 700;
+  line-height: 1;
+}
+.hs-l {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.74);
+}
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* tournament card */
+.tcard {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0;
-}
-.rk.empty {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-}
-.rk-pos {
-  font-size: 38px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--gold);
-}
-.rk-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.rk-cap {
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 13px 15px;
+  margin-top: 14px;
+  text-decoration: none;
   color: var(--text);
 }
-.rk-sub {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--muted);
+.tcard:hover {
+  border-color: color-mix(in srgb, var(--emerald) 45%, var(--border));
 }
-.rk-cta {
-  font-size: 13px;
-  font-weight: 700;
+.tcard-ic {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--emerald) 16%, transparent);
   color: var(--emerald);
 }
-.pts {
+.tcard-txt {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  flex: none;
+  gap: 1px;
 }
-.pts-n {
-  font-size: 32px;
+.tcard-txt b {
+  font-size: 14px;
   font-weight: 700;
-  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.pts-cap {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-}
-.substat {
-  font-size: 12.5px;
+.tcard-txt small {
+  font-size: 12px;
   font-weight: 600;
   color: var(--muted);
-  margin: 10px 2px 0;
 }
-.substat strong {
+.tcard-go {
+  flex: none;
+  color: var(--muted);
+}
+
+.pdesc {
+  margin-top: 16px;
+  font-size: 14px;
+  line-height: 1.45;
   color: var(--text);
+  max-width: 560px;
+  white-space: pre-line;
 }
+
 .meta {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 22px;
+  margin-top: 18px;
   font-size: 13px;
   color: var(--muted);
   font-weight: 600;
@@ -258,23 +339,7 @@ async function leavePool() {
   border-radius: 999px;
   padding: 2px 9px;
 }
-.pdesc {
-  margin-top: 10px;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--text);
-  max-width: 560px;
-  white-space: pre-line;
-}
-.tour-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  margin-top: 12px;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--emerald);
-}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -285,6 +350,7 @@ async function leavePool() {
   color: var(--scarlet);
   border-color: color-mix(in srgb, var(--scarlet) 40%, var(--border));
 }
+
 .editform {
   display: flex;
   flex-direction: column;

@@ -22,12 +22,12 @@ const section = computed<string>(() => {
   if (p.includes(`/pools/${id}/matches`)) return 'matches';
   return 'overview';
 });
-const isOverview = computed(() => section.value === 'overview');
-// Back climbs the hierarchy: a tab → the overview; the overview → the pools list.
-const backTo = computed(() => (isOverview.value ? '/pools' : `/pools/${id}`));
+// Tabs are peers now (Resumo included), so back just leaves the pool.
+const backTo = '/pools';
 
 const tabs = computed(() => {
   const t = [
+    { key: 'overview', label: 'Resumo', to: `/pools/${id}` },
     { key: 'matches', label: 'Jogos', to: `/pools/${id}/matches` },
     { key: 'ranking', label: 'Ranking', to: `/pools/${id}/ranking` },
     { key: 'members', label: 'Membros', to: `/pools/${id}/members` },
