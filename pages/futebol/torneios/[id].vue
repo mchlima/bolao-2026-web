@@ -1,7 +1,9 @@
 <script setup lang="ts">
-// Tournament shell: a slim contextual header (back + title) + <NuxtPage>. No tab
-// bar — the tournament home (index) is the menu into Jogos / Tabela / Bolão, and
-// each is its own full-space page. The header title/back adapt to the route.
+// Tournament shell: a contextual header (back + badge + tournament name) with the
+// section tabs (Jogos / Tabela / Bolão) as pill tags, then <NuxtPage>. Each tab is
+// a nested route, so switching one swaps ONLY the page content — the header and
+// tabs stay mounted. The base route redirects to Jogos (see index.vue), so there
+// is no separate overview; the active tag marks the section instead of the title.
 import type { Paginated, Tournament } from '~/types/api';
 
 const route = useRoute();
@@ -24,32 +26,22 @@ useSeoMeta({
     current.value ? `Jogos, tabela e ranking de ${current.value.name}.` : 'Jogos, tabela e ranking do torneio.',
 });
 
-const SECTIONS: Record<string, string> = {
-  jogos: 'Jogos',
-  classificacao: 'Tabela',
-  ranking: 'Bolão',
-};
-const section = computed<string | null>(() => {
+// Active section from the route. The base path (which redirects to /jogos) and
+// /jogos both resolve to 'jogos', so the Jogos tag stays lit through the redirect.
+const section = computed<string>(() => {
   const p = route.path;
   if (p.includes('/matches/')) return 'match';
-  if (p.endsWith('/jogos')) return 'jogos';
   if (p.endsWith('/classificacao')) return 'classificacao';
   if (p.endsWith('/ranking')) return 'ranking';
-  return null; // home
+  return 'jogos';
 });
-const isHome = computed(() => section.value === null);
 const isMatch = computed(() => section.value === 'match');
-// Section pages show the section label + tournament as subtitle; home/match show
-// the tournament name.
-const headTitle = computed(() =>
-  isHome.value || isMatch.value
-    ? (current.value?.name ?? 'Torneio')
-    : (SECTIONS[section.value!] ?? 'Torneio'),
-);
-const headSub = computed(() => (!isHome.value && !isMatch.value ? current.value?.name : null));
-const backTo = computed(() => (isHome.value ? '/futebol/torneios' : `/futebol/torneios/${id}`));
-// The match view has its own back button, so the shell omits its back there.
-const showBack = computed(() => !isMatch.value);
+
+const tabs = computed(() => [
+  { key: 'jogos', label: 'Jogos', to: `/futebol/torneios/${id}/jogos` },
+  { key: 'classificacao', label: 'Tabela', to: `/futebol/torneios/${id}/classificacao` },
+  { key: 'ranking', label: 'Bolão', to: `/futebol/torneios/${id}/ranking` },
+]);
 
 function badge(name: string): string {
   const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
@@ -60,14 +52,29 @@ function badge(name: string): string {
 <template>
   <div class="page">
     <header class="thead">
-      <NuxtLink v-if="showBack" :to="backTo" class="back" aria-label="Voltar">
-        <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
-      </NuxtLink>
-      <div v-if="isHome && current" class="brandmark font-display">{{ badge(current.name) }}</div>
-      <div class="htitle">
-        <span class="ht-main font-display">{{ headTitle }}</span>
-        <span v-if="headSub" class="ht-sub">{{ headSub }}</span>
+      <div class="trow">
+        <NuxtLink v-if="!isMatch" to="/futebol/torneios" class="back" aria-label="Voltar">
+          <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
+        </NuxtLink>
+        <div v-if="current && !isMatch" class="brandmark font-display">{{ badge(current.name) }}</div>
+        <div class="htitle">
+          <span class="ht-main font-display">{{ current?.name ?? 'Torneio' }}</span>
+        </div>
       </div>
+
+      <!-- Section tabs: route-based pill tags; clicking swaps only <NuxtPage>. -->
+      <nav v-if="!isMatch" class="ttabs" aria-label="Seções do torneio">
+        <NuxtLink
+          v-for="t in tabs"
+          :key="t.key"
+          :to="t.to"
+          class="ttag"
+          :class="{ on: section === t.key }"
+          :aria-current="section === t.key ? 'page' : undefined"
+        >
+          {{ t.label }}
+        </NuxtLink>
+      </nav>
     </header>
 
     <NuxtPage />
@@ -80,9 +87,14 @@ function badge(name: string): string {
 }
 .thead {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 6px 0 16px;
+}
+.trow {
+  display: flex;
   align-items: center;
   gap: 11px;
-  padding: 6px 0 14px;
   min-width: 0;
 }
 .back {
@@ -126,12 +138,32 @@ function badge(name: string): string {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.ht-sub {
-  font-size: 11px;
-  font-weight: 600;
+
+/* Section tabs — small pill tags. Active uses the pitch gradient, matching the
+   tournament badge so the lit tag reads as "you're in this section". */
+.ttabs {
+  display: flex;
+  gap: 8px;
+}
+.ttag {
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
   color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.ttag:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+}
+.ttag.on {
+  background: var(--grad-pitch);
+  color: #fff;
+  border-color: transparent;
 }
 </style>
