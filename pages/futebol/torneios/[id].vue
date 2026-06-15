@@ -37,19 +37,14 @@ const section = computed<string>(() => {
 });
 const isMatch = computed(() => section.value === 'match');
 
-// The Bolão (ranking) exposes participants' names + scores — members only, so the
-// tab only shows when authenticated (the route itself also gates, see ranking.vue).
-const auth = useAuthStore();
-const tabs = computed(() => {
-  const t = [
-    { key: 'jogos', label: 'Jogos', to: `/futebol/torneios/${id}/jogos` },
-    { key: 'classificacao', label: 'Tabela', to: `/futebol/torneios/${id}/classificacao` },
-  ];
-  if (auth.isAuthenticated) {
-    t.push({ key: 'ranking', label: 'Bolão', to: `/futebol/torneios/${id}/ranking` });
-  }
-  return t;
-});
+// The Bolão tab stays visible when logged out — tapping it surfaces the login
+// gate (a conversion prompt). The data itself is members-only: the route shows
+// the gate and the API requires auth (see ranking.vue + rankings.controller).
+const tabs = computed(() => [
+  { key: 'jogos', label: 'Jogos', to: `/futebol/torneios/${id}/jogos` },
+  { key: 'classificacao', label: 'Tabela', to: `/futebol/torneios/${id}/classificacao` },
+  { key: 'ranking', label: 'Bolão', to: `/futebol/torneios/${id}/ranking` },
+]);
 
 function badge(name: string): string {
   const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
