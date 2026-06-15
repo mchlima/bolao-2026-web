@@ -8,21 +8,26 @@ const auth = useAuthStore();
 
 // Portal: featured tournaments (quick access to each tournament's own hub) +
 // cross-tournament next/live matches up top; the marketing pitch lives below.
-const { data: torneios } = await useAsyncData('hub-torneios', () =>
-  useApi()<Paginated<Tournament>>('/seasons?pageSize=20').then((r) => r.data),
-);
-const { data: hub, refresh: refreshHub } = await useAsyncData('hub-agenda', async () => {
-  const api = useApi();
-  const [agenda, preds] = await Promise.all([
-    // Only the next handful is rendered (strip shows ~6) — cap the payload
-    // instead of pulling the entire upcoming list.
-    api<{ days: { date: string; matches: Match[] }[] }>('/agenda?scope=upcoming&limit=12'),
-    // The strip is palpitável when logged in — load the user's predictions to
-    // seed the cards (so a saved guess shows instead of "Faça seu palpite").
-    auth.token ? api<Prediction[]>('/predictions/me') : Promise.resolve([] as Prediction[]),
-  ]);
-  return { agenda, preds };
-});
+// torneios + agenda são independentes — dispara os dois em paralelo no SSR
+// (em série eram dois round-trips encadeados). standing fica fora: depende de
+// primarySeason, derivado de torneios.
+const [{ data: torneios }, { data: hub, refresh: refreshHub }] = await Promise.all([
+  useAsyncData('hub-torneios', () =>
+    useApi()<Paginated<Tournament>>('/seasons?pageSize=20').then((r) => r.data),
+  ),
+  useAsyncData('hub-agenda', async () => {
+    const api = useApi();
+    const [agenda, preds] = await Promise.all([
+      // Only the next handful is rendered (strip shows ~6) — cap the payload
+      // instead of pulling the entire upcoming list.
+      api<{ days: { date: string; matches: Match[] }[] }>('/agenda?scope=upcoming&limit=12'),
+      // The strip is palpitável when logged in — load the user's predictions to
+      // seed the cards (so a saved guess shows instead of "Faça seu palpite").
+      auth.token ? api<Prediction[]>('/predictions/me') : Promise.resolve([] as Prediction[]),
+    ]);
+    return { agenda, preds };
+  }),
+]);
 // Prediction map for the strip cards (matchId → prediction); updated on save.
 const predMap = ref<Record<string, Prediction>>({});
 watchEffect(() => {
