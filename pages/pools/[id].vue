@@ -145,15 +145,17 @@ const unavailable = computed(() => {
   flex: none;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text);
+  width: 34px;
+  height: 34px;
+  margin-left: -8px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.13s;
 }
 .back:hover {
-  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+  color: var(--text);
 }
 .htitle {
   min-width: 0;

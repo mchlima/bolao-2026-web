@@ -124,28 +124,22 @@ function fmtDayLabel(date: string): string {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 8px;
   margin-bottom: 18px;
 }
 .day-btn {
   flex: none;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 11px;
-  border: 1px solid var(--border);
-  background: var(--bg-base);
-  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
-  transition: border-color 0.13s, color 0.13s;
+  transition: color 0.13s;
 }
 .day-btn:hover {
-  color: var(--gold);
-  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+  color: var(--text);
 }
 .day-label {
   flex: 1;
