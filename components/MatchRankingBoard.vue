@@ -207,6 +207,10 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
           </span>
         </div>
 
+        <div v-if="myPred && scored" class="sharerow">
+          <ShareMatch :match="match" :me="me" />
+        </div>
+
         <!-- jogando/encerrado, deslogado: convida a entrar (já passou o kickoff) -->
         <NuxtLink v-else-if="!auth.isAuthenticated" to="/login" class="btn btn-block login-cta">Entre para palpitar nos próximos jogos <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
 
