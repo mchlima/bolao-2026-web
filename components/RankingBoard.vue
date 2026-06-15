@@ -3,25 +3,16 @@ import type { RankingEntry, RankingResponse } from '~/types/api';
 
 // Presentational ranking board (podium + rows + sticky "me"). Shared by the
 // tournament ranking page and the pool ("bolão") detail so both look identical.
-const props = defineProps<{ data: RankingResponse }>();
+// `title`/`subtitle` name the leaderboard (tournament or pool) for the header
+// and the shareable image.
+const props = defineProps<{ data: RankingResponse; title: string; subtitle?: string }>();
 
 const me = computed(() => props.data.currentUser ?? null);
 const entries = computed(() => props.data.entries ?? []);
-// Podium shows from 1 participant up; it renders only the slots that exist
-// (no empty pedestals), so 1 → just 1st, 2 → 1st+2nd, 3+ → full top 3.
-const top3 = computed(() => entries.value.slice(0, 3));
+// Top 3 lead the podium (RankingPodium); the rows list everyone after them.
 const rest = computed(() => entries.value.slice(3));
 const inTop = computed(
   () => !!me.value && entries.value.some((e) => e.user.id === me.value!.user.id),
-);
-
-const MEDALS = ['var(--gold)', '#C2CAD6', '#CD7F45'];
-const HEIGHTS = ['84px', '64px', '50px'];
-// visual order: 2nd, 1st, 3rd
-const podium = computed(() =>
-  [top3.value[1], top3.value[0], top3.value[2]]
-    .map((e, i) => ({ e, slot: [1, 0, 2][i] }))
-    .filter((x) => x.e),
 );
 
 function initials(name: string): string {
@@ -44,34 +35,17 @@ function rowEntry(e: RankingEntry) {
       Ainda não há participantes com palpites por aqui.
     </p>
 
-    <!-- podium -->
-    <div v-if="top3.length" class="podium">
-      <div v-for="{ e, slot } in podium" :key="e.user.id" class="pcol">
-        <div
-          class="pavatar"
-          :style="{ background: color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 22px -4px ${MEDALS[slot]}` }"
-        >
-          {{ initials(e.user.name) }}
-        </div>
-        <div class="pname">{{ e.user.name }}</div>
-        <div class="font-numeric ppts" :style="{ color: MEDALS[slot] }">{{ e.points }}</div>
-        <div
-          class="pbar"
-          :style="{ height: HEIGHTS[slot], background: `linear-gradient(180deg, ${MEDALS[slot]}, transparent)` }"
-        >
-          <span class="font-numeric prank">{{ e.rank }}º</span>
-        </div>
-      </div>
-    </div>
+    <template v-else>
+      <RankingPodium :data="data" :title="title" :subtitle="subtitle" class="rk-podium" />
 
-    <!-- rows -->
-    <div class="rows">
-      <div
-        v-for="e in rest.map(rowEntry)"
-        :key="e.user.id"
-        class="row"
-        :class="{ me: e.isMe }"
-      >
+      <!-- rows -->
+      <div v-if="rest.length" class="rows">
+        <div
+          v-for="e in rest.map(rowEntry)"
+          :key="e.user.id"
+          class="row"
+          :class="{ me: e.isMe }"
+        >
         <span class="font-numeric pos">{{ e.rank }}</span>
         <div class="who">
           <span class="av" :style="{ background: color(e.user.id) }">{{ initials(e.user.name) }}</span>
@@ -95,6 +69,7 @@ function rowEntry(e: RankingEntry) {
         <div class="pts"><span class="font-numeric gold">{{ me.points }}</span><span class="lbl">pts</span></div>
       </div>
     </div>
+    </template>
   </div>
 </template>
 
@@ -103,58 +78,9 @@ function rowEntry(e: RankingEntry) {
   padding: 2rem 0;
   text-align: center;
 }
-.podium {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 26px;
-}
-.pcol {
-  flex: 1;
-  max-width: 150px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.pavatar {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-family: 'Oswald', sans-serif;
-  font-weight: 700;
-  font-size: 17px;
-  border: 3px solid;
-}
-.pname {
-  font-size: 13px;
-  font-weight: 700;
-  margin-top: 9px;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-.ppts {
-  font-size: 24px;
-  line-height: 1;
-}
-.pbar {
-  width: 100%;
-  margin-top: 8px;
-  border-radius: 12px 12px 0 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 9px;
-}
-.prank {
-  font-size: 30px;
-  color: #0a0e14;
+.rk-podium {
+  display: block;
+  margin-bottom: 14px;
 }
 .rows {
   display: flex;

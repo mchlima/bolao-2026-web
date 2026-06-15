@@ -93,6 +93,15 @@ async function leavePool() {
     <!-- member standing (shared component) -->
     <StandingHero :me="me" :total="total" :cta-to="`/futebol/torneios/${pool.tournament.id}`" />
 
+    <!-- podium leaders (same panel as the Ranking tab) -->
+    <RankingPodium
+      v-if="ranking"
+      :data="ranking"
+      :title="pool.name"
+      :subtitle="pool.tournament.name"
+      class="ov-podium"
+    />
+
     <!-- tournament: jump to predictions -->
     <NuxtLink :to="`/futebol/torneios/${pool.tournament.id}`" class="tcard">
       <span class="tcard-ic"><AppIcon name="trophy" :size="20" :stroke="2" /></span>
@@ -148,6 +157,10 @@ async function leavePool() {
 <style scoped>
 .ov {
   padding-top: 2px;
+}
+.ov-podium {
+  display: block;
+  margin-top: 14px;
 }
 
 /* tournament card */

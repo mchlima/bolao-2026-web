@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import type { RankingResponse } from '~/types/api';
+import type { RankingResponse, Tournament } from '~/types/api';
 
 const auth = useAuthStore();
 const route = useRoute();
 const id = route.params.id as string;
+
+// Tournament name for the header/share — reuse the shell's cached list (no extra fetch).
+const { data: tournaments } = useNuxtData<Tournament[]>('tournaments-list');
+const tname = computed(() => tournaments.value?.find((t) => t.id === id)?.name ?? 'Torneio');
 
 // The ranking is members-only (the API requires auth). Skip the request entirely
 // when logged out and show a login gate instead.
@@ -28,14 +32,7 @@ useRealtime(() => (auth.token ? [`tournament:${id}`] : []), () => refresh());
     </div>
     <SkeletonList v-else-if="pending && !data" variant="row" :count="8" />
     <p v-else-if="error || !data" class="muted load">Ranking indisponível.</p>
-    <template v-else>
-      <div class="head">
-        <h3 class="font-display">Ranking do bolão</h3>
-        <span class="sub">Top 100 de {{ data.totalParticipants }} participantes</span>
-      </div>
-
-      <RankingBoard :data="data" />
-    </template>
+    <RankingBoard v-else :data="data" :title="tname" subtitle="Bolão geral" />
   </div>
 </template>
 
@@ -52,25 +49,6 @@ useRealtime(() => (auth.token ? [`tournament:${id}`] : []), () => refresh());
   font-weight: 700;
   font-size: 13px;
   margin-bottom: 16px;
-}
-.head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-.head h3 {
-  font-weight: 600;
-  font-size: 16px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.sub {
-  font-size: 11.5px;
-  color: var(--muted);
-  font-weight: 600;
 }
 .gate {
   max-width: 380px;

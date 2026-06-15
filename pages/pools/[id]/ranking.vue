@@ -18,22 +18,17 @@ useRealtime(
 
 <template>
   <section>
-    <p v-if="ranking" class="count muted">
-      {{ ranking.totalParticipants }}
-      {{ ranking.totalParticipants === 1 ? 'participante' : 'participantes' }}
-      com palpites
-    </p>
-    <RankingBoard v-if="ranking" :data="ranking" />
+    <RankingBoard
+      v-if="ranking"
+      :data="ranking"
+      :title="pool?.name ?? 'Bolão'"
+      :subtitle="pool?.tournament?.name"
+    />
     <p v-else class="muted load">Ranking indisponível.</p>
   </section>
 </template>
 
 <style scoped>
-.count {
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 14px;
-}
 .load {
   padding: 2rem 0;
 }
