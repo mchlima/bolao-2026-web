@@ -76,8 +76,8 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
 </script>
 
 <template>
-  <button class="sh-btn" @click="openShare">
-    <AppIcon name="externalLink" :size="15" :stroke="2.2" />Compartilhar
+  <button class="sh-btn" type="button" aria-label="Compartilhar" title="Compartilhar" @click="openShare">
+    <AppIcon name="share" :size="17" :stroke="2" />
   </button>
 
   <AppModal v-if="open" title="Compartilhar" @close="open = false">
@@ -148,19 +148,18 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
 
 <style scoped>
 .sh-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--text);
+  background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
+  color: var(--muted);
   border-radius: 999px;
-  padding: 8px 15px;
-  font-weight: 700;
-  font-size: 13px;
   cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
-.sh-btn:hover { border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
+.sh-btn:hover { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
 .sh-body { display: flex; flex-direction: column; gap: 14px; }
 .seg { display: flex; gap: 6px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 4px; }
 .seg-b { flex: 1; border: 0; background: transparent; color: var(--muted); font-weight: 700; font-size: 13px; padding: 8px; border-radius: 9px; cursor: pointer; }

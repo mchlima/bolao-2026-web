@@ -28,6 +28,7 @@ const ICONS: Record<string, string[]> = {
   refresh: ['M21 12a9 9 0 1 1-2.6-6.4', 'M21 4v4h-4'],
   power: ['M12 4v8', 'M7 7a7 7 0 1 0 10 0'],
   externalLink: ['M14 4h6v6', 'M20 4l-9 9', 'M19 14v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5'],
+  share: ['M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'M18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6z', 'M8.6 13.5l6.8 4', 'M15.4 6.5l-6.8 4'],
   // entities (mirror the sidebar nav glyphs)
   dashboard: ['M3 3h7v7H3z', 'M14 3h7v7h-7z', 'M14 14h7v7h-7z', 'M3 14h7v7H3z'],
   trophy: ['M6 4h12v3a6 6 0 0 1-12 0Z', 'M6 5H3v1a3 3 0 0 0 3 3', 'M18 5h3v1a3 3 0 0 1-3 3', 'M9 19h6', 'M12 13v6'],

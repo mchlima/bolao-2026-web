@@ -126,9 +126,12 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       <div class="result-head">
         <div class="rhead-top">
           <span class="rlabel">{{ match.phaseLabel }}<span v-if="match.groupName"> · Grupo {{ match.groupName }}</span></span>
-          <span class="state" :class="{ live: stateMeta.live }" :style="{ color: stateMeta.color, borderColor: stateMeta.color }">
-            <span v-if="stateMeta.live" class="dot" />{{ stateMeta.label }}
-          </span>
+          <div class="rhead-r">
+            <span class="state" :class="{ live: stateMeta.live }" :style="{ color: stateMeta.color, borderColor: stateMeta.color }">
+              <span v-if="stateMeta.live" class="dot" />{{ stateMeta.label }}
+            </span>
+            <ShareMatch v-if="myPred && scored" :match="match" :me="me" />
+          </div>
         </div>
         <div class="result">
           <div class="side" :class="{ win: homeWins, lose: awayWins }">
@@ -197,10 +200,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
             vale quando a bola rolar
           </span>
-        </div>
-
-        <div v-if="myPred && scored" class="sharerow">
-          <ShareMatch :match="match" :me="me" />
         </div>
 
         <!-- jogando/encerrado, deslogado: convida a entrar (já passou o kickoff) -->
@@ -324,6 +323,12 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 16px;
+}
+.rhead-r {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
 }
 .rlabel {
   font-size: 11px;
