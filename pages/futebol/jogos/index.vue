@@ -42,7 +42,7 @@ function pickComp(value: string) {
   compOpen.value = false;
 }
 
-const { data, pending } = await useAsyncData(
+const { data, pending, refresh } = await useAsyncData(
   'agenda',
   () => {
     const qs = new URLSearchParams({ from: day.value, to: day.value });
@@ -55,6 +55,13 @@ const matches = computed<Match[]>(() => (data.value?.days ?? []).flatMap((d) => 
 // Live games float to the top of the day; the rest stay in kickoff order.
 const liveMatches = computed(() => matches.value.filter((m) => m.status === 'LIVE'));
 const restMatches = computed(() => matches.value.filter((m) => m.status !== 'LIVE'));
+
+// Reflect live changes (goals/status): subscribe to every tournament shown today
+// and re-fetch when the robot emits an update for it.
+const liveChannels = computed(() => [
+  ...new Set(matches.value.map((m) => m.seasonId).filter(Boolean)),
+].map((seasonId) => `tournament:${seasonId}`));
+useRealtime(() => liveChannels.value, () => refresh());
 
 // The user's predictions (all seasons) so each card shows the saved palpite
 // instead of an empty editor. Loaded once — independent of the day/competition.

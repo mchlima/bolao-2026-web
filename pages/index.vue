@@ -11,7 +11,7 @@ const auth = useAuthStore();
 const { data: torneios } = await useAsyncData('hub-torneios', () =>
   useApi()<Paginated<Tournament>>('/seasons?pageSize=20').then((r) => r.data),
 );
-const { data: hub } = await useAsyncData('hub-agenda', async () => {
+const { data: hub, refresh: refreshHub } = await useAsyncData('hub-agenda', async () => {
   const api = useApi();
   const [agenda, preds] = await Promise.all([
     api<{ days: { date: string; matches: Match[] }[] }>('/agenda?scope=upcoming'),
@@ -45,13 +45,27 @@ const greeting = computed(() => {
 const primarySeason = computed(
   () => (torneios.value ?? []).find((t) => t.status === 'ONGOING') ?? (torneios.value ?? [])[0] ?? null,
 );
-const { data: standing } = await useAsyncData('home-standing', () =>
+const { data: standing, refresh: refreshStanding } = await useAsyncData('home-standing', () =>
   auth.token && primarySeason.value
     ? useApi()<RankingResponse>(`/seasons/${primarySeason.value.id}/ranking`)
     : Promise.resolve(null),
 );
 const standingMe = computed(() => standing.value?.currentUser ?? null);
 const standingTotal = computed(() => standing.value?.totalParticipants ?? 0);
+
+// Live: the próximos-jogos strip + the standing must reflect goals/status changes.
+// Subscribe to every tournament shown (strip matches + the primary season).
+const liveChannels = computed(() => {
+  const ids = new Set(
+    (hub.value?.agenda.days ?? []).flatMap((d) => d.matches).map((m) => m.seasonId).filter(Boolean),
+  );
+  if (primarySeason.value) ids.add(primarySeason.value.id);
+  return [...ids].map((id) => `tournament:${id}`);
+});
+useRealtime(() => liveChannels.value, () => {
+  refreshHub();
+  refreshStanding();
+});
 
 // Quick badge from the tournament name (skip FIFA/years/short words).
 function tBadge(name: string): string {
