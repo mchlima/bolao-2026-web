@@ -355,3 +355,25 @@ export interface PoolMatchPredictionsView {
   revealed: boolean; // false until kickoff — others' predictions are hidden
   entries: PoolMatchPredictionEntry[];
 }
+
+// Live lineups from the ESPN summary feed (GET /matches/:id/lineup).
+export interface LineupPlayer {
+  name: string;
+  jersey: string | null;
+  position: string | null;
+  line: 'GK' | 'DEF' | 'MID' | 'FWD';
+  formationPlace: number | null;
+  starter: boolean;
+  subbedIn: boolean;
+  subbedOut: boolean;
+}
+export interface LineupTeam {
+  formation: string | null;
+  players: LineupPlayer[];
+}
+export interface MatchLineup {
+  available: boolean;
+  reason?: 'pending';
+  home?: LineupTeam;
+  away?: LineupTeam;
+}
