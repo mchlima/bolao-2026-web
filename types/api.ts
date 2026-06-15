@@ -189,6 +189,11 @@ export interface BracketTie {
   winner: StandingsTeam | null;
   resolution: TieResolution | null;
   legs: BracketLeg[];
+  // Provisional projection (only set where not officially resolved): the team
+  // that WOULD fill the slot given the current standings / live results.
+  projectedHome?: StandingsTeam | null;
+  projectedAway?: StandingsTeam | null;
+  projectedWinner?: StandingsTeam | null;
 }
 
 export interface BracketRound {

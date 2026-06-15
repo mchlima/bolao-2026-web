@@ -31,6 +31,14 @@ const index = ref(0);
 const dir = ref<'next' | 'prev'>('next');
 const current = computed(() => phases.value[index.value] ?? null);
 
+// Provisional bracket projection (fills empty slots from the current standings).
+const projection = ref(true);
+const roundHasProjection = computed(() => {
+  const c = current.value;
+  if (!c || c.kind !== 'round') return false;
+  return c.round.ties.some((t) => (!t.home && t.projectedHome) || (!t.away && t.projectedAway));
+});
+
 watch(phases, (p) => {
   if (index.value > p.length - 1) index.value = Math.max(0, p.length - 1);
 });
@@ -110,6 +118,14 @@ const leagueRounds = computed(() => {
           <!-- Knockout round → tie cards stacked full-width -->
           <template v-else>
             <p v-if="!current.round.ties.length" class="muted empty">Sem confrontos nesta fase.</p>
+            <div v-if="roundHasProjection" class="projbar">
+              <p class="projnote">
+                <b>Projeção</b> pela classificação atual — pode mudar até a fase terminar.
+              </p>
+              <button class="projtoggle" :class="{ on: projection }" @click="projection = !projection">
+                {{ projection ? 'Ocultar' : 'Mostrar' }} projeção
+              </button>
+            </div>
             <div class="cards">
               <BracketTieCard
                 v-for="tie in current.round.ties"
@@ -117,6 +133,7 @@ const leagueRounds = computed(() => {
                 :tie="tie"
                 :legs="current.round.legs"
                 :variant="variantFor(current.round.name)"
+                :show-projection="projection"
               />
             </div>
           </template>
@@ -129,6 +146,44 @@ const leagueRounds = computed(() => {
 <style scoped>
 .phases {
   overflow: hidden;
+}
+.projbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+  padding: 9px 12px;
+  border: 1px dashed color-mix(in srgb, var(--azure) 45%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--azure) 7%, transparent);
+}
+.projnote {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  min-width: 0;
+}
+.projnote b {
+  color: var(--azure);
+  font-weight: 800;
+}
+.projtoggle {
+  flex: none;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.projtoggle.on {
+  border-color: color-mix(in srgb, var(--azure) 50%, var(--border));
+  color: var(--azure);
 }
 
 /* ── Navigator ── */

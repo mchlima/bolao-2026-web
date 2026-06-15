@@ -5,10 +5,21 @@ const props = defineProps<{
   tie: BracketTie;
   legs: number; // 1 = single match, 2 = ida/volta
   variant?: 'normal' | 'final' | 'third';
+  showProjection?: boolean; // fill empty slots with the provisional (projected) team
 }>();
 
 const tz = useTz();
 const asTeam = (t: BracketTie['home']) => (t ? (t as unknown as Team) : null);
+
+// Projected (provisional) occupant of an empty slot, when projection is on.
+const homeProj = computed(() =>
+  props.showProjection && !props.tie.home ? (props.tie.projectedHome ?? null) : null,
+);
+const awayProj = computed(() =>
+  props.showProjection && !props.tie.away ? (props.tie.projectedAway ?? null) : null,
+);
+const homeShow = computed(() => props.tie.home ?? homeProj.value);
+const awayShow = computed(() => props.tie.away ?? awayProj.value);
 
 const status = computed(() => {
   const ls = props.tie.legs;
@@ -90,9 +101,10 @@ const champion = computed(() =>
 
     <!-- the duel -->
     <div class="duel">
-      <div class="team" :class="{ win: isWinner('home'), tbd: !tie.home }">
-        <TeamBadge :team="asTeam(tie.home)" :placeholder="tie.homeSourceLabel" :size="variant === 'final' ? 56 : 44" />
-        <span class="nm">{{ sideName(tie.home, tie.homeSourceLabel) }}</span>
+      <div class="team" :class="{ win: isWinner('home'), tbd: !homeShow, proj: !!homeProj }">
+        <TeamBadge :team="asTeam(homeShow)" :placeholder="tie.homeSourceLabel" :size="variant === 'final' ? 56 : 44" />
+        <span class="nm">{{ sideName(homeShow, tie.homeSourceLabel) }}</span>
+        <span v-if="homeProj" class="provtag" :title="tie.homeSourceLabel ?? ''">provável</span>
       </div>
 
       <div class="mid">
@@ -109,9 +121,10 @@ const champion = computed(() =>
         <span v-else-if="legs > 1" class="resnote">ida e volta</span>
       </div>
 
-      <div class="team" :class="{ win: isWinner('away'), tbd: !tie.away }">
-        <TeamBadge :team="asTeam(tie.away)" :placeholder="tie.awaySourceLabel" :size="variant === 'final' ? 56 : 44" />
-        <span class="nm">{{ sideName(tie.away, tie.awaySourceLabel) }}</span>
+      <div class="team" :class="{ win: isWinner('away'), tbd: !awayShow, proj: !!awayProj }">
+        <TeamBadge :team="asTeam(awayShow)" :placeholder="tie.awaySourceLabel" :size="variant === 'final' ? 56 : 44" />
+        <span class="nm">{{ sideName(awayShow, tie.awaySourceLabel) }}</span>
+        <span v-if="awayProj" class="provtag" :title="tie.awaySourceLabel ?? ''">provável</span>
       </div>
     </div>
 
@@ -254,6 +267,25 @@ const champion = computed(() =>
 }
 .team.win .nm {
   color: var(--text);
+}
+/* projected (provisional) occupant */
+.team.proj .nm {
+  color: var(--text);
+  font-weight: 700;
+  font-style: normal;
+}
+.team.proj :deep(.emblem) {
+  opacity: 0.92;
+}
+.provtag {
+  font-size: 8.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--azure);
+  border: 1px dashed color-mix(in srgb, var(--azure) 55%, var(--border));
+  border-radius: 999px;
+  padding: 1px 7px;
 }
 .team.win :deep(.emblem) {
   box-shadow: 0 0 0 2px var(--pitch, #1f9d55);
