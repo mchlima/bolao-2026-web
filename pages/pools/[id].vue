@@ -36,13 +36,6 @@ const tabs = computed(() => {
   return t;
 });
 
-function badge(name: string): string {
-  const clean = name.trim();
-  const w = clean.split(/\s+/).filter((x) => x.length > 2 && !/^\d+$/.test(x));
-  if (w.length >= 2) return (w[0][0] + w[1][0]).toUpperCase();
-  return (w[0] ?? clean).slice(0, 2).toUpperCase();
-}
-
 const unavailable = computed(() => {
   const status = (error.value as { statusCode?: number } | null)?.statusCode;
   if (status === 403) {
@@ -74,9 +67,6 @@ const unavailable = computed(() => {
         <div class="trow">
           <NuxtLink :to="backTo" class="back" aria-label="Voltar">
             <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
-          </NuxtLink>
-          <NuxtLink :to="`/pools/${id}`" class="brandmark font-display" aria-label="Visão geral do bolão">
-            {{ badge(pool.name) }}
           </NuxtLink>
           <div class="htitle">
             <span class="ht-main font-display">{{ pool.name }}</span>
@@ -164,18 +154,6 @@ const unavailable = computed(() => {
 }
 .back:hover {
   border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
-}
-.brandmark {
-  flex: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  background: var(--grad-pitch);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-weight: 700;
-  font-size: 14px;
 }
 .htitle {
   min-width: 0;
