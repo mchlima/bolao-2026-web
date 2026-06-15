@@ -59,7 +59,13 @@ function badge(name: string): string {
         <NuxtLink v-if="!isMatch" to="/futebol/torneios" class="back" aria-label="Voltar">
           <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
         </NuxtLink>
-        <div v-if="current && !isMatch" class="brandmark font-display">{{ badge(current.name) }}</div>
+        <TournamentBadge
+          v-if="current && !isMatch"
+          :name="current.name"
+          :logo-url="current.competition?.logoUrl"
+          :logo-url-dark="current.competition?.logoUrlDark"
+          :size="38"
+        />
         <div class="htitle">
           <span class="ht-main font-display">{{ current?.name ?? 'Torneio' }}</span>
         </div>

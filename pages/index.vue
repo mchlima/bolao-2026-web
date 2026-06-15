@@ -199,7 +199,7 @@ const ranking = [
       </div>
       <div class="hubnav">
         <NuxtLink v-for="t in torneios.slice(0, 4)" :key="t.id" :to="`/futebol/torneios/${t.id}`" class="hubtile">
-          <span class="ht-badge font-display">{{ tBadge(t.name) }}</span>
+          <TournamentBadge :name="t.name" :logo-url="t.competition?.logoUrl" :logo-url-dark="t.competition?.logoUrlDark" :size="44" />
           <span class="ht-txt">
             <b>{{ t.name }}</b>
             <small>

@@ -88,6 +88,7 @@ export interface Competition {
   country: string | null;
   confederation: string | null;
   logoUrl: string | null;
+  logoUrlDark: string | null;
   externalIds: ExternalIds | null;
 }
 

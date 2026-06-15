@@ -52,9 +52,12 @@ const { data, pending } = await useAsyncData('tournaments', async () => {
         class="t-card"
       >
         <div class="t-top">
-          <span class="t-badge font-display" :style="{ background: GRADS[i % GRADS.length] }">
-            {{ tBadge(t.name) }}
-          </span>
+          <TournamentBadge
+            :name="t.name"
+            :logo-url="t.competition?.logoUrl"
+            :logo-url-dark="t.competition?.logoUrlDark"
+            :size="46"
+          />
           <div class="t-info">
             <div class="t-name font-display">{{ t.name }}</div>
             <div v-if="t.startDate" class="t-dates">
