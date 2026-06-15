@@ -53,6 +53,11 @@ const STATUS_TABS: { key: StatusKey; label: string }[] = [
 const search = ref('');
 const statusFilter = ref<StatusKey>('ALL');
 const phaseFilter = ref('');
+// Search + phase are tucked behind a toggle to keep the toolbar to one row; the
+// status chips (the primary filter) stay inline. `extraActive` flags the hidden
+// filters so the toggle can show it has something applied.
+const filtersOpen = ref(false);
+const extraActive = computed(() => !!search.value || !!phaseFilter.value);
 
 function inStatus(s: string): boolean {
   if (statusFilter.value === 'ALL') return true;
@@ -126,16 +131,8 @@ function clearFilters() {
     <SkeletonList v-if="pending && !data" variant="match" :count="6" />
     <p v-else-if="error || !data" class="muted load">Torneio não encontrado.</p>
     <template v-else>
-      <!-- filters -->
-      <div class="filters">
-        <div class="search">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-          <input v-model="search" type="search" placeholder="Buscar por seleção…" aria-label="Buscar partidas" />
-        </div>
-        <select v-model="phaseFilter" class="sel" aria-label="Filtrar por fase">
-          <option value="">Todas as fases</option>
-          <option v-for="p in phaseOptions" :key="p" :value="p">{{ p }}</option>
-        </select>
+      <!-- filters: status chips inline (primary); search + phase behind a toggle -->
+      <div class="ag-tools">
         <div class="status-tabs" role="tablist">
           <button
             v-for="t in STATUS_TABS"
@@ -149,6 +146,28 @@ function clearFilters() {
             {{ t.label }}
           </button>
         </div>
+        <button
+          class="ag-more"
+          :class="{ active: extraActive || filtersOpen }"
+          :aria-expanded="filtersOpen"
+          aria-label="Buscar e filtrar por fase"
+          @click="filtersOpen = !filtersOpen"
+        >
+          <AppIcon name="filter" :size="17" :stroke="2" />
+          <span v-if="extraActive" class="ag-more-dot" />
+        </button>
+      </div>
+
+      <div v-if="filtersOpen" class="ag-extra">
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          <input v-model="search" type="search" placeholder="Buscar por seleção…" aria-label="Buscar partidas" />
+        </div>
+        <select v-model="phaseFilter" class="sel" aria-label="Filtrar por fase">
+          <option value="">Todas as fases</option>
+          <option v-for="p in phaseOptions" :key="p" :value="p">{{ p }}</option>
+        </select>
+        <button v-if="extraActive" class="ag-clear" @click="search = ''; phaseFilter = ''">Limpar</button>
       </div>
 
       <p v-if="!sections.length" class="empty">
@@ -272,11 +291,60 @@ function clearFilters() {
 }
 
 /* filters */
-.filters {
+.ag-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.ag-more {
+  flex: none;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.13s, border-color 0.13s;
+}
+.ag-more:hover {
+  color: var(--text);
+}
+.ag-more.active {
+  color: var(--gold);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+}
+.ag-more-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.ag-extra {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+}
+.ag-clear {
+  flex: none;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 11px;
+  padding: 0 12px;
+  height: 40px;
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
 }
 .search {
   flex: 1 1 180px;
@@ -311,14 +379,22 @@ function clearFilters() {
   cursor: pointer;
 }
 .status-tabs {
+  flex: 1;
+  min-width: 0;
   display: flex;
   gap: 4px;
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 11px;
   padding: 3px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.status-tabs::-webkit-scrollbar {
+  display: none;
 }
 .stab {
+  flex: none;
   border: 0;
   background: transparent;
   color: var(--muted);
