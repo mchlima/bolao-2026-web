@@ -14,7 +14,9 @@ const { data: torneios } = await useAsyncData('hub-torneios', () =>
 const { data: hub, refresh: refreshHub } = await useAsyncData('hub-agenda', async () => {
   const api = useApi();
   const [agenda, preds] = await Promise.all([
-    api<{ days: { date: string; matches: Match[] }[] }>('/agenda?scope=upcoming'),
+    // Only the next handful is rendered (strip shows ~6) — cap the payload
+    // instead of pulling the entire upcoming list.
+    api<{ days: { date: string; matches: Match[] }[] }>('/agenda?scope=upcoming&limit=12'),
     // The strip is palpitável when logged in — load the user's predictions to
     // seed the cards (so a saved guess shows instead of "Faça seu palpite").
     auth.token ? api<Prediction[]>('/predictions/me') : Promise.resolve([] as Prediction[]),
