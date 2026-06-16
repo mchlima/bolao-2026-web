@@ -615,8 +615,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   position: relative;
   z-index: 2;
   display: flex;
+  align-items: center;
   gap: 8px;
-  margin: 14px 20px 2px;
+  margin: 12px 20px;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -625,6 +626,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 .ttag {
   flex: none;
+  display: inline-flex;
+  align-items: center;
   padding: 7px 15px;
   border-radius: 999px;
   border: 1px solid var(--border);
