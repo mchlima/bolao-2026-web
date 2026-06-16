@@ -368,6 +368,7 @@ export interface LineupPlayer {
   subbedOut: boolean;
   yellow: number;
   red: number;
+  photo: string | null;
 }
 export interface LineupTeam {
   formation: string | null;

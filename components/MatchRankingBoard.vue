@@ -27,9 +27,23 @@ const ranking = computed(() => props.ranking);
 
 // Tabs: "Bolão" (this ranking) vs "Escalação" (the live lineup). The lineup tab
 // only appears once lineups exist (MatchLineup reports availability) — before
-// that the board renders exactly as before, with no tab bar.
-const tab = ref<'bolao' | 'escalacao'>('bolao');
+// that the board renders exactly as before, with no tab bar. The active tab is
+// driven by the URL (?aba=escalacao) so it's linkable and survives back/forward.
+const route = useRoute();
 const lineupAvailable = ref(false);
+const matchTabs = [
+  { key: 'bolao', label: 'Bolão' },
+  { key: 'escalacao', label: 'Escalação' },
+] as const;
+const activeTab = computed(() =>
+  lineupAvailable.value && route.query.aba === 'escalacao' ? 'escalacao' : 'bolao',
+);
+function tabTo(key: string) {
+  const query = { ...route.query };
+  if (key === 'escalacao') query.aba = 'escalacao';
+  else delete query.aba;
+  return { query };
+}
 const playing = computed(
   () => match.value.status === 'LIVE' || match.value.status === 'FINISHED',
 );
@@ -158,12 +172,20 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </div>
       </div>
 
-      <div v-if="lineupAvailable" class="mtabs" role="tablist">
-        <button class="mtab" :class="{ on: tab === 'bolao' }" role="tab" :aria-selected="tab === 'bolao'" @click="tab = 'bolao'">Bolão</button>
-        <button class="mtab" :class="{ on: tab === 'escalacao' }" role="tab" :aria-selected="tab === 'escalacao'" @click="tab = 'escalacao'">Escalação</button>
-      </div>
+      <nav v-if="lineupAvailable" class="ttabs" aria-label="Seções da partida">
+        <NuxtLink
+          v-for="t in matchTabs"
+          :key="t.key"
+          :to="tabTo(t.key)"
+          class="ttag"
+          :class="{ on: activeTab === t.key }"
+          :aria-current="activeTab === t.key ? 'page' : undefined"
+        >
+          {{ t.label }}
+        </NuxtLink>
+      </nav>
 
-      <div v-show="!lineupAvailable || tab === 'bolao'" class="body">
+      <div v-show="activeTab === 'bolao'" class="body">
         <!-- editável: stepper -->
         <div v-if="editable" class="mypred">
           <div class="mp-head">
@@ -281,7 +303,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </div>
       </div>
 
-      <div v-show="lineupAvailable && tab === 'escalacao'" class="lntab">
+      <div v-show="activeTab === 'escalacao'" class="lntab">
         <MatchLineup :match="match" @available="lineupAvailable = $event" />
       </div>
     </div>
@@ -555,33 +577,41 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   .rscore .tier { display: none; }
 }
 
-/* Bolão / Escalação tabs */
-.mtabs {
+/* Bolão / Escalação tabs — same pill format as the tournament section tabs. */
+.ttabs {
   position: relative;
   z-index: 2;
   display: flex;
-  gap: 5px;
-  margin: 14px 20px 0;
-  padding: 5px;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  gap: 8px;
+  margin: 14px 20px 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
-.mtab {
-  flex: 1;
-  text-align: center;
-  padding: 9px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
+.ttabs::-webkit-scrollbar {
+  display: none;
+}
+.ttag {
+  flex: none;
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
   color: var(--muted);
   font-weight: 700;
   font-size: 13px;
-  cursor: pointer;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.mtab.on {
+.ttag:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+}
+.ttag.on {
   background: var(--grad-pitch);
   color: #fff;
+  border-color: transparent;
 }
 .lntab {
   position: relative;
