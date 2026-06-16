@@ -11,8 +11,9 @@ const props = withDefaults(
     ranking: RankingResponse | null;
     title?: string;
     backLabel?: string;
+    hideBack?: boolean;
   }>(),
-  { title: 'Ranking da partida', backLabel: 'Voltar' },
+  { title: 'Ranking da partida', backLabel: 'Voltar', hideBack: false },
 );
 const emit = defineEmits<{ back: []; refresh: [] }>();
 
@@ -146,7 +147,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
 <template>
   <div>
-    <button class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
+    <button v-if="!hideBack" class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
 
     <div class="card detail" :class="{ live: isLive }">
       <div v-if="isLive" class="live-glow" aria-hidden="true" />
@@ -345,8 +346,16 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 .detail {
   position: relative;
-  border-radius: 20px;
-  overflow: hidden;
+  /* Full-bleed: cancel the container side padding so the content spans the full
+     width (no side radius → nothing to clip, so sticky children work). */
+  margin-inline: -16px;
+  border-radius: 0;
+  overflow: visible;
+}
+@media (max-width: 420px) {
+  .detail {
+    margin-inline: -13px;
+  }
 }
 .detail.live {
   border-color: rgba(232, 54, 43, 0.5);
@@ -361,10 +370,12 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
 /* RESULTADO */
 .result-head {
-  position: relative;
-  z-index: 2;
+  position: sticky;
+  top: 50px; /* sticks just below the sticky tournament header */
+  z-index: 5;
   padding: 16px 20px 20px;
-  background: linear-gradient(135deg, rgba(15, 179, 107, 0.16), rgba(30, 127, 240, 0.14));
+  background: var(--bg-base);
+  background-image: linear-gradient(135deg, rgba(15, 179, 107, 0.16), rgba(30, 127, 240, 0.14));
 }
 .detail.live .result-head {
   background: linear-gradient(135deg, rgba(232, 54, 43, 0.14), rgba(224, 33, 138, 0.1));

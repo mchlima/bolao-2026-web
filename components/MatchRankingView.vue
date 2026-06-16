@@ -5,8 +5,8 @@ import type { Match, RankingResponse } from '~/types/api';
 // them to the shared MatchRankingBoard. Rendered standalone (/matches/:id) and
 // inside the tournament layout (/tournaments/:id/matches/:matchId).
 const props = withDefaults(
-  defineProps<{ matchId: string; backLabel?: string }>(),
-  { backLabel: 'Voltar' },
+  defineProps<{ matchId: string; backLabel?: string; hideBack?: boolean }>(),
+  { backLabel: 'Voltar', hideBack: false },
 );
 const emit = defineEmits<{ back: [] }>();
 
@@ -56,6 +56,7 @@ useSeoMeta({
       :ranking="data.ranking"
       title="Ranking da partida"
       :back-label="backLabel"
+      :hide-back="hideBack"
       @back="emit('back')"
       @refresh="refresh"
     />

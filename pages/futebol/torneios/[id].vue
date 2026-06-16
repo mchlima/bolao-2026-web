@@ -56,7 +56,7 @@ function badge(name: string): string {
   <div class="page">
     <header class="thead">
       <div class="trow">
-        <NuxtLink v-if="!isMatch" to="/futebol/torneios" class="back" aria-label="Voltar">
+        <NuxtLink :to="isMatch ? `/futebol/torneios/${id}` : '/futebol/torneios'" class="back" aria-label="Voltar">
           <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
         </NuxtLink>
         <TournamentBadge
@@ -95,10 +95,14 @@ function badge(name: string): string {
   padding: 0 0 40px;
 }
 .thead {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--bg-base);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 6px 0 16px;
+  padding: 6px 0 12px;
 }
 .trow {
   display: flex;
