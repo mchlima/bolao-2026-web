@@ -23,6 +23,13 @@ onBeforeUnmount(() => clearInterval(poll));
 
 const available = computed(() => !!data.value?.available);
 watch(available, (v) => emit('available', v), { immediate: true });
+// The tab is always present once a match is live or finished. When no event has
+// landed yet (0:0, no cards/subs — the feed gives only kickoff + delay noise),
+// show a state line instead of a blank panel: a live "jogo em andamento" prompt
+// while playing, or a "sem lances" note once it has ended. Real rows replace it
+// the moment the first goal/card/sub/whistle is ingested.
+const isLive = computed(() => props.match.status === 'LIVE');
+const isFinished = computed(() => props.match.status === 'FINISHED');
 
 // Keep the newest event visible: when a live update appends events (count grows),
 // scroll the end marker into view, clearing the fixed bottom nav via scroll-margin.
@@ -115,6 +122,18 @@ function whistleLabel(period: number, label: string): string {
     </template>
     <div ref="endRef" class="tl-end" aria-hidden="true" />
   </section>
+
+  <!-- live or finished, but no event to show — keep the tab meaningful -->
+  <div v-else-if="isLive || isFinished" class="tl-wait">
+    <span v-if="isLive" class="tl-dot" aria-hidden="true" />
+    <svg v-else class="tl-whistle" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M13 7a6 6 0 1 0-5.2 8.94l.9 2.56a1 1 0 0 0 .95.68h1a1 1 0 0 0 .95-.69l.78-2.4A6 6 0 0 0 18 11h3a1 1 0 1 0 0-2h-8Zm-5 7a3 3 0 1 1 0-6 3 3 0 0 1 0 6Z" /></svg>
+    <p class="tl-wait-t">{{ isLive ? 'A partida começou.' : 'Partida encerrada.' }}</p>
+    <p class="tl-wait-s">
+      {{ isLive
+        ? 'Os lances aparecem aqui ao vivo — gols, cartões e substituições.'
+        : 'Sem gols, cartões ou substituições registrados nesta partida.' }}
+    </p>
+  </div>
 </template>
 
 <style scoped>
@@ -392,5 +411,45 @@ function whistleLabel(period: number, label: string): string {
 /* the auto-scroll target; leave room for the fixed bottom nav */
 .tl-end {
   scroll-margin-bottom: calc(var(--nav-h, 0px) + 14px);
+}
+
+/* live, pre-first-event placeholder */
+.tl-wait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 40px 24px 36px;
+}
+.tl-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--scarlet, #e23744);
+  margin-bottom: 6px;
+  animation: tlDot 1.2s infinite;
+}
+.tl-whistle {
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+@keyframes tlDot {
+  50% { opacity: 0.3; }
+}
+.tl-wait-t {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+.tl-wait-s {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  max-width: 26ch;
+  line-height: 1.4;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-dot { animation: none; }
 }
 </style>

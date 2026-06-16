@@ -50,7 +50,17 @@ const authLink = useAuthLink();
 // mount and emit). Refetched on the realtime channel → tabs appear live as the
 // first lineup/event/stat lands.
 const lineupAvailable = computed(() => (props.match._count?.lineupEntries ?? 0) > 0);
-const timelineAvailable = computed(() => (props.match._count?.events ?? 0) > 0);
+// A LIVE or FINISHED match always exposes the timeline tab — even at 0:0 with no
+// goal/card/sub — so it's there the moment the ball is rolling and stays as a
+// permanent record once the match ends (consultation always available). It fills
+// in as events land; while empty it renders a state line (MatchTimeline). Only a
+// not-yet-played match (scheduled) hides it until events actually exist.
+const timelineAvailable = computed(
+  () =>
+    match.value.status === 'LIVE' ||
+    match.value.status === 'FINISHED' ||
+    (props.match._count?.events ?? 0) > 0,
+);
 const statsAvailable = computed(() => (props.match._count?.stats ?? 0) > 0);
 // The "Classificação" tab exists only when a #classificacao slot is provided
 // (the tournament match route fills it with the group table / bracket).
