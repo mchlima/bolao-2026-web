@@ -200,6 +200,10 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <span class="tname">{{ awayName }}</span>
           </div>
         </div>
+        <div v-if="myPred && !editable" class="rpred">
+          <span class="rpred-lbl">Seu palpite</span>
+          <b class="rpred-score font-numeric">{{ myPred.home }}:{{ myPred.away }}</b>
+        </div>
         <div v-if="metaLine" class="rmeta">{{ metaLine }}</div>
         <div v-if="match.stadium" class="venue">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
@@ -252,13 +256,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
         <!-- seu palpite × placar → pontos (o coração do acompanhamento ao vivo) -->
         <div v-else-if="myPred" class="pred-vs" :class="{ live: provisional, settled: hasResult && !provisional }">
-          <span class="pv-item">
-            <svg class="pv-ic" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.5" fill="currentColor"/></svg>
-            <span class="pv-lbl">Seu palpite</span>
-            <b class="pv-score font-numeric">{{ myPred.home }}:{{ myPred.away }}</b>
-          </span>
           <template v-if="scored">
-            <svg class="pv-arrow" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
             <span class="pv-item pts">
               <svg class="pv-ic" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
               <span class="pv-lbl">{{ provisional ? 'Ganhando' : 'Você fez' }}</span>
@@ -451,6 +449,27 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   letter-spacing: 0.07em;
   color: var(--muted);
 }
+/* The user's prediction shown right under the actual score. */
+.rpred {
+  margin-top: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.rpred-lbl {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.rpred-score {
+  font-size: 17px;
+  line-height: 1;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
 .state {
   display: inline-flex;
   align-items: center;
@@ -549,11 +568,11 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .mp-save { margin-top: 14px; font-size: 14px; padding: 11px; }
 .login-cta { margin-bottom: 20px; }
 
-/* seu palpite × pontos — uma linha só, espalhada pra ocupar a largura */
+/* pontos do palpite — o placar do palpite agora fica junto do resultado acima. */
 .pred-vs {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 10px 14px;
   background: var(--bg-base);
@@ -572,8 +591,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .pv-item { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .pv-ic { flex: none; color: var(--muted); }
 .pv-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-.pv-score { font-size: 22px; line-height: 1; letter-spacing: 0.03em; }
-.pv-arrow { flex: none; color: var(--muted); }
 .pv-pts { font-size: 24px; line-height: 1; }
 .pred-vs.live .pv-pts { animation: ignite 0.5s ease both; }
 .pv-wait { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
