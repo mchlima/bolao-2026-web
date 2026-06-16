@@ -74,6 +74,14 @@ html {
      otherwise shifts the whole page, header included. */
   scrollbar-gutter: stable;
 }
+@media (max-width: 720px) {
+  /* The document scrolls on mobile (see layouts/default.vue) — disable the
+     browser's native overscroll/pull-to-refresh so our custom PullToRefresh is
+     the single, consistent gesture across iOS and Android. */
+  html {
+    overscroll-behavior-y: contain;
+  }
+}
 
 html,
 body {
