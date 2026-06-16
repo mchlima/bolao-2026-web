@@ -388,11 +388,14 @@ export interface MatchLineup {
 
 // Event timeline (GET /matches/:id/events), grouped by period.
 export interface TimelineEvent {
-  type: string; // GOAL / OWN_GOAL / PENALTY_GOAL / YELLOW / RED / SUBSTITUTION
+  // GOAL / OWN_GOAL / PENALTY_GOAL / PENALTY_MISSED / YELLOW / RED / SECOND_YELLOW
+  // / SUBSTITUTION / VAR / DELAY / PERIOD_END
+  type: string;
   minute: string | null;
   side: 'home' | 'away' | null;
   player: string | null;
   related: string | null;
+  detail: string | null; // goal method, VAR decision, delay reason, penalty miss/save
 }
 export interface TimelinePeriod {
   period: number;

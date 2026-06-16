@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, MatchTimeline } from '~/types/api';
+import type { Match, MatchTimeline, TimelineEvent } from '~/types/api';
 
 // Event timeline of a match (goals/cards/subs), consumed from OUR backend
 // (/matches/:id/events) — grouped by period, home on the left, away on the
@@ -55,13 +55,17 @@ function surname(name: string | null): string {
   const parts = name.trim().split(/\s+/);
   return parts[parts.length - 1] || name;
 }
-const isGoal = (t: string) => t.includes('GOAL');
-// Tag shown next to a goal scorer for the special cases.
-function goalTag(t: string): string | null {
-  if (t === 'PENALTY_GOAL') return 'pênalti';
-  if (t === 'OWN_GOAL') return 'contra';
+const isGoal = (t: string) => t.includes('GOAL'); // GOAL / OWN_GOAL / PENALTY_GOAL
+// Coloured tag next to the player's name (pênalti/contra, sending-off, miss).
+function rowTag(e: TimelineEvent): string | null {
+  if (e.type === 'PENALTY_GOAL') return 'pênalti';
+  if (e.type === 'OWN_GOAL') return 'contra';
+  if (e.type === 'SECOND_YELLOW') return '2º amarelo';
+  if (e.type === 'PENALTY_MISSED') return e.detail ?? 'perdeu';
   return null;
 }
+// The danger-toned tags (red) vs the default gold ones.
+const dangerTag = (t: string) => t === 'SECOND_YELLOW' || t === 'PENALTY_MISSED';
 // Whistle markers (end of a period): "Intervalo" for the 1st half, "Fim de jogo"
 // for the final whistle, else "Fim do <período>".
 const lastPeriodNum = computed(() => {
@@ -89,6 +93,21 @@ function whistleLabel(period: number, label: string): string {
         </span>
       </div>
 
+      <!-- VAR review / decision -->
+      <div v-else-if="e.type === 'VAR'" class="var">
+        <span>
+          <b class="var-badge">VAR</b>{{ e.detail || 'Revisão do VAR' }}<small v-if="e.minute"> · {{ e.minute }}</small>
+        </span>
+      </div>
+
+      <!-- stoppage: injury / drinks break / VAR check -->
+      <div v-else-if="e.type === 'DELAY'" class="delay">
+        <span>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l2.5 2.5" /></svg>
+          {{ e.detail || 'Jogo paralisado' }}<small v-if="e.minute"> · {{ e.minute }}</small>
+        </span>
+      </div>
+
       <div v-else class="ev" :class="[e.side ?? 'home', { goal: isGoal(e.type) }]">
         <span class="min">{{ e.minute }}</span>
 
@@ -97,6 +116,10 @@ function whistleLabel(period: number, label: string): string {
           <span class="icon" :class="{ goal: isGoal(e.type) }">
             <span v-if="e.type === 'YELLOW'" class="card yellow" />
             <span v-else-if="e.type === 'RED'" class="card red" />
+            <span v-else-if="e.type === 'SECOND_YELLOW'" class="card2" aria-hidden="true"><span class="card yellow" /><span class="card red" /></span>
+            <span v-else-if="e.type === 'PENALTY_MISSED'" class="miss" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8" /><path d="M6.5 17.5 17.5 6.5" /></svg>
+            </span>
             <span v-else-if="e.type === 'SUBSTITUTION'" class="subico">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="up" d="M17 7v12M17 7l-3 3M17 7l3 3" /><path class="down" d="M7 17V5M7 17l-3-3M7 17l3-3" /></svg>
             </span>
@@ -111,7 +134,7 @@ function whistleLabel(period: number, label: string): string {
             </template>
             <template v-else>
               <span class="nm">
-                {{ surname(e.player) }}<span v-if="goalTag(e.type)" class="tag">{{ goalTag(e.type) }}</span>
+                {{ surname(e.player) }}<span v-if="rowTag(e)" class="tag" :class="{ danger: dangerTag(e.type) }">{{ rowTag(e) }}</span><span v-if="isGoal(e.type) && e.detail" class="tag muted">{{ e.detail }}</span>
               </span>
               <span v-if="e.related && isGoal(e.type)" class="assist">{{ surname(e.related) }}</span>
             </template>
@@ -376,6 +399,42 @@ function whistleLabel(period: number, label: string): string {
   padding: 1px 4px;
   vertical-align: middle;
 }
+/* sending-off / missed-penalty tag (red) and the muted goal-method tag */
+.tag.danger {
+  color: var(--scarlet, #e23744);
+  border-color: color-mix(in srgb, var(--scarlet, #e23744) 45%, transparent);
+}
+.tag.muted {
+  color: var(--muted);
+  border-color: var(--border);
+  text-transform: none;
+  letter-spacing: 0;
+}
+/* second yellow → two overlapped cards */
+.card2 {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+.card2 .card {
+  position: absolute;
+}
+.card2 .yellow {
+  top: 0;
+  left: 1px;
+  transform: rotate(-14deg);
+}
+.card2 .red {
+  bottom: 0;
+  right: 1px;
+  transform: rotate(10deg);
+}
+/* missed / saved penalty */
+.miss {
+  display: grid;
+  place-items: center;
+  color: var(--scarlet, #e23744);
+}
 /* referee whistle — end of a period; a filled chip that breaks the spine */
 .whistle {
   position: relative;
@@ -406,6 +465,58 @@ function whistleLabel(period: number, label: string): string {
   text-transform: none;
   letter-spacing: 0;
   color: var(--muted);
+}
+
+/* VAR + stoppage markers — same centred chip as the whistle, different accents */
+.var,
+.delay {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 12px 0;
+}
+.var span,
+.delay span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 13px;
+  font-size: 10.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+.var span {
+  border-color: color-mix(in srgb, var(--azure, #1e7ff0) 45%, var(--border));
+}
+.delay span {
+  font-weight: 700;
+  color: var(--muted);
+}
+.var svg,
+.delay svg {
+  flex: none;
+  color: var(--muted);
+}
+.var small,
+.delay small {
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+}
+.var-badge {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: var(--azure, #1e7ff0);
+  border-radius: 4px;
+  padding: 2px 5px;
 }
 
 /* the auto-scroll target; leave room for the fixed bottom nav */
