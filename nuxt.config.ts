@@ -34,6 +34,12 @@ export default defineNuxtConfig({
     client: {
       // Track the install prompt ourselves ($pwa.showInstallPrompt / install()).
       installPrompt: true,
+      // Long-open sessions (an installed PWA kept open through a match) only pick
+      // up a deploy on reload — client-side nav never reloads the JS. Poll the SW
+      // for a new version every 30 min; with registerType 'autoUpdate' a found
+      // update applies + reloads automatically. No-op when there's no new deploy,
+      // so it only ever reloads right after we ship.
+      periodicSyncForUpdates: 1800,
     },
     devOptions: {
       enabled: false,
