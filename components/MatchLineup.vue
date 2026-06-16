@@ -85,7 +85,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
             </span>
             <span class="ppos">{{ p.position }}</span>
             <span v-if="p.subFor" class="subline" :class="{ green: p.subbedOut, red: p.subbedIn }">
-              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}<span v-if="p.subMinute" class="smin"> {{ p.subMinute }}</span>
+              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}
             </span>
           </span>
         </li>
@@ -105,7 +105,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
             </span>
             <span class="ppos">{{ p.position }}</span>
             <span v-if="p.subFor" class="subline" :class="{ green: p.subbedOut, red: p.subbedIn }">
-              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}<span v-if="p.subMinute" class="smin"> {{ p.subMinute }}</span>
+              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}
             </span>
           </span>
         </li>
@@ -143,7 +143,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
             </span>
             <span class="ppos">{{ p.position }}</span>
             <span v-if="p.subFor" class="subline" :class="{ green: p.subbedOut, red: p.subbedIn }">
-              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}<span v-if="p.subMinute" class="smin"> {{ p.subMinute }}</span>
+              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}
             </span>
           </span>
         </li>
@@ -163,7 +163,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
             </span>
             <span class="ppos">{{ p.position }}</span>
             <span v-if="p.subFor" class="subline" :class="{ green: p.subbedOut, red: p.subbedIn }">
-              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}<span v-if="p.subMinute" class="smin"> {{ p.subMinute }}</span>
+              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}
             </span>
           </span>
         </li>
@@ -314,10 +314,6 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
 }
 .subline.red {
   color: var(--scarlet, #e23744);
-}
-.smin {
-  color: var(--muted);
-  font-weight: 600;
 }
 .card {
   flex: none;
