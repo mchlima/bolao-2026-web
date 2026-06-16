@@ -54,7 +54,7 @@ function badge(name: string): string {
 
 <template>
   <div class="page">
-    <header class="thead">
+    <header v-if="!isMatch" class="thead">
       <div class="trow">
         <NuxtLink :to="isMatch ? `/futebol/torneios/${id}` : '/futebol/torneios'" class="back" aria-label="Voltar">
           <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />

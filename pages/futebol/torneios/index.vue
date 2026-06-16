@@ -80,7 +80,7 @@ const { data, pending } = await useAsyncData('tournaments', async () => {
 
 <style scoped>
 .page {
-  padding: 22px 0 40px;
+  padding: 10px;
 }
 .grid {
   display: grid;

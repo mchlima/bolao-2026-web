@@ -177,7 +177,7 @@ async function submitCreate() {
 
 <style scoped>
 .page {
-  padding: 22px 0 40px;
+  padding: 10px;
 }
 .inp {
   width: 100%;

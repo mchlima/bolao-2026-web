@@ -202,6 +202,8 @@ const ranking = [
 
 <template>
   <div class="land-page">
+    <PageHeader title="Início" subtitle="Seus torneios e os próximos jogos." />
+
     <!-- PWA: convite discreto p/ instalar (só aparece quando instalável) -->
     <InstallBanner />
 
@@ -442,7 +444,7 @@ const ranking = [
 
 <style scoped>
 .land-page {
-  padding: 8px 0 24px;
+  padding: 10px;
 }
 .welcome {
   margin: 4px 0 22px;

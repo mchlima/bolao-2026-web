@@ -120,10 +120,10 @@ function fmtDayLabel(date: string): string {
 
 <template>
   <div class="agenda">
-    <header class="ag-head">
-      <h1 class="font-display">Jogos</h1>
-      <div class="ag-comp">
-        <button type="button" class="csel" :aria-expanded="compOpen" @click="compOpen = !compOpen">
+    <PageHeader title="Jogos" subtitle="Os jogos de cada dia, de todos os torneios." />
+
+    <div class="ag-comp">
+      <button type="button" class="csel" :aria-expanded="compOpen" @click="compOpen = !compOpen">
           <span v-if="selectedComp" class="cbadge" :style="{ background: compGrad(selectedComp) }">
             <img v-if="selectedComp.logoUrl" :src="selectedComp.logoUrl" alt="" />
             <template v-else>{{ compInitials(selectedComp.name) }}</template>
@@ -155,8 +155,7 @@ function fmtDayLabel(date: string): string {
             </li>
           </ul>
         </template>
-      </div>
-    </header>
+    </div>
 
     <!-- day navigator: opens on today; arrows skip to the prev/next day with games -->
     <div class="day-nav">
@@ -196,30 +195,18 @@ function fmtDayLabel(date: string): string {
 
 <style scoped>
 .agenda {
-  padding: 8px 0 24px;
-}
-.ag-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-.ag-head h1 {
-  font-weight: 700;
-  font-size: clamp(24px, 5vw, 34px);
-  text-transform: uppercase;
+  padding: 10px;
 }
 .ag-comp {
   position: relative;
-  flex: 0 1 auto;
+  width: 100%;
+  margin-bottom: 12px;
 }
 .csel {
   display: flex;
   align-items: center;
   gap: 8px;
-  max-width: 230px;
+  width: 100%;
   padding: 6px 10px 6px 6px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -278,10 +265,9 @@ function fmtDayLabel(date: string): string {
 .csel-menu {
   position: absolute;
   top: calc(100% + 6px);
+  left: 0;
   right: 0;
   z-index: 31;
-  min-width: 230px;
-  max-width: 280px;
   list-style: none;
   margin: 0;
   padding: 6px;

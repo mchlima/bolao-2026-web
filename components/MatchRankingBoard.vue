@@ -31,6 +31,13 @@ const HEIGHTS = ['66px', '50px', '40px'];
 const match = computed(() => props.match);
 const ranking = computed(() => props.ranking);
 
+// Meta line under the score: tournament · phase · group (non-empty parts only).
+const metaLine = computed(() => {
+  const m = props.match;
+  const grupo = m.groupName ? `Grupo ${m.groupName}` : null;
+  return [m.season?.name, m.phaseLabel, grupo].filter(Boolean).join(' · ');
+});
+
 // Tabs: "Bolão" (this ranking) vs "Escalação" (the live lineup). The lineup tab
 // only appears once lineups exist (MatchLineup reports availability) — before
 // that the board renders exactly as before, with no tab bar. The active tab is
@@ -164,8 +171,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
 <template>
   <div class="mfill">
-    <button v-if="!hideBack" class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
-
     <div class="card detail" :class="{ live: isLive, 'has-thead': hideBack }">
       <div v-if="isLive" class="live-glow" aria-hidden="true" />
 
@@ -174,7 +179,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       <!-- RESULTADO -->
       <div class="result-head">
         <div class="rhead-top">
-          <span class="rlabel">{{ match.phaseLabel }}<span v-if="match.groupName"> · Grupo {{ match.groupName }}</span></span>
+          <button v-if="!hideBack" class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
           <div class="rhead-r">
             <span class="state" :class="{ live: stateMeta.live }" :style="{ color: stateMeta.color, borderColor: stateMeta.color }">
               <span v-if="stateMeta.live" class="dot" />{{ stateMeta.live ? (match.liveClock || 'Ao vivo') : stateMeta.label }}
@@ -195,9 +200,10 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <span class="tname">{{ awayName }}</span>
           </div>
         </div>
+        <div v-if="metaLine" class="rmeta">{{ metaLine }}</div>
         <div v-if="match.stadium" class="venue">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-          {{ match.stadium.name }} · {{ match.stadium.city }}
+          {{ match.stadium.name }}
         </div>
       </div>
 
@@ -361,8 +367,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   font-weight: 700;
   font-size: 13px;
   cursor: pointer;
-  margin-bottom: 14px;
   padding: 0;
+  flex: none;
 }
 .back:hover {
   color: var(--text);
@@ -435,16 +441,14 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   gap: 8px;
   flex: none;
 }
-.rlabel {
+.rmeta {
+  margin-top: 14px;
+  text-align: center;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--muted);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .state {
   display: inline-flex;
