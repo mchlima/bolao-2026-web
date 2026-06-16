@@ -23,6 +23,7 @@ const { data, pending, error, refresh } = await useAsyncData(
     }
     return { matches, predictions };
   },
+  { getCachedData: cachedPayload },
 );
 
 const predMap = ref<Record<string, Prediction>>({});

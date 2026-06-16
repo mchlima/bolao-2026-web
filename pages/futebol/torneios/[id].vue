@@ -11,6 +11,7 @@ const id = route.params.id as string;
 
 const { data: tournaments } = await useAsyncData('tournaments-list', () =>
   useApi()<Paginated<Tournament>>('/seasons?pageSize=100').then((r) => r.data),
+  { getCachedData: cachedPayload },
 );
 const current = computed(
   () => (tournaments.value ?? []).find((t) => t.id === id) ?? null,
@@ -53,7 +54,7 @@ function badge(name: string): string {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'page--flush': isMatch }">
     <header v-if="!isMatch" class="thead">
       <div class="trow">
         <NuxtLink :to="isMatch ? `/futebol/torneios/${id}` : '/futebol/torneios'" class="back" aria-label="Voltar">
@@ -92,7 +93,12 @@ function badge(name: string): string {
 
 <style scoped>
 .page {
-  padding: 0 0 40px;
+  padding: 10px;
+}
+/* The match screen is full-bleed (the board paints edge-to-edge), so it opts out
+   of the standardized page gutter. */
+.page--flush {
+  padding: 0;
 }
 .thead {
   position: sticky;
@@ -101,9 +107,9 @@ function badge(name: string): string {
   top: 0;
   z-index: 30;
   background: var(--bg-base);
-  /* Spans the full width (.main has no side padding now). The title keeps its own
-     16px inset via this padding. */
-  padding: 6px 16px 12px;
+  /* Side gutter comes from .page; keep a small top inset so the bar still has
+     breathing room once it sticks to the top. */
+  padding: 6px 0 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -166,19 +172,10 @@ function badge(name: string): string {
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* Tags rest at a 16px inset and scroll within (no negative margin: .main has no
-     side gutter to cancel anymore). */
-  padding-left: 16px;
-  padding-right: 16px;
+  /* Side gutter comes from .page; tags scroll within it. */
 }
 .ttabs::-webkit-scrollbar {
   display: none;
-}
-@media (max-width: 420px) {
-  .ttabs {
-    padding-left: 13px;
-    padding-right: 13px;
-  }
 }
 .ttag {
   flex: none;
