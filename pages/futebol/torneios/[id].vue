@@ -54,7 +54,7 @@ function badge(name: string): string {
 
 <template>
   <div class="page">
-    <header class="thead" :class="{ 'on-match': isMatch }">
+    <header class="thead">
       <div class="trow">
         <NuxtLink :to="isMatch ? `/futebol/torneios/${id}` : '/futebol/torneios'" class="back" aria-label="Voltar">
           <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
@@ -96,27 +96,17 @@ function badge(name: string): string {
 }
 .thead {
   position: sticky;
-  /* Stick just below the global AppHeader (0 on mobile, where it's hidden). */
-  top: var(--header-h, 0px);
+  /* <main> is the scroll container (app-shell), so stick at the top of its
+     scrollport — the global header is outside <main>, above it. */
+  top: 0;
   z-index: 30;
   background: var(--bg-base);
-  /* Full-bleed background: span the screen width, keep the title aligned. */
-  margin-inline: -16px;
+  /* Spans the full width (.main has no side padding now). The title keeps its own
+     16px inset via this padding. */
   padding: 6px 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-/* On the match route the screen is painted with the surface color
-   (body.match-screen), so the header blends instead of showing a base-color bar. */
-.thead.on-match {
-  background: var(--bg-surface);
-}
-@media (max-width: 420px) {
-  .thead {
-    margin-inline: -13px;
-    padding-inline: 13px;
-  }
 }
 .trow {
   display: flex;
@@ -176,12 +166,8 @@ function badge(name: string): string {
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* Full-bleed scroller: cancel the .container side padding (16px / 13px on
-     small screens) so tags scroll to the screen edges instead of being clipped
-     inside the padding, then re-add it as inner padding so the first/last tag
-     still line up with the content at rest. */
-  margin-left: -16px;
-  margin-right: -16px;
+  /* Tags rest at a 16px inset and scroll within (no negative margin: .main has no
+     side gutter to cancel anymore). */
   padding-left: 16px;
   padding-right: 16px;
 }
@@ -190,8 +176,6 @@ function badge(name: string): string {
 }
 @media (max-width: 420px) {
   .ttabs {
-    margin-left: -13px;
-    margin-right: -13px;
     padding-left: 13px;
     padding-right: 13px;
   }

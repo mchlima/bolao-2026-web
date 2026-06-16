@@ -34,7 +34,8 @@ const ranking = computed(() => props.ranking);
 // Tabs: "Bolão" (this ranking) vs "Escalação" (the live lineup). The lineup tab
 // only appears once lineups exist (MatchLineup reports availability) — before
 // that the board renders exactly as before, with no tab bar. The active tab is
-// driven by the URL (?aba=escalacao) so it's linkable and survives back/forward.
+// driven by the URL path (…/matches/:id/escalacao) so it's linkable, shareable
+// and survives back/forward — the route carries an optional [[aba]] segment.
 const route = useRoute();
 const lineupAvailable = ref(false);
 const timelineAvailable = ref(false);
@@ -52,18 +53,23 @@ const matchTabs = computed(() => {
   return tabs;
 });
 const activeTab = computed(() => {
-  const aba = route.query.aba;
+  const aba = route.params.aba;
   if (aba === 'escalacao' && lineupAvailable.value) return 'escalacao';
   if (aba === 'tempo' && timelineAvailable.value) return 'tempo';
   if (aba === 'stats' && statsAvailable.value) return 'stats';
   if (aba === 'classificacao' && hasClassificacao.value) return 'classificacao';
   return 'bolao';
 });
+// The match path minus any trailing tab segment — the base to build tab links
+// from. Works for every route that renders the board (tournament / standalone /
+// pool), since it's derived from the current path rather than hard-coded.
+const baseTabPath = computed(() => {
+  const path = route.path.replace(/\/$/, '');
+  const aba = route.params.aba as string | undefined;
+  return aba ? path.slice(0, -(aba.length + 1)) : path;
+});
 function tabTo(key: string) {
-  const query = { ...route.query };
-  if (key === 'bolao') delete query.aba;
-  else query.aba = key;
-  return { query };
+  return key === 'bolao' ? baseTabPath.value : `${baseTabPath.value}/${key}`;
 }
 const playing = computed(
   () => match.value.status === 'LIVE' || match.value.status === 'FINISHED',
@@ -363,9 +369,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 .detail {
   position: relative;
-  /* Full-bleed: cancel the container side padding so the content spans the full
-     width (no side radius → nothing to clip, so sticky children work). */
-  margin-inline: -16px;
+  /* Full width (.main has no side padding now, so no negative margin needed).
+     No side radius → nothing to clip, so sticky children work. */
   border-radius: 0;
   overflow: visible;
   /* The screen background already is this surface (body.match-screen), so drop
@@ -373,18 +378,12 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
      ends mid-screen. The result-head gradient gives the top enough definition. */
   border: none;
   box-shadow: none;
-  /* Fill the viewport height so short content leaves no void — via min-height
-     (NOT flex; a flex ancestor makes the sticky headers jitter). Uses static vh,
-     not dvh: dvh changes as the mobile address bar shows/hides, which would
-     reflow mid-scroll. The subtracted 90px conservatively covers the headers
-     above so the page never overflows; any remainder below is the same surface
-     color, so it's invisible. */
-  min-height: calc(100vh - var(--header-h, 0px) - 90px);
-}
-@media (max-width: 420px) {
-  .detail {
-    margin-inline: -13px;
-  }
+  /* Fill from below the slim header down to the bottom nav — via min-height (NOT
+     flex; a flex ancestor makes the sticky headers jitter). Subtracts the global
+     header, the bottom nav, and the ~52px tournament sub-header so the card ends
+     right at the nav. Static vh (not dvh) avoids reflow when the mobile address
+     bar toggles. */
+  min-height: calc(100dvh - var(--header-h, 0px) - var(--nav-h, 0px) - 52px);
 }
 .detail.live {
   border-color: rgba(232, 54, 43, 0.5);
@@ -400,9 +399,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 /* RESULTADO */
 .msticky {
   position: sticky;
-  /* Stick below the global AppHeader (0 on mobile). Standalone/pool routes have no
-     tournament header above, so this is the full offset there. */
-  top: var(--header-h, 0px);
+  /* <main> is the scroll container (app-shell), so stick at the top of its
+     scrollport (0). The tournament shell's .thead sits above us → see has-thead. */
+  top: 0;
   z-index: 20;
   background: var(--bg-surface);
   /* opaque space below the chips (padding, not the tab's margin, so it doesn't
@@ -412,7 +411,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 /* Inside the tournament shell (hideBack → has-thead) the slim 52px .thead sits
    above the score block, so stick below the header *and* that thead. */
 .detail.has-thead .msticky {
-  top: calc(var(--header-h, 0px) + 52px);
+  top: 52px;
 }
 .result-head {
   position: relative;

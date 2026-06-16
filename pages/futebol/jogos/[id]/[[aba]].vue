@@ -2,6 +2,8 @@
 // Standalone match view (e.g. opened from the predictions list). The tournament
 // and pool match screens render MatchRankingView / PoolMatchView inside their
 // own tabbed shells instead.
+// Key by the match id so switching the tab segment reuses this page (no remount).
+definePageMeta({ key: (route) => route.params.id as string });
 const route = useRoute();
 const router = useRouter();
 const id = route.params.id as string;

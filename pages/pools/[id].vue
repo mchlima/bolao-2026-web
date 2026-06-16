@@ -181,8 +181,7 @@ const unavailable = computed(() => {
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  margin-left: -16px;
-  margin-right: -16px;
+  /* No negative margin: .main has no side gutter to cancel anymore. */
   padding-left: 16px;
   padding-right: 16px;
 }
@@ -191,8 +190,6 @@ const unavailable = computed(() => {
 }
 @media (max-width: 420px) {
   .tabs {
-    margin-left: -13px;
-    margin-right: -13px;
     padding-left: 13px;
     padding-right: 13px;
   }

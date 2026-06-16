@@ -47,10 +47,16 @@ const { data, pending, refresh } = await useAsyncData(
   () => {
     const qs = new URLSearchParams({ from: day.value, to: day.value });
     if (competitionId.value) qs.set('competitionId', competitionId.value);
-    return useApi()<{ days: { date: string; matches: Match[] }[] }>(`/agenda?${qs.toString()}`);
+    return useApi()<{
+      days: { date: string; matches: Match[] }[];
+      nav?: { prevDate: string | null; nextDate: string | null };
+    }>(`/agenda?${qs.toString()}`);
   },
   { watch: [day, competitionId] },
 );
+// Nearest days that actually have games (computed server-side, honouring the
+// tournament filter) — lets the day arrows skip over empty dates.
+const nav = computed(() => data.value?.nav ?? { prevDate: null, nextDate: null });
 const matches = computed<Match[]>(() => (data.value?.days ?? []).flatMap((d) => d.matches));
 // Server-confirmed live games get the labelled "Ao vivo" section; the rest
 // follow status priority (agendada → adiada → encerrada), finished sinking to
@@ -88,11 +94,10 @@ function onSaved(p: Prediction) {
 }
 
 const isToday = computed(() => day.value === brtToday());
-function shiftDay(delta: number) {
-  const [y, m, d] = day.value.split('-').map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  dt.setUTCDate(dt.getUTCDate() + delta);
-  day.value = dt.toISOString().slice(0, 10);
+// Jump straight to a given day (used by the arrows with the server's adjacent
+// game days). No-op when there's no such day (arrow is disabled then anyway).
+function goDay(date: string | null) {
+  if (date) day.value = date;
 }
 function goToday() {
   day.value = brtToday();
@@ -153,9 +158,9 @@ function fmtDayLabel(date: string): string {
       </div>
     </header>
 
-    <!-- day navigator: opens on today, ‹ prev / next › -->
+    <!-- day navigator: opens on today; arrows skip to the prev/next day with games -->
     <div class="day-nav">
-      <button class="day-btn" aria-label="Dia anterior" @click="shiftDay(-1)">
+      <button class="day-btn" aria-label="Dia anterior com jogos" :disabled="!nav.prevDate" @click="goDay(nav.prevDate)">
         <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
       </button>
       <div class="day-label">
@@ -163,7 +168,7 @@ function fmtDayLabel(date: string): string {
         <button v-if="!isToday" class="dl-today" @click="goToday">Voltar para hoje</button>
         <span v-else class="dl-today is">Hoje</span>
       </div>
-      <button class="day-btn" aria-label="Próximo dia" @click="shiftDay(1)">
+      <button class="day-btn" aria-label="Próximo dia com jogos" :disabled="!nav.nextDate" @click="goDay(nav.nextDate)">
         <AppIcon name="arrowRight" :size="18" :stroke="2.4" />
       </button>
     </div>
@@ -172,7 +177,12 @@ function fmtDayLabel(date: string): string {
       <span class="ag-spin" />Carregando jogos…
     </div>
     <SkeletonList v-if="pending && !data" variant="match" :count="4" />
-    <p v-else-if="!matches.length" class="muted ag-empty">Nenhum jogo neste dia.</p>
+    <div v-else-if="!matches.length" class="ag-empty">
+      <p class="muted">Nenhum jogo neste dia.</p>
+      <button v-if="nav.nextDate" type="button" class="ag-empty-next" @click="goDay(nav.nextDate)">
+        Ir para o próximo dia com jogos <AppIcon name="arrowRight" :size="15" :stroke="2.4" />
+      </button>
+    </div>
     <div v-else class="ag-list" :class="{ busy: pending }">
       <template v-if="liveMatches.length">
         <span class="ag-live-lbl"><span class="lvdot" />Ao vivo</span>
@@ -331,8 +341,12 @@ function fmtDayLabel(date: string): string {
   cursor: pointer;
   transition: color 0.13s;
 }
-.day-btn:hover {
+.day-btn:hover:not(:disabled) {
   color: var(--text);
+}
+.day-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
 }
 .day-label {
   flex: 1;
@@ -367,6 +381,25 @@ function fmtDayLabel(date: string): string {
 .ag-empty {
   padding: 2.5rem 0;
   text-align: center;
+}
+.ag-empty-next {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 9px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.ag-empty-next:hover {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
 }
 .ag-list {
   display: grid;

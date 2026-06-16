@@ -57,10 +57,14 @@ html[data-theme='light'] {
    The header is hidden ≤720px (see AppHeader), so there it's 0. */
 :root {
   --header-h: 63px;
+  /* Height of the fixed bottom nav (AppBottomNav). It only shows ≤720px, so it's
+     0 above that. Used to size full-screen content to end exactly at the nav. */
+  --nav-h: 0px;
 }
 @media (max-width: 720px) {
   :root {
     --header-h: 0px;
+    --nav-h: calc(66px + env(safe-area-inset-bottom));
   }
 }
 
@@ -98,18 +102,9 @@ body {
 body.match-screen {
   background: var(--bg-surface);
 }
-/* Drop the page's vertical padding on the match screen — the card fills from the
-   top and reaches the bottom itself; the matching surface covers any slack. */
-body.match-screen .main,
+/* The match screen drops the page's bottom padding (the card fills to the nav). */
 body.match-screen .page {
-  padding-top: 0;
   padding-bottom: 0;
-}
-/* Bottom-nav clearance lives inside the scrolling card content (since .main's was
-   dropped), so the last ranking rows / lineup aren't hidden under the fixed nav. */
-body.match-screen .body,
-body.match-screen .lntab {
-  padding-bottom: 92px;
 }
 
 a {

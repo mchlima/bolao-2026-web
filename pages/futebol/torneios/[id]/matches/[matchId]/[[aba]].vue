@@ -2,6 +2,9 @@
 // Tournament-scoped match view — rendered inside the tournament shell
 // (tournaments/[id].vue: slim header stays). Its own back returns to the
 // tournament home (the shell omits its back on this route).
+// Key by matchId (not the full path) so switching the tab segment
+// (…/escalacao, …/tempo) reuses this page instead of remounting it.
+definePageMeta({ key: (route) => route.params.matchId as string });
 const route = useRoute();
 const id = route.params.id as string;
 const matchId = route.params.matchId as string;
