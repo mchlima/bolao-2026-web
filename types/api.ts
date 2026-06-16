@@ -369,6 +369,8 @@ export interface LineupPlayer {
   yellow: number;
   red: number;
   photo: string | null;
+  subFor: string | null;
+  subMinute: string | null;
 }
 export interface LineupTeam {
   formation: string | null;

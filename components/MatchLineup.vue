@@ -84,6 +84,9 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
               <span v-if="p.subbedOut" class="arr down">↓</span>
             </span>
             <span class="ppos">{{ p.position }}</span>
+            <span v-if="p.subFor" class="subline" :class="{ green: p.subbedOut, red: p.subbedIn }">
+              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}<span v-if="p.subMinute" class="smin"> {{ p.subMinute }}</span>
+            </span>
           </span>
         </li>
       </ul>
@@ -101,6 +104,9 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
               <span v-if="p.subbedOut" class="arr down">↓</span>
             </span>
             <span class="ppos">{{ p.position }}</span>
+            <span v-if="p.subFor" class="subline" :class="{ green: p.subbedOut, red: p.subbedIn }">
+              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}<span v-if="p.subMinute" class="smin"> {{ p.subMinute }}</span>
+            </span>
           </span>
         </li>
       </ul>
@@ -136,6 +142,9 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
               <span v-if="p.subbedIn" class="arr up">↑</span>
             </span>
             <span class="ppos">{{ p.position }}</span>
+            <span v-if="p.subFor" class="subline" :class="{ green: p.subbedOut, red: p.subbedIn }">
+              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}<span v-if="p.subMinute" class="smin"> {{ p.subMinute }}</span>
+            </span>
           </span>
         </li>
       </ul>
@@ -153,6 +162,9 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
               <span v-if="p.subbedIn" class="arr up">↑</span>
             </span>
             <span class="ppos">{{ p.position }}</span>
+            <span v-if="p.subFor" class="subline" :class="{ green: p.subbedOut, red: p.subbedIn }">
+              {{ p.subbedOut ? '↑' : '↓' }} {{ surname(p.subFor) }}<span v-if="p.subMinute" class="smin"> {{ p.subMinute }}</span>
+            </span>
           </span>
         </li>
       </ul>
@@ -215,7 +227,10 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   padding: 4px 6px;
   border-radius: 9px;
 }
-.prow.out {
+/* dim only the player's own identity — the swap-in line below stays readable */
+.prow.out .pav,
+.prow.out .ptop,
+.prow.out .ppos {
   opacity: 0.42;
 }
 .prow.in {
@@ -286,6 +301,23 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--muted);
+}
+.subline {
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.subline.green {
+  color: var(--emerald, #16b364);
+}
+.subline.red {
+  color: var(--scarlet, #e23744);
+}
+.smin {
+  color: var(--muted);
+  font-weight: 600;
 }
 .card {
   flex: none;
