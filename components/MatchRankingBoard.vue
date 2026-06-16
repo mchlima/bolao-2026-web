@@ -157,7 +157,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
           <span class="rlabel">{{ match.phaseLabel }}<span v-if="match.groupName"> · Grupo {{ match.groupName }}</span></span>
           <div class="rhead-r">
             <span class="state" :class="{ live: stateMeta.live }" :style="{ color: stateMeta.color, borderColor: stateMeta.color }">
-              <span v-if="stateMeta.live" class="dot" />{{ stateMeta.label }}
+              <span v-if="stateMeta.live" class="dot" />{{ stateMeta.live ? (match.liveClock || 'Ao vivo') : stateMeta.label }}
             </span>
             <ShareMatch v-if="myPred && scored" :match="match" :me="me" />
           </div>

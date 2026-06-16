@@ -226,6 +226,7 @@ export interface Match {
   awayScore: number | null;
   phaseLabel: string | null;
   groupName: string | null;
+  liveClock: string | null; // ESPN live clock while LIVE, e.g. "67'"
   roundId: string | null;
   matchNumber: number | null;
   predictionsOpen: boolean | null; // manual override; null = automatic rule
