@@ -11,6 +11,7 @@ const props = defineProps<{
 const emit = defineEmits<{ saved: [Prediction] }>();
 const auth = useAuthStore();
 const tz = useTz();
+const authLink = useAuthLink();
 
 const isLive = computed(() => props.match.status === 'LIVE');
 const isCancelled = computed(() => props.match.status === 'CANCELLED');
@@ -212,7 +213,7 @@ const leftLabel = computed(() =>
         </span>
 
         <!-- open, not logged in -->
-        <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" to="/login" class="cta-mini">
+        <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" :to="authLink('/login')" class="cta-mini">
           Entre para palpitar <AppIcon name="arrowRight" :size="13" :stroke="2.4" />
         </NuxtLink>
 

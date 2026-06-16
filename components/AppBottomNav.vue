@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const auth = useAuthStore();
 const route = useRoute();
+const authLink = useAuthLink();
 const sheetOpen = ref(false);
 
 const items = computed(() => {
@@ -47,7 +48,7 @@ function active(to: string) {
     <NuxtLink
       v-for="it in items"
       :key="it.to"
-      :to="it.to"
+      :to="it.to === '/login' ? authLink('/login') : it.to"
       class="item"
       :style="{ color: active(it.to) ? 'var(--emerald)' : 'var(--muted)' }"
     >

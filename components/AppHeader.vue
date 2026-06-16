@@ -4,6 +4,7 @@ const route = useRoute();
 // On the auth screens the page already offers Entrar/Criar conta, so the header
 // CTA is redundant noise — hide it there.
 const onAuthPage = computed(() => route.path === '/login' || route.path === '/register');
+const authLink = useAuthLink();
 const colorMode = useColorMode();
 const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
@@ -59,8 +60,8 @@ const initials = computed(() => {
             </ClientOnly>
           </button>
           <div class="auth-cta">
-            <NuxtLink to="/register" class="btn btn-gold">Criar conta</NuxtLink>
-            <NuxtLink to="/login" class="btn">Entrar</NuxtLink>
+            <NuxtLink :to="authLink('/register')" class="btn btn-gold">Criar conta</NuxtLink>
+            <NuxtLink :to="authLink('/login')" class="btn">Entrar</NuxtLink>
           </div>
         </template>
       </div>

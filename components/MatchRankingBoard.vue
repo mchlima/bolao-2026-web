@@ -44,6 +44,7 @@ const metaLine = computed(() => {
 // driven by the URL path (…/matches/:id/escalacao) so it's linkable, shareable
 // and survives back/forward — the route carries an optional [[aba]] segment.
 const route = useRoute();
+const authLink = useAuthLink();
 const lineupAvailable = ref(false);
 const timelineAvailable = ref(false);
 const statsAvailable = ref(false);
@@ -252,7 +253,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </div>
 
         <!-- aberto, deslogado -->
-        <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" to="/login" class="btn btn-block login-cta">Entre para palpitar <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
+        <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" :to="authLink('/login')" class="btn btn-block login-cta">Entre para palpitar <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
 
         <!-- seu palpite × placar → pontos (o coração do acompanhamento ao vivo) -->
         <div v-else-if="myPred" class="pred-vs" :class="{ live: provisional, settled: hasResult && !provisional }">
@@ -271,7 +272,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </div>
 
         <!-- jogando/encerrado, deslogado: convida a entrar (já passou o kickoff) -->
-        <NuxtLink v-else-if="!auth.isAuthenticated" to="/login" class="btn btn-block login-cta">Entre para palpitar nos próximos jogos <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
+        <NuxtLink v-else-if="!auth.isAuthenticated" :to="authLink('/login')" class="btn btn-block login-cta">Entre para palpitar nos próximos jogos <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
 
         <!-- jogando, logado, sem palpite -->
         <div v-else-if="playing" class="nopred">

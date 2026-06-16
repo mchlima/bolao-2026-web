@@ -3,6 +3,7 @@ import type { RankingResponse, Tournament } from '~/types/api';
 
 const auth = useAuthStore();
 const route = useRoute();
+const authLink = useAuthLink();
 const id = route.params.id as string;
 
 // Tournament name for the header/share — reuse the shell's cached list (no extra fetch).
@@ -26,8 +27,8 @@ useRealtime(() => (auth.token ? [`tournament:${id}`] : []), () => refresh());
       <h3 class="font-display">Entre para ver o ranking</h3>
       <p class="muted">O ranking do bolão mostra a pontuação dos participantes — disponível para quem tem conta. Entre ou cadastre-se para acompanhar.</p>
       <div class="gate-actions">
-        <NuxtLink to="/login" class="btn btn-gold">Entrar</NuxtLink>
-        <NuxtLink to="/register" class="btn">Criar conta</NuxtLink>
+        <NuxtLink :to="authLink('/login')" class="btn btn-gold">Entrar</NuxtLink>
+        <NuxtLink :to="authLink('/register')" class="btn">Criar conta</NuxtLink>
       </div>
     </div>
     <SkeletonList v-else-if="pending && !data" variant="row" :count="8" />
