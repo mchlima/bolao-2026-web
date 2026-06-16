@@ -382,3 +382,21 @@ export interface MatchLineup {
   home?: LineupTeam;
   away?: LineupTeam;
 }
+
+// Event timeline (GET /matches/:id/events), grouped by period.
+export interface TimelineEvent {
+  type: string; // GOAL / OWN_GOAL / PENALTY_GOAL / YELLOW / RED / SUBSTITUTION
+  minute: string | null;
+  side: 'home' | 'away' | null;
+  player: string | null;
+  related: string | null;
+}
+export interface TimelinePeriod {
+  period: number;
+  label: string;
+  events: TimelineEvent[];
+}
+export interface MatchTimeline {
+  available: boolean;
+  periods: TimelinePeriod[];
+}

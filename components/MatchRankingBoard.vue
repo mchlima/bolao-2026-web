@@ -31,17 +31,23 @@ const ranking = computed(() => props.ranking);
 // driven by the URL (?aba=escalacao) so it's linkable and survives back/forward.
 const route = useRoute();
 const lineupAvailable = ref(false);
-const matchTabs = [
-  { key: 'bolao', label: 'Bolão' },
-  { key: 'escalacao', label: 'Escalação' },
-] as const;
-const activeTab = computed(() =>
-  lineupAvailable.value && route.query.aba === 'escalacao' ? 'escalacao' : 'bolao',
-);
+const timelineAvailable = ref(false);
+const matchTabs = computed(() => {
+  const tabs = [{ key: 'bolao', label: 'Bolão' }];
+  if (lineupAvailable.value) tabs.push({ key: 'escalacao', label: 'Escalação' });
+  if (timelineAvailable.value) tabs.push({ key: 'tempo', label: 'Linha do tempo' });
+  return tabs;
+});
+const activeTab = computed(() => {
+  const aba = route.query.aba;
+  if (aba === 'escalacao' && lineupAvailable.value) return 'escalacao';
+  if (aba === 'tempo' && timelineAvailable.value) return 'tempo';
+  return 'bolao';
+});
 function tabTo(key: string) {
   const query = { ...route.query };
-  if (key === 'escalacao') query.aba = 'escalacao';
-  else delete query.aba;
+  if (key === 'bolao') delete query.aba;
+  else query.aba = key;
   return { query };
 }
 const playing = computed(
@@ -172,7 +178,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </div>
       </div>
 
-      <nav v-if="lineupAvailable" class="ttabs" aria-label="Seções da partida">
+      <nav v-if="matchTabs.length > 1" class="ttabs" aria-label="Seções da partida">
         <NuxtLink
           v-for="t in matchTabs"
           :key="t.key"
@@ -305,6 +311,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
       <div v-show="activeTab === 'escalacao'" class="lntab">
         <MatchLineup :match="match" @available="lineupAvailable = $event" />
+      </div>
+      <div v-show="activeTab === 'tempo'" class="lntab">
+        <MatchTimeline :match="match" @available="timelineAvailable = $event" />
       </div>
     </div>
   </div>
