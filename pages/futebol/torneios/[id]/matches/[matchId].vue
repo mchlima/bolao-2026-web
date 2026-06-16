@@ -8,7 +8,7 @@ const matchId = route.params.matchId as string;
 </script>
 
 <template>
-  <div>
+  <div class="mfill">
     <!-- The tournament shell header provides the back here, so hide the board's own.
          The group table / bracket goes into the board's "Classificação" tab. -->
     <MatchRankingView :match-id="matchId" hide-back>

@@ -27,7 +27,7 @@ useRealtime(() => [`match:${props.matchId}`], () => refresh());
 </script>
 
 <template>
-  <div>
+  <div class="mfill">
     <SkeletonList v-if="pending && !data" variant="match" :count="1" />
     <p v-else-if="error || !data?.match" class="muted load">Partida indisponível.</p>
     <MatchRankingBoard

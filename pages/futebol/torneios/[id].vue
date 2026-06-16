@@ -54,7 +54,7 @@ function badge(name: string): string {
 
 <template>
   <div class="page">
-    <header class="thead">
+    <header class="thead" :class="{ 'on-match': isMatch }">
       <div class="trow">
         <NuxtLink :to="isMatch ? `/futebol/torneios/${id}` : '/futebol/torneios'" class="back" aria-label="Voltar">
           <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
@@ -105,6 +105,11 @@ function badge(name: string): string {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+/* On the match route the screen is painted with the surface color
+   (body.match-screen), so the header blends instead of showing a base-color bar. */
+.thead.on-match {
+  background: var(--bg-surface);
 }
 @media (max-width: 420px) {
   .thead {

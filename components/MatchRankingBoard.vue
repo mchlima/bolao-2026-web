@@ -20,6 +20,11 @@ const emit = defineEmits<{ back: []; refresh: [] }>();
 const auth = useAuthStore();
 const ui = useUiStore();
 
+// Paint the whole match screen with the card's surface color (see
+// body.match-screen in main.css) so short content doesn't leave an empty band
+// below the full-bleed card. The class is removed when this board unmounts.
+useHead({ bodyAttrs: { class: 'match-screen' } });
+
 const MEDALS = ['var(--gold)', '#C2CAD6', '#CD7F45'];
 const HEIGHTS = ['66px', '50px', '40px'];
 
@@ -152,7 +157,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 </script>
 
 <template>
-  <div>
+  <div class="mfill">
     <button v-if="!hideBack" class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
 
     <div class="card detail" :class="{ live: isLive }">
@@ -363,6 +368,15 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   margin-inline: -16px;
   border-radius: 0;
   overflow: visible;
+  /* The screen background already is this surface (body.match-screen), so drop
+     the card chrome — otherwise its border/shadow draw a seam where the content
+     ends mid-screen. The result-head gradient gives the top enough definition. */
+  border: none;
+  box-shadow: none;
+  /* Grow to fill the flex column (page root → view → board → here) so short
+     content stretches to the full screen height instead of leaving a void. */
+  flex: 1 1 auto;
+  min-height: 0;
 }
 @media (max-width: 420px) {
   .detail {
@@ -385,7 +399,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   position: sticky;
   top: 46px; /* just below the sticky tournament header */
   z-index: 20;
-  background: var(--bg-base);
+  background: var(--bg-surface);
   /* opaque space below the chips (padding, not the tab's margin, so it doesn't
      collapse out — otherwise scrolling content shows flush against the chips). */
   padding-bottom: 12px;

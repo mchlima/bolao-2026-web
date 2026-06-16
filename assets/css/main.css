@@ -75,6 +75,49 @@ body {
   }
 }
 
+/* Match screen: the full-bleed match card (MatchRankingBoard) fills the whole
+   screen height, so short content no longer leaves an empty band below it — the
+   content container stretches to 100% of the viewport down to the bottom nav.
+   The class is toggled on <body> by MatchRankingBoard while it is mounted.
+
+   How the fill works: a flex column runs from .app down through every wrapper to
+   the card (.detail). Each link grows to fill its parent; the leaf card takes the
+   slack. The matching surface background covers the layout's bottom padding (the
+   bottom-nav clearance) so the card edge is seamless with it. */
+body.match-screen {
+  background: var(--bg-surface);
+}
+body.match-screen .app {
+  display: flex;
+  flex-direction: column;
+}
+body.match-screen .main,
+body.match-screen .page {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* Drop the bottom-nav clearance padding here — the card fills to the very
+     bottom (behind the fixed nav) instead, so no base-color strip can show
+     below it. Clearance for long lists is re-added inside the card content. */
+  padding-bottom: 0;
+}
+/* Re-add the bottom-nav clearance inside the scrolling card content, so the last
+   ranking rows / lineup aren't hidden under the fixed nav on long lists. When the
+   content is short this padding is simply absorbed by the card's fill. */
+body.match-screen .body,
+body.match-screen .lntab {
+  padding-bottom: 92px;
+}
+/* Wrapper <div>s with no class of their own (page root → MatchRankingView →
+   MatchRankingBoard) — each must grow and pass the height down to the card. */
+.mfill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 a {
   color: inherit;
   text-decoration: none;
