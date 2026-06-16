@@ -50,17 +50,15 @@ useSeoMeta({
   <div>
     <SkeletonList v-if="pending && !data" variant="match" :count="1" />
     <p v-else-if="error || !data?.match" class="muted load">Partida não encontrada.</p>
-    <template v-else>
-      <MatchRankingBoard
-        :match="data.match"
-        :ranking="data.ranking"
-        title="Ranking da partida"
-        :back-label="backLabel"
-        @back="emit('back')"
-        @refresh="refresh"
-      />
-      <MatchLineup :match="data.match" />
-    </template>
+    <MatchRankingBoard
+      v-else
+      :match="data.match"
+      :ranking="data.ranking"
+      title="Ranking da partida"
+      :back-label="backLabel"
+      @back="emit('back')"
+      @refresh="refresh"
+    />
   </div>
 </template>
 

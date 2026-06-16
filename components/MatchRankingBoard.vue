@@ -24,6 +24,12 @@ const HEIGHTS = ['66px', '50px', '40px'];
 
 const match = computed(() => props.match);
 const ranking = computed(() => props.ranking);
+
+// Tabs: "Bolão" (this ranking) vs "Escalação" (the live lineup). The lineup tab
+// only appears once lineups exist (MatchLineup reports availability) — before
+// that the board renders exactly as before, with no tab bar.
+const tab = ref<'bolao' | 'escalacao'>('bolao');
+const lineupAvailable = ref(false);
 const playing = computed(
   () => match.value.status === 'LIVE' || match.value.status === 'FINISHED',
 );
@@ -152,7 +158,12 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </div>
       </div>
 
-      <div class="body">
+      <div v-if="lineupAvailable" class="mtabs" role="tablist">
+        <button class="mtab" :class="{ on: tab === 'bolao' }" role="tab" :aria-selected="tab === 'bolao'" @click="tab = 'bolao'">Bolão</button>
+        <button class="mtab" :class="{ on: tab === 'escalacao' }" role="tab" :aria-selected="tab === 'escalacao'" @click="tab = 'escalacao'">Escalação</button>
+      </div>
+
+      <div v-show="!lineupAvailable || tab === 'bolao'" class="body">
         <!-- editável: stepper -->
         <div v-if="editable" class="mypred">
           <div class="mp-head">
@@ -268,6 +279,10 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             </div>
           </div>
         </div>
+      </div>
+
+      <div v-show="lineupAvailable && tab === 'escalacao'" class="lntab">
+        <MatchLineup :match="match" @available="lineupAvailable = $event" />
       </div>
     </div>
   </div>
@@ -538,5 +553,39 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 /* Mobile: hide the tier tag (ex.: "Não pontuou") in the ranking rows — keep them compact. */
 @media (max-width: 560px) {
   .rscore .tier { display: none; }
+}
+
+/* Bolão / Escalação tabs */
+.mtabs {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 5px;
+  margin: 14px 20px 0;
+  padding: 5px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.mtab {
+  flex: 1;
+  text-align: center;
+  padding: 9px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.mtab.on {
+  background: var(--grad-pitch);
+  color: #fff;
+}
+.lntab {
+  position: relative;
+  z-index: 2;
+  padding: 8px 20px 22px;
 }
 </style>

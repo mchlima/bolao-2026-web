@@ -7,6 +7,9 @@ import type { LineupPlayer, LineupTeam, Match, MatchLineup } from '~/types/api';
 // channel so substitutions land live. Renders nothing until lineups exist
 // (~1h before kickoff), so it stays invisible on far-off fixtures.
 const props = defineProps<{ match: Match }>();
+// Lets the parent (MatchRankingBoard) show the "Escalação" tab only once
+// lineups exist; the section itself renders nothing while unavailable.
+const emit = defineEmits<{ available: [boolean] }>();
 
 const { data, refresh } = await useAsyncData(
   `lineup-${props.match.id}`,
@@ -15,6 +18,7 @@ const { data, refresh } = await useAsyncData(
 useRealtime(() => [`match:${props.match.id}`], () => refresh());
 
 const available = computed(() => !!data.value?.available);
+watch(available, (v) => emit('available', v), { immediate: true });
 
 const LINE_ORDER = ['GK', 'DEF', 'MID', 'FWD'] as const;
 function surname(name: string): string {
@@ -56,8 +60,6 @@ const awayName = computed(() => props.match.awayTeam?.shortName ?? props.match.a
 
 <template>
   <section v-if="available" class="lineup">
-    <h2 class="ttl">Escalações</h2>
-
     <div class="pitch">
       <div class="midline" />
       <div class="circle" />
@@ -110,15 +112,7 @@ const awayName = computed(() => props.match.awayTeam?.shortName ?? props.match.a
 
 <style scoped>
 .lineup {
-  margin-top: 22px;
-}
-.ttl {
-  font-size: 15px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  margin-bottom: 0.8rem;
+  margin-top: 4px;
 }
 .pitch {
   position: relative;
