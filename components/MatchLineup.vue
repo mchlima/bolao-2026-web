@@ -17,6 +17,17 @@ const { data, refresh } = await useAsyncData(
 );
 useRealtime(() => [`match:${props.match.id}`], () => refresh());
 
+// The robot only emits realtime events on score/status/card changes, so a plain
+// substitution wouldn't push an update. Poll while the match is live so subs
+// land on their own (the endpoint caches 30s, so this is cheap on ESPN).
+let pollTimer: ReturnType<typeof setInterval> | undefined;
+onMounted(() => {
+  pollTimer = setInterval(() => {
+    if (props.match.status === 'LIVE') refresh();
+  }, 60_000);
+});
+onBeforeUnmount(() => clearInterval(pollTimer));
+
 const available = computed(() => !!data.value?.available);
 watch(available, (v) => emit('available', v), { immediate: true });
 
