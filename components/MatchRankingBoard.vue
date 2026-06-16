@@ -160,7 +160,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   <div class="mfill">
     <button v-if="!hideBack" class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
 
-    <div class="card detail" :class="{ live: isLive }">
+    <div class="card detail" :class="{ live: isLive, 'has-thead': hideBack }">
       <div v-if="isLive" class="live-glow" aria-hidden="true" />
 
       <!-- Score + tabs stick together below the (sticky) tournament header. -->
@@ -373,10 +373,13 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
      ends mid-screen. The result-head gradient gives the top enough definition. */
   border: none;
   box-shadow: none;
-  /* Grow to fill the flex column (page root → view → board → here) so short
-     content stretches to the full screen height instead of leaving a void. */
-  flex: 1 1 auto;
-  min-height: 0;
+  /* Fill the viewport height so short content leaves no void — via min-height
+     (NOT flex; a flex ancestor makes the sticky headers jitter). Uses static vh,
+     not dvh: dvh changes as the mobile address bar shows/hides, which would
+     reflow mid-scroll. The subtracted 90px conservatively covers the headers
+     above so the page never overflows; any remainder below is the same surface
+     color, so it's invisible. */
+  min-height: calc(100vh - var(--header-h, 0px) - 90px);
 }
 @media (max-width: 420px) {
   .detail {
@@ -397,12 +400,19 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 /* RESULTADO */
 .msticky {
   position: sticky;
-  top: 46px; /* just below the sticky tournament header */
+  /* Stick below the global AppHeader (0 on mobile). Standalone/pool routes have no
+     tournament header above, so this is the full offset there. */
+  top: var(--header-h, 0px);
   z-index: 20;
   background: var(--bg-surface);
   /* opaque space below the chips (padding, not the tab's margin, so it doesn't
      collapse out — otherwise scrolling content shows flush against the chips). */
   padding-bottom: 12px;
+}
+/* Inside the tournament shell (hideBack → has-thead) the slim 52px .thead sits
+   above the score block, so stick below the header *and* that thead. */
+.detail.has-thead .msticky {
+  top: calc(var(--header-h, 0px) + 52px);
 }
 .result-head {
   position: relative;

@@ -52,6 +52,18 @@ html[data-theme='light'] {
   color-scheme: light;
 }
 
+/* Height of the sticky global AppHeader (62px bar + 1px border). Page sub-headers
+   (the tournament .thead, the match score block) stick *below* it using this var.
+   The header is hidden ≤720px (see AppHeader), so there it's 0. */
+:root {
+  --header-h: 63px;
+}
+@media (max-width: 720px) {
+  :root {
+    --header-h: 0px;
+  }
+}
+
 html {
   /* Reserve the scrollbar gutter always, so the layout width doesn't jump
      between short tabs (no scrollbar) and long ones like "Jogos" — which
@@ -75,47 +87,29 @@ body {
   }
 }
 
-/* Match screen: the full-bleed match card (MatchRankingBoard) fills the whole
-   screen height, so short content no longer leaves an empty band below it — the
-   content container stretches to 100% of the viewport down to the bottom nav.
-   The class is toggled on <body> by MatchRankingBoard while it is mounted.
+/* Match screen: the full-bleed match card (MatchRankingBoard) is painted with the
+   surface color edge-to-edge, and the card fills the viewport height via a
+   min-height (see .detail), so short content leaves no empty band below it.
 
-   How the fill works: a flex column runs from .app down through every wrapper to
-   the card (.detail). Each link grows to fill its parent; the leaf card takes the
-   slack. The matching surface background covers the layout's bottom padding (the
-   bottom-nav clearance) so the card edge is seamless with it. */
+   IMPORTANT — no flexbox in this chain on purpose. A sticky header (.thead /
+   .msticky) inside a flex column jitters by a sub-pixel on every scroll frame
+   (the score block and tab bar visibly tremble). Filling with min-height on the
+   leaf card keeps the sticky headers in normal flow → rock-solid on scroll. */
 body.match-screen {
   background: var(--bg-surface);
 }
-body.match-screen .app {
-  display: flex;
-  flex-direction: column;
-}
+/* Drop the page's vertical padding on the match screen — the card fills from the
+   top and reaches the bottom itself; the matching surface covers any slack. */
 body.match-screen .main,
 body.match-screen .page {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
-  /* Drop the bottom-nav clearance padding here — the card fills to the very
-     bottom (behind the fixed nav) instead, so no base-color strip can show
-     below it. Clearance for long lists is re-added inside the card content. */
+  padding-top: 0;
   padding-bottom: 0;
 }
-/* Re-add the bottom-nav clearance inside the scrolling card content, so the last
-   ranking rows / lineup aren't hidden under the fixed nav on long lists. When the
-   content is short this padding is simply absorbed by the card's fill. */
+/* Bottom-nav clearance lives inside the scrolling card content (since .main's was
+   dropped), so the last ranking rows / lineup aren't hidden under the fixed nav. */
 body.match-screen .body,
 body.match-screen .lntab {
   padding-bottom: 92px;
-}
-/* Wrapper <div>s with no class of their own (page root → MatchRankingView →
-   MatchRankingBoard) — each must grow and pass the height down to the card. */
-.mfill {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-height: 0;
 }
 
 a {

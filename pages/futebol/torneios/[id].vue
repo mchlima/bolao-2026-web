@@ -96,7 +96,8 @@ function badge(name: string): string {
 }
 .thead {
   position: sticky;
-  top: 0;
+  /* Stick just below the global AppHeader (0 on mobile, where it's hidden). */
+  top: var(--header-h, 0px);
   z-index: 30;
   background: var(--bg-base);
   /* Full-bleed background: span the screen width, keep the title aligned. */
