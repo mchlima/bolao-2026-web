@@ -99,10 +99,18 @@ function badge(name: string): string {
   top: 0;
   z-index: 30;
   background: var(--bg-base);
+  /* Full-bleed background: span the screen width, keep the title aligned. */
+  margin-inline: -16px;
+  padding: 6px 16px 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 6px 0 12px;
+}
+@media (max-width: 420px) {
+  .thead {
+    margin-inline: -13px;
+    padding-inline: 13px;
+  }
 }
 .trow {
   display: flex;

@@ -152,6 +152,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
     <div class="card detail" :class="{ live: isLive }">
       <div v-if="isLive" class="live-glow" aria-hidden="true" />
 
+      <!-- Score + tabs stick together below the (sticky) tournament header. -->
+      <div class="msticky">
       <!-- RESULTADO -->
       <div class="result-head">
         <div class="rhead-top">
@@ -194,6 +196,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
           {{ t.label }}
         </NuxtLink>
       </nav>
+      </div>
 
       <div v-show="activeTab === 'bolao'" class="body">
         <!-- editável: stepper -->
@@ -369,12 +372,16 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 
 /* RESULTADO */
-.result-head {
+.msticky {
   position: sticky;
-  top: 50px; /* sticks just below the sticky tournament header */
-  z-index: 5;
-  padding: 16px 20px 20px;
+  top: 46px; /* just below the sticky tournament header */
+  z-index: 20;
   background: var(--bg-base);
+}
+.result-head {
+  position: relative;
+  z-index: 2;
+  padding: 16px 20px 20px;
   background-image: linear-gradient(135deg, rgba(15, 179, 107, 0.16), rgba(30, 127, 240, 0.14));
 }
 .detail.live .result-head {
