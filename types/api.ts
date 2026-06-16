@@ -400,3 +400,15 @@ export interface MatchTimeline {
   available: boolean;
   periods: TimelinePeriod[];
 }
+
+// Team statistics (GET /matches/:id/stats).
+export interface StatRow {
+  key: string;
+  label: string;
+  home: string | null;
+  away: string | null;
+}
+export interface MatchStats {
+  available: boolean;
+  rows: StatRow[];
+}

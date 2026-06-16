@@ -32,16 +32,19 @@ const ranking = computed(() => props.ranking);
 const route = useRoute();
 const lineupAvailable = ref(false);
 const timelineAvailable = ref(false);
+const statsAvailable = ref(false);
 const matchTabs = computed(() => {
   const tabs = [{ key: 'bolao', label: 'Bolão' }];
   if (lineupAvailable.value) tabs.push({ key: 'escalacao', label: 'Escalação' });
   if (timelineAvailable.value) tabs.push({ key: 'tempo', label: 'Linha do tempo' });
+  if (statsAvailable.value) tabs.push({ key: 'stats', label: 'Estatísticas' });
   return tabs;
 });
 const activeTab = computed(() => {
   const aba = route.query.aba;
   if (aba === 'escalacao' && lineupAvailable.value) return 'escalacao';
   if (aba === 'tempo' && timelineAvailable.value) return 'tempo';
+  if (aba === 'stats' && statsAvailable.value) return 'stats';
   return 'bolao';
 });
 function tabTo(key: string) {
@@ -314,6 +317,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       </div>
       <div v-show="activeTab === 'tempo'" class="lntab">
         <MatchTimeline :match="match" @available="timelineAvailable = $event" />
+      </div>
+      <div v-show="activeTab === 'stats'" class="lntab">
+        <MatchStats :match="match" @available="statsAvailable = $event" />
       </div>
     </div>
   </div>
