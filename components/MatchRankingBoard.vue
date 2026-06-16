@@ -45,9 +45,13 @@ const metaLine = computed(() => {
 // and survives back/forward — the route carries an optional [[aba]] segment.
 const route = useRoute();
 const authLink = useAuthLink();
-const lineupAvailable = ref(false);
-const timelineAvailable = ref(false);
-const statsAvailable = ref(false);
+// Tab availability comes from the match payload's _count (GET /matches/:id), so
+// the tabs are known synchronously on SSR (no waiting for each tab component to
+// mount and emit). Refetched on the realtime channel → tabs appear live as the
+// first lineup/event/stat lands.
+const lineupAvailable = computed(() => (props.match._count?.lineupEntries ?? 0) > 0);
+const timelineAvailable = computed(() => (props.match._count?.events ?? 0) > 0);
+const statsAvailable = computed(() => (props.match._count?.stats ?? 0) > 0);
 // The "Classificação" tab exists only when a #classificacao slot is provided
 // (the tournament match route fills it with the group table / bracket).
 const slots = useSlots();
@@ -340,13 +344,13 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       </div>
 
       <div v-show="activeTab === 'escalacao'" class="lntab">
-        <MatchLineup :match="match" @available="lineupAvailable = $event" />
+        <MatchLineup :match="match" />
       </div>
       <div v-show="activeTab === 'tempo'" class="lntab">
-        <MatchTimeline :match="match" @available="timelineAvailable = $event" />
+        <MatchTimeline :match="match" />
       </div>
       <div v-show="activeTab === 'stats'" class="lntab">
-        <MatchStats :match="match" @available="statsAvailable = $event" />
+        <MatchStats :match="match" />
       </div>
       <div v-show="activeTab === 'classificacao'" class="lntab">
         <slot name="classificacao" />

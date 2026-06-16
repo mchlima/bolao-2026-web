@@ -231,6 +231,8 @@ export interface Match {
   matchNumber: number | null;
   predictionsOpen: boolean | null; // manual override; null = automatic rule
   autoManaged: boolean; // true = ESPN robot drives score/status; false = admin took over
+  // Availability counts (present on GET /matches/:id) — drive which match tabs show.
+  _count?: { lineupEntries: number; events: number; stats: number };
 }
 
 export interface ScoreResult {
