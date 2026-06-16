@@ -59,7 +59,11 @@ useSeoMeta({
       :hide-back="hideBack"
       @back="emit('back')"
       @refresh="refresh"
-    />
+    >
+      <template v-if="$slots.classificacao" #classificacao>
+        <slot name="classificacao" />
+      </template>
+    </MatchRankingBoard>
   </div>
 </template>
 

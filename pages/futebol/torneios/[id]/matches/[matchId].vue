@@ -9,9 +9,12 @@ const matchId = route.params.matchId as string;
 
 <template>
   <div>
-    <!-- The tournament shell header provides the back here, so hide the board's own. -->
-    <MatchRankingView :match-id="matchId" hide-back />
-    <!-- Phase slice for this match: group (classification + rounds) or knockout tie. -->
-    <MatchPhaseContext :season-id="id" :match-id="matchId" />
+    <!-- The tournament shell header provides the back here, so hide the board's own.
+         The group table / bracket goes into the board's "Classificação" tab. -->
+    <MatchRankingView :match-id="matchId" hide-back>
+      <template #classificacao>
+        <MatchPhaseContext :season-id="id" :match-id="matchId" />
+      </template>
+    </MatchRankingView>
   </div>
 </template>
