@@ -36,6 +36,11 @@ function surname(name: string): string {
   const parts = name.trim().split(/\s+/);
   return parts[parts.length - 1] || name;
 }
+// Worst card to show: a red (or a second yellow = sending-off) beats a single yellow.
+function cardKind(p: LineupPlayer): 'red' | 'yellow' | null {
+  if (p.red > 0 || p.yellow >= 2) return 'red';
+  return p.yellow >= 1 ? 'yellow' : null;
+}
 function horiz(pos: string | null): number {
   const p = (pos ?? '').toUpperCase();
   if (p.includes('L')) return -1;
@@ -83,7 +88,7 @@ const awayName = computed(() => props.match.awayTeam?.shortName ?? props.match.a
           :class="{ out: p.subbedOut }"
           :style="tokenStyle('away', ri, awayRows.length, ci, row.length)"
         >
-          <span class="num">{{ p.jersey ?? '' }}</span>
+          <span class="num">{{ p.jersey ?? '' }}<span v-if="cardKind(p)" class="card" :class="cardKind(p)" /></span>
           <span class="nm">{{ surname(p.name) }}<span v-if="p.subbedOut" class="arr">↓</span></span>
         </div>
       </template>
@@ -96,7 +101,7 @@ const awayName = computed(() => props.match.awayTeam?.shortName ?? props.match.a
           :class="{ out: p.subbedOut }"
           :style="tokenStyle('home', ri, homeRows.length, ci, row.length)"
         >
-          <span class="num">{{ p.jersey ?? '' }}</span>
+          <span class="num">{{ p.jersey ?? '' }}<span v-if="cardKind(p)" class="card" :class="cardKind(p)" /></span>
           <span class="nm">{{ surname(p.name) }}<span v-if="p.subbedOut" class="arr">↓</span></span>
         </div>
       </template>
@@ -113,6 +118,7 @@ const awayName = computed(() => props.match.awayTeam?.shortName ?? props.match.a
           <li v-for="p in bench(t.team)" :key="p.name" :class="{ in: p.subbedIn }">
             <span class="bnum">{{ p.jersey ?? '–' }}</span>
             <span class="bnm">{{ p.name }}</span>
+            <span v-if="cardKind(p)" class="bcard" :class="cardKind(p)" />
             <span v-if="p.subbedIn" class="badge">entrou</span>
           </li>
         </ul>
@@ -168,6 +174,7 @@ const awayName = computed(() => props.match.awayTeam?.shortName ?? props.match.a
   opacity: 0.42;
 }
 .num {
+  position: relative;
   display: grid;
   place-items: center;
   width: 30px;
@@ -177,6 +184,22 @@ const awayName = computed(() => props.match.awayTeam?.shortName ?? props.match.a
   font-size: 13px;
   color: #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+/* card chip on the player token */
+.card {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  width: 8px;
+  height: 11px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
+.card.yellow {
+  background: #f5c518;
+}
+.card.red {
+  background: var(--scarlet, #e23744);
 }
 .tok.home .num {
   background: var(--azure, #2b7fff);
@@ -269,6 +292,19 @@ const awayName = computed(() => props.match.awayTeam?.shortName ?? props.match.a
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.bcard {
+  flex: none;
+  width: 9px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+.bcard.yellow {
+  background: #f5c518;
+}
+.bcard.red {
+  background: var(--scarlet, #e23744);
 }
 .badge {
   flex: none;
