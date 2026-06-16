@@ -377,6 +377,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   top: 46px; /* just below the sticky tournament header */
   z-index: 20;
   background: var(--bg-base);
+  /* opaque space below the chips (padding, not the tab's margin, so it doesn't
+     collapse out — otherwise scrolling content shows flush against the chips). */
+  padding-bottom: 12px;
 }
 .result-head {
   position: relative;
@@ -619,7 +622,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   gap: 8px;
   /* Full-bleed scroller: side padding (not margin) so the pills rest at 20px but
      scroll all the way to the card edge — no cut-off before the screen edge. */
-  margin: 12px 0;
+  margin: 12px 0 0;
   padding: 0 20px;
   overflow-x: auto;
   scrollbar-width: none;
