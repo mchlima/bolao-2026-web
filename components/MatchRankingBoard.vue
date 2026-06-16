@@ -617,7 +617,10 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 20px;
+  /* Full-bleed scroller: side padding (not margin) so the pills rest at 20px but
+     scroll all the way to the card edge — no cut-off before the screen edge. */
+  margin: 12px 0;
+  padding: 0 20px;
   overflow-x: auto;
   scrollbar-width: none;
 }
