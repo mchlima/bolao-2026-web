@@ -25,6 +25,10 @@ const section = computed<string>(() => {
 // Tabs are peers now (Resumo included), so back just leaves the pool.
 const backTo = '/pools';
 
+// The match-detail route renders the full-bleed board, so it opts out of the
+// standardized page gutter (mirrors the tournament shell).
+const isMatchDetail = computed(() => !!route.params.matchId);
+
 const tabs = computed(() => {
   const t = [
     { key: 'overview', label: 'Resumo', to: `/pools/${id}` },
@@ -52,7 +56,7 @@ const unavailable = computed(() => {
 </script>
 
 <template>
-  <div class="page">
+  <div class="page" :class="{ 'page--flush': isMatchDetail }">
     <SkeletonList v-if="pending && !pool" variant="row" :count="6" />
 
     <div v-else-if="error || !pool" class="unavail">
@@ -63,7 +67,9 @@ const unavailable = computed(() => {
     </div>
 
     <template v-else>
-      <header class="thead">
+      <!-- Match-detail opens outside the pool shell: the full-bleed board owns the
+           screen (and its own back to Resultados), so hide the shell chrome here. -->
+      <header v-if="!isMatchDetail" class="thead">
         <div class="trow">
           <NuxtLink :to="backTo" class="back" aria-label="Voltar">
             <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
@@ -95,7 +101,12 @@ const unavailable = computed(() => {
 
 <style scoped>
 .page {
-  padding: 6px 0 44px;
+  padding: 10px;
+}
+/* The match screen is full-bleed (the board paints edge-to-edge), so it opts out
+   of the standardized page gutter. */
+.page--flush {
+  padding: 0;
 }
 .unavail {
   max-width: 420px;
@@ -181,18 +192,10 @@ const unavailable = computed(() => {
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* No negative margin: .main has no side gutter to cancel anymore. */
-  padding-left: 16px;
-  padding-right: 16px;
+  /* Side gutter comes from .page; tags scroll within it. */
 }
 .tabs::-webkit-scrollbar {
   display: none;
-}
-@media (max-width: 420px) {
-  .tabs {
-    padding-left: 13px;
-    padding-right: 13px;
-  }
 }
 .tab {
   flex: none;
