@@ -212,6 +212,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
           v-for="t in matchTabs"
           :key="t.key"
           :to="tabTo(t.key)"
+          replace
           class="ttag"
           :class="{ on: activeTab === t.key }"
           :aria-current="activeTab === t.key ? 'page' : undefined"
