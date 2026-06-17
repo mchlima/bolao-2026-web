@@ -99,17 +99,16 @@ function whistleLabel(period: number, label: string): string {
         </span>
       </div>
 
-      <!-- VAR ruling tied to a team (a disallowed goal) shows on that team's side,
-           like a goal but voided — a struck-through name with a red tag and a
-           crossed-out ball. A generic review (no side) stays a centred chip. -->
-      <div v-else-if="e.type === 'VAR' && e.side" class="ev void" :class="e.side">
+      <!-- VAR ruling tied to a team (a disallowed goal) shows on that team's side
+           with the SAME vivid card as a real goal, but red and struck through —
+           "a goal, that didn't count". A generic review (no side) stays a chip. -->
+      <div v-else-if="e.type === 'VAR' && e.side" class="ev goal void" :class="e.side">
         <span class="min">{{ e.minute }}</span>
         <div class="content">
-          <span class="icon"><span class="void-ball" aria-hidden="true">⚽</span></span>
+          <span class="icon goal"><span class="ball">⚽</span></span>
           <span class="body">
             <span class="nm">
-              <template v-if="e.player"><span class="void-nm">{{ surname(e.player) }}</span><span class="tag danger">{{ voidTag(e.detail) }}</span></template>
-              <template v-else><span class="void-nm">{{ e.detail || 'Revisão do VAR' }}</span></template>
+              <span class="strike">{{ e.player ? surname(e.player) : (e.detail || 'Revisão do VAR') }}</span><span v-if="e.player" class="tag danger">{{ voidTag(e.detail) }}</span>
             </span>
           </span>
         </div>
@@ -489,35 +488,46 @@ function whistleLabel(period: number, label: string): string {
   color: var(--muted);
 }
 
-/* disallowed goal — a normal side row, but voided: greyed + a crossed-out ball
-   and a struck-through name, so it reads clearly as "this didn't count" */
-.ev.void .nm {
-  font-weight: 700;
+/* disallowed goal — the SAME vivid card as a real goal (.ev.goal), recoloured
+   red and with the scorer's name struck through: "a goal, that didn't count" */
+.ev.goal.void .content {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--scarlet, #e23744) 24%, transparent),
+    color-mix(in srgb, var(--scarlet, #e23744) 10%, transparent)
+  );
+  border-color: color-mix(in srgb, var(--scarlet, #e23744) 50%, var(--border));
+  box-shadow: 0 8px 22px -12px color-mix(in srgb, var(--scarlet, #e23744) 85%, transparent);
 }
-.void-nm {
+.ev.goal.void .content::after {
+  animation: goalBurstVoid 0.8s ease-out both;
+}
+.ev.goal.void .min {
+  color: var(--scarlet, #e23744);
+  border-color: color-mix(in srgb, var(--scarlet, #e23744) 55%, var(--border));
+}
+.ev.goal.void .ball {
+  filter: grayscale(0.35);
+}
+.ev.goal.void .strike {
   text-decoration: line-through;
-  text-decoration-color: color-mix(in srgb, var(--scarlet, #e23744) 75%, transparent);
-  color: var(--muted);
+  text-decoration-color: color-mix(in srgb, var(--scarlet, #e23744) 80%, transparent);
+  text-decoration-thickness: 2px;
 }
-.void-ball {
-  position: relative;
-  display: inline-block;
-  font-size: 15px;
-  line-height: 1;
-  filter: grayscale(1);
-  opacity: 0.7;
+@keyframes goalBurstVoid {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--scarlet, #e23744) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 18px transparent;
+  }
 }
-.void-ball::after {
-  content: '';
-  position: absolute;
-  left: -2px;
-  right: -2px;
-  top: 50%;
-  height: 2px;
-  margin-top: -1px;
-  border-radius: 2px;
-  background: var(--scarlet, #e23744);
-  transform: rotate(-18deg);
+@media (prefers-reduced-motion: reduce) {
+  .ev.goal.void .content,
+  .ev.goal.void .content::after,
+  .ev.goal.void .ball {
+    animation: none;
+  }
 }
 
 /* VAR + stoppage markers — same centred chip as the whistle, different accents */
