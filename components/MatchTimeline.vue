@@ -55,6 +55,12 @@ function surname(name: string | null): string {
   const parts = name.trim().split(/\s+/);
   return parts[parts.length - 1] || name;
 }
+// Compact red tag for a voided ruling — the struck name + crossed ball already
+// say it was a goal, so "Gol anulado" shortens to "anulado" to fit the column.
+function voidTag(detail: string | null): string {
+  if (!detail || /gol anulado/i.test(detail)) return 'anulado';
+  return detail;
+}
 const isGoal = (t: string) => t.includes('GOAL'); // GOAL / OWN_GOAL / PENALTY_GOAL
 // Coloured tag next to the player's name (pênalti/contra, sending-off, miss).
 function rowTag(e: TimelineEvent): string | null {
@@ -102,7 +108,7 @@ function whistleLabel(period: number, label: string): string {
           <span class="icon"><span class="void-ball" aria-hidden="true">⚽</span></span>
           <span class="body">
             <span class="nm">
-              <template v-if="e.player"><span class="void-nm">{{ surname(e.player) }}</span><span class="tag danger">{{ e.detail || 'anulado' }}</span></template>
+              <template v-if="e.player"><span class="void-nm">{{ surname(e.player) }}</span><span class="tag danger">{{ voidTag(e.detail) }}</span></template>
               <template v-else><span class="void-nm">{{ e.detail || 'Revisão do VAR' }}</span></template>
             </span>
           </span>
