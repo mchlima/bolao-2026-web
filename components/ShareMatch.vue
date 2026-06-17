@@ -2,7 +2,17 @@
 import { domToBlob, domToPng } from 'modern-screenshot';
 import type { Match, RankingEntry } from '~/types/api';
 
-const props = defineProps<{ match: Match; me: RankingEntry | null; tournamentName?: string }>();
+// `variant` picks the trigger style: 'icon' is the bare round button (used in
+// tight spots); 'button' is a labelled pill that harmonizes inside a tab body.
+const props = withDefaults(
+  defineProps<{
+    match: Match;
+    me: RankingEntry | null;
+    tournamentName?: string;
+    variant?: 'icon' | 'button';
+  }>(),
+  { variant: 'icon' },
+);
 const tournamentName = computed(() => props.tournamentName || props.match.season?.name || 'Cravei');
 
 const open = ref(false);
@@ -76,7 +86,15 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
 </script>
 
 <template>
-  <button class="sh-btn" type="button" aria-label="Compartilhar" title="Compartilhar" @click="openShare">
+  <button
+    v-if="variant === 'button'"
+    class="sh-btn-lg"
+    type="button"
+    @click="openShare"
+  >
+    <AppIcon name="share" :size="16" :stroke="2" />Compartilhar
+  </button>
+  <button v-else class="sh-btn" type="button" aria-label="Compartilhar" title="Compartilhar" @click="openShare">
     <AppIcon name="share" :size="17" :stroke="2" />
   </button>
 
@@ -160,6 +178,22 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .sh-btn:hover { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
+.sh-btn-lg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
+  color: var(--muted);
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.sh-btn-lg:hover { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
 .sh-body { display: flex; flex-direction: column; gap: 14px; }
 .seg { display: flex; gap: 6px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 4px; }
 .seg-b { flex: 1; border: 0; background: transparent; color: var(--muted); font-weight: 700; font-size: 13px; padding: 8px; border-radius: 9px; cursor: pointer; }

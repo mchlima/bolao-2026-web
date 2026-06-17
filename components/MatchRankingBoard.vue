@@ -31,12 +31,32 @@ const HEIGHTS = ['66px', '50px', '40px'];
 const match = computed(() => props.match);
 const ranking = computed(() => props.ranking);
 
-// Meta line under the score: tournament · phase · group (non-empty parts only).
-const metaLine = computed(() => {
-  const m = props.match;
-  const grupo = m.groupName ? `Grupo ${m.groupName}` : null;
-  return [m.season?.name, m.phaseLabel, grupo].filter(Boolean).join(' · ');
+// Match metadata lives in its own "Informações" tab now (the hero is kept to the
+// matchup itself). Each row reuses an existing AppIcon glyph.
+const tz = useTz();
+const kickoffText = computed(() =>
+  props.match.kickoffAt ? formatKickoff(props.match.kickoffAt, tz.value) : '',
+);
+const stadiumLocation = computed(() => {
+  const s = props.match.stadium;
+  if (!s) return '';
+  return [s.city, s.state, s.country].filter(Boolean).join(', ');
 });
+const infoRows = computed(() => {
+  const m = props.match;
+  const rows: Array<{ icon: string; label: string; value: string }> = [];
+  if (m.season?.name) rows.push({ icon: 'trophy', label: 'Torneio', value: m.season.name });
+  if (m.phaseLabel) rows.push({ icon: 'calendar', label: 'Fase', value: m.phaseLabel });
+  if (m.groupName) rows.push({ icon: 'users', label: 'Grupo', value: `Grupo ${m.groupName}` });
+  if (kickoffText.value) rows.push({ icon: 'clock', label: 'Data', value: kickoffText.value });
+  if (m.stadium?.name) rows.push({ icon: 'stadium', label: 'Estádio', value: m.stadium.name });
+  if (stadiumLocation.value) rows.push({ icon: 'mapPin', label: 'Local', value: stadiumLocation.value });
+  return rows;
+});
+const infoAvailable = computed(() => infoRows.value.length > 0);
+// At halftime the ESPN robot freezes the clock to "Intervalo" — show a pause
+// glyph instead of the pulsing live (rec) dot, since play is stopped.
+const atHalftime = computed(() => /intervalo/i.test(props.match.liveClock ?? ''));
 
 // Tabs: "Bolão" (this ranking) vs "Escalação" (the live lineup). The lineup tab
 // only appears once lineups exist (MatchLineup reports availability) — before
@@ -71,6 +91,7 @@ const matchTabs = computed(() => {
   if (lineupAvailable.value) tabs.push({ key: 'escalacao', label: 'Escalação' });
   if (timelineAvailable.value) tabs.push({ key: 'tempo', label: 'Narração' });
   if (statsAvailable.value) tabs.push({ key: 'stats', label: 'Estatísticas' });
+  if (infoAvailable.value) tabs.push({ key: 'info', label: 'Informações' });
   if (hasClassificacao.value) tabs.push({ key: 'classificacao', label: 'Classificação' });
   return tabs;
 });
@@ -79,6 +100,7 @@ const activeTab = computed(() => {
   if (aba === 'escalacao' && lineupAvailable.value) return 'escalacao';
   if (aba === 'tempo' && timelineAvailable.value) return 'tempo';
   if (aba === 'stats' && statsAvailable.value) return 'stats';
+  if (aba === 'info' && infoAvailable.value) return 'info';
   if (aba === 'classificacao' && hasClassificacao.value) return 'classificacao';
   return 'bolao';
 });
@@ -229,16 +251,11 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
       <!-- Score + tabs stick together below the (sticky) tournament header. -->
       <div class="msticky">
-      <!-- RESULTADO -->
+      <!-- RESULTADO — hero kept to the matchup: teams, score and the live chip.
+           Meta/venue/prediction live in the tabs (Informações / Bolão) now. -->
       <div class="result-head">
-        <div class="rhead-top">
-          <button v-if="!hideBack" class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
-          <div class="rhead-r">
-            <span class="state" :class="{ live: stateMeta.live }" :style="{ color: stateMeta.color, borderColor: stateMeta.color }">
-              <span v-if="stateMeta.live" class="dot" />{{ stateMeta.live ? (match.liveClock || 'Ao vivo') : stateMeta.label }}
-            </span>
-            <ShareMatch v-if="myPred && scored" :match="match" :me="me" />
-          </div>
+        <div v-if="!hideBack" class="rhead-top">
+          <button class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
         </div>
         <div class="result">
           <div class="side" :class="{ win: homeWins, lose: awayWins }">
@@ -253,14 +270,12 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <span class="tname">{{ awayName }}</span>
           </div>
         </div>
-        <div v-if="myPred && !editable" class="rpred">
-          <span class="rpred-lbl">Seu palpite</span>
-          <b class="rpred-score font-numeric">{{ myPred.home }}:{{ myPred.away }}</b>
-        </div>
-        <div v-if="metaLine" class="rmeta">{{ metaLine }}</div>
-        <div v-if="match.stadium" class="venue">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-          {{ match.stadium.name }}
+        <!-- live/status chip, centered under the score -->
+        <div class="rstate">
+          <span class="state" :class="{ live: stateMeta.live && !atHalftime }" :style="{ color: stateMeta.color, borderColor: stateMeta.color }">
+            <AppIcon v-if="atHalftime" name="pause" :size="11" :stroke="2.4" class="pause-ic" />
+            <span v-else-if="stateMeta.live" class="dot" />{{ stateMeta.live ? (match.liveClock || 'Ao vivo') : stateMeta.label }}
+          </span>
         </div>
       </div>
 
@@ -314,21 +329,31 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         <!-- aberto, deslogado -->
         <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" :to="authLink('/login')" class="btn btn-block login-cta">Entre para palpitar <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
 
-        <!-- seu palpite × placar → pontos (o coração do acompanhamento ao vivo) -->
-        <div v-else-if="myPred" class="pred-vs" :class="{ live: provisional, settled: hasResult && !provisional }">
-          <template v-if="scored">
-            <span class="pv-item pts">
-              <svg class="pv-ic" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
-              <span class="pv-lbl">{{ provisional ? 'Ganhando' : 'Você fez' }}</span>
-              <b class="pv-pts font-numeric" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }">+{{ myPoints }}</b>
-              <span v-if="myTier" class="tier sm ignite" :style="{ color: TIER_COLOR[myTier], borderColor: TIER_COLOR[myTier] }">{{ tierLabel(myTier, resultIsDraw) }}</span>
+        <!-- seu palpite × placar → pontos (o coração do acompanhamento ao vivo).
+             O placar palpitado (antes no hero) e o compartilhamento moram aqui. -->
+        <template v-else-if="myPred">
+          <div class="rpred">
+            <span class="rpred-lbl">Seu palpite</span>
+            <b class="rpred-score font-numeric">{{ myPred.home }}:{{ myPred.away }}</b>
+          </div>
+          <div class="pred-vs" :class="{ live: provisional, settled: hasResult && !provisional }">
+            <template v-if="scored">
+              <span class="pv-item pts">
+                <svg class="pv-ic" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }" width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+                <span class="pv-lbl">{{ provisional ? 'Ganhando' : 'Você fez' }}</span>
+                <b class="pv-pts font-numeric" :style="{ color: myTier ? TIER_COLOR[myTier] : 'var(--muted)' }">+{{ myPoints }}</b>
+                <span v-if="myTier" class="tier sm ignite" :style="{ color: TIER_COLOR[myTier], borderColor: TIER_COLOR[myTier] }">{{ tierLabel(myTier, resultIsDraw) }}</span>
+              </span>
+            </template>
+            <span v-else class="pv-wait">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+              vale quando a bola rolar
             </span>
-          </template>
-          <span v-else class="pv-wait">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
-            vale quando a bola rolar
-          </span>
-        </div>
+          </div>
+          <div v-if="scored" class="share-cta">
+            <ShareMatch variant="button" :match="match" :me="me" />
+          </div>
+        </template>
 
         <!-- jogando/encerrado, deslogado: convida a entrar (já passou o kickoff) -->
         <NuxtLink v-else-if="!auth.isAuthenticated" :to="authLink('/login')" class="btn btn-block login-cta">Entre para palpitar nos próximos jogos <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
@@ -406,6 +431,15 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       </div>
       <div v-show="activeTab === 'stats'" class="lntab">
         <MatchStats :match="match" />
+      </div>
+      <div v-show="activeTab === 'info'" class="lntab">
+        <dl class="info-card">
+          <div v-for="r in infoRows" :key="r.label" class="info-row">
+            <AppIcon :name="r.icon" :size="16" :stroke="2" class="info-ic" />
+            <dt class="info-lbl">{{ r.label }}</dt>
+            <dd class="info-val">{{ r.value }}</dd>
+          </div>
+        </dl>
       </div>
       <div v-show="activeTab === 'classificacao'" class="lntab">
         <slot name="classificacao" />
@@ -490,32 +524,25 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .rhead-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
   margin-bottom: 16px;
 }
-.rhead-r {
+/* live/status chip centered under the score */
+.rstate {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  justify-content: center;
+  margin-top: 14px;
+}
+.pause-ic {
   flex: none;
 }
-.rmeta {
-  margin-top: 14px;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-}
-/* The user's prediction shown right under the actual score. */
+/* The user's predicted score, now shown at the top of the Bolão tab body. */
 .rpred {
-  margin-top: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  margin-bottom: 14px;
 }
 .rpred-lbl {
   font-size: 11px;
@@ -589,18 +616,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   gap: 10px;
 }
 .colon { color: var(--muted); }
-.venue {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--muted);
-}
 
 .body {
   position: relative;
@@ -654,6 +669,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .pv-pts { font-size: 24px; line-height: 1; }
 .pred-vs.live .pv-pts { animation: ignite 0.5s ease both; }
 .pv-wait { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+/* share trigger sits centered under the prediction summary */
+.share-cta { display: flex; justify-content: center; margin: -8px 0 20px; }
 
 .nopred {
   display: flex;
@@ -815,5 +832,41 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   position: relative;
   z-index: 2;
   padding: 8px 20px 22px;
+}
+
+/* Informações tab — tournament + venue metadata as an icon'd definition list. */
+.info-card {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.info-row {
+  display: grid;
+  grid-template-columns: 22px 86px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+}
+.info-row + .info-row {
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.info-ic { color: var(--muted); }
+.info-lbl {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.info-val {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: right;
+  min-width: 0;
 }
 </style>
