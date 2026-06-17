@@ -19,6 +19,7 @@ export interface User {
   role: UserRole;
   isActive: boolean;
   timezone: string;
+  avatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -271,7 +272,7 @@ export interface Paginated<T> {
 
 export interface RankingEntry {
   rank: number;
-  user: { id: string; name: string };
+  user: { id: string; name: string; avatarUrl: string | null };
   points: number;
   exactCount: number;
   scoredCount: number;
@@ -307,7 +308,7 @@ export interface PoolTournamentSummary {
 }
 
 export interface PoolMemberView {
-  user: { id: string; name: string };
+  user: { id: string; name: string; avatarUrl: string | null };
   role: PoolMemberRole;
   joinedAt: string;
 }
@@ -348,7 +349,7 @@ export interface PoolJoinPreview {
 }
 
 export interface PoolMatchPredictionEntry {
-  user: { id: string; name: string };
+  user: { id: string; name: string; avatarUrl: string | null };
   prediction: { home: number; away: number };
   points?: number;
   tier?: ScoreTier;

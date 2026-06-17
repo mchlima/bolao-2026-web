@@ -10,13 +10,6 @@ const toggleTheme = () => {
   colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark';
 };
 const menuOpen = ref(false);
-
-const initials = computed(() => {
-  const n = auth.user?.name?.trim();
-  if (!n) return 'VC';
-  const parts = n.split(/\s+/);
-  return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
-});
 </script>
 
 <template>
@@ -45,7 +38,9 @@ const initials = computed(() => {
       <div class="actions">
         <template v-if="auth.isAuthenticated">
           <div class="menu">
-            <button class="avatar" @click="menuOpen = !menuOpen">{{ initials }}</button>
+            <button class="avatar" @click="menuOpen = !menuOpen" aria-label="Conta">
+              <UserAvatar :name="auth.user?.name" :src="auth.user?.avatarUrl" :size="38" />
+            </button>
             <div v-if="menuOpen" class="dropdown" @click.stop>
               <AccountMenu @close="menuOpen = false" />
             </div>
@@ -185,18 +180,12 @@ const initials = computed(() => {
   position: relative;
 }
 .avatar {
-  width: 38px;
-  height: 38px;
+  padding: 0;
+  border: none;
+  background: none;
   border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--grad-pitch);
-  color: #fff;
-  font-family: 'Oswald', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
   cursor: pointer;
-  display: grid;
-  place-items: center;
+  display: block;
 }
 .dropdown {
   position: absolute;

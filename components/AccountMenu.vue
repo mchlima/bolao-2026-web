@@ -5,13 +5,6 @@ const emit = defineEmits<{ close: [] }>();
 
 const auth = useAuthStore();
 const router = useRouter();
-const colorMode = useColorMode();
-
-const themes = [
-  { key: 'system', title: 'Sistema' },
-  { key: 'light', title: 'Claro' },
-  { key: 'dark', title: 'Escuro' },
-] as const;
 
 function logout() {
   auth.logout();
@@ -22,30 +15,21 @@ function logout() {
 
 <template>
   <div class="acct">
-    <div class="who">
-      <div class="who-name">{{ auth.user?.name }}</div>
-      <div class="who-email">{{ auth.user?.email }}</div>
-    </div>
+    <NuxtLink to="/perfil" class="who" @click="emit('close')">
+      <UserAvatar :name="auth.user?.name" :src="auth.user?.avatarUrl" :size="40" />
+      <span class="who-txt">
+        <span class="who-name">{{ auth.user?.name }}</span>
+        <span class="who-email">{{ auth.user?.email }}</span>
+      </span>
+    </NuxtLink>
+    <div class="sep" />
+    <NuxtLink to="/perfil" class="row" @click="emit('close')">Perfil</NuxtLink>
+    <NuxtLink to="/configuracoes" class="row" @click="emit('close')">
+      Configurações
+    </NuxtLink>
     <template v-if="auth.isAdmin">
-      <div class="sep" />
       <NuxtLink to="/admin" class="row" @click="emit('close')">Admin</NuxtLink>
     </template>
-    <div class="sep" />
-    <div class="theme-block">
-      <div class="theme-lbl">Tema</div>
-      <div class="seg">
-        <button
-          v-for="t in themes"
-          :key="t.key"
-          class="seg-btn"
-          :class="{ on: colorMode.preference === t.key }"
-          :title="t.title"
-          @click="colorMode.preference = t.key"
-        >
-          {{ t.title }}
-        </button>
-      </div>
-    </div>
     <div class="sep" />
     <button class="row danger" @click="logout">Sair</button>
   </div>
@@ -53,50 +37,34 @@ function logout() {
 
 <style scoped>
 .who {
-  padding: 8px 10px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+.who:hover {
+  background: var(--bg-base);
+}
+.who-txt {
+  min-width: 0;
 }
 .who-name {
+  display: block;
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
   font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .who-email {
+  display: block;
   font-size: 12px;
   color: var(--muted);
-}
-.theme-block {
-  padding: 8px 10px 4px;
-}
-.theme-lbl {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  margin-bottom: 7px;
-}
-.seg {
-  display: flex;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 3px;
-  gap: 2px;
-}
-.seg-btn {
-  flex: 1;
-  padding: 7px 2px;
-  border: none;
-  border-radius: 7px;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  background: transparent;
-}
-.seg-btn.on {
-  color: #0a0e14;
-  background: var(--gold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .sep {
   height: 1px;

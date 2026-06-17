@@ -378,7 +378,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
           <div v-if="podium.length" class="podium">
             <div v-for="{ e, slot } in podium" :key="e.user.id" class="pcol" :class="{ me: isMe(e) }">
-              <div class="pav" :style="{ background: color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 18px -4px ${MEDALS[slot]}` }">{{ initials(e.user.name) }}</div>
+              <div class="pav" :style="{ background: color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 18px -4px ${MEDALS[slot]}` }"><img v-if="e.user.avatarUrl" class="av-img" :src="e.user.avatarUrl" alt="" ><template v-else>{{ initials(e.user.name) }}</template></div>
               <div class="pname">{{ e.user.name }}</div>
               <div class="font-numeric pscore">{{ guess(e) }}</div>
               <div class="ppts" :style="{ color: MEDALS[slot] }">+{{ e.points }}</div>
@@ -392,7 +392,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <div v-for="e in rest" :key="e.user.id" class="row" :class="{ me: isMe(e) }">
               <span class="font-numeric pos" :class="{ gold: isMe(e) }">{{ e.rank }}</span>
               <div class="who">
-                <span class="av" :class="{ pitch: isMe(e) }" :style="isMe(e) ? undefined : { background: color(e.user.id) }">{{ initials(e.user.name) }}</span>
+                <span class="av" :class="{ pitch: isMe(e) }" :style="isMe(e) ? undefined : { background: color(e.user.id) }"><img v-if="e.user.avatarUrl" class="av-img" :src="e.user.avatarUrl" alt="" ><template v-else>{{ initials(e.user.name) }}</template></span>
                 <span class="nm">{{ e.user.name }}</span>
                 <span v-if="isMe(e)" class="youtag">Você</span>
               </div>
@@ -410,7 +410,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <div class="row me big">
               <span class="font-numeric pos gold">{{ me.rank }}º</span>
               <div class="who">
-                <span class="av pitch">{{ initials(me.user.name) }}</span>
+                <span class="av pitch"><img v-if="me.user.avatarUrl" class="av-img" :src="me.user.avatarUrl" alt="" ><template v-else>{{ initials(me.user.name) }}</template></span>
                 <span class="nm">{{ me.user.name }}</span>
                 <span class="youtag">Você</span>
               </div>
@@ -714,7 +714,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 
 .podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin: 8px 0 18px; }
 .pcol { flex: 1; max-width: 130px; display: flex; flex-direction: column; align-items: center; }
-.pav { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; border: 3px solid; }
+.pav { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; border: 3px solid; }
+.av-img { width: 100%; height: 100%; object-fit: cover; }
 .pname { font-size: 12px; font-weight: 700; margin-top: 7px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .pcol.me .pname { color: var(--gold); }
 .pscore { font-size: 18px; letter-spacing: 0.04em; }
@@ -728,7 +729,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .pos { font-size: 17px; color: var(--muted); text-align: center; }
 .pos.gold { color: var(--gold); }
 .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 11px; flex: 0 0 auto; }
+.av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 11px; flex: 0 0 auto; }
 .av.pitch { background: var(--grad-pitch); }
 .nm { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .youtag { font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #0a0e14; background: var(--gold); border-radius: 5px; padding: 2px 6px; flex: 0 0 auto; }

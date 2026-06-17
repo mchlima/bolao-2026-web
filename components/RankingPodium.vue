@@ -45,7 +45,8 @@ function color(id: string): string {
           class="pavatar"
           :style="{ background: color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 22px -4px ${MEDALS[slot]}` }"
         >
-          {{ initials(e.user.name) }}
+          <img v-if="e.user.avatarUrl" class="pavatar-img" :src="e.user.avatarUrl" alt="" >
+          <template v-else>{{ initials(e.user.name) }}</template>
         </div>
         <div class="pname">{{ e.user.name }}</div>
         <div class="font-numeric ppts" :style="{ color: MEDALS[slot] }">{{ e.points }}</div>
@@ -114,11 +115,17 @@ function color(id: string): string {
   border-radius: 50%;
   display: grid;
   place-items: center;
+  overflow: hidden;
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
   font-size: 17px;
   border: 3px solid;
+}
+.pavatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .pname {
   font-size: 13px;

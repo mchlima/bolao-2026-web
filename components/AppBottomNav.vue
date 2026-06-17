@@ -23,13 +23,6 @@ const items = computed(() => {
   ];
 });
 
-const initials = computed(() => {
-  const n = auth.user?.name?.trim();
-  if (!n) return 'VC';
-  const parts = n.split(/\s+/);
-  return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
-});
-
 const ICONS: Record<string, string> = {
   home: '<path d="M3 10.5 12 3l9 7.5M5 9.5V20h14V9.5"/>',
   calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
@@ -63,7 +56,7 @@ function active(to: string) {
       :style="{ color: sheetOpen ? 'var(--emerald)' : 'var(--muted)' }"
       @click="sheetOpen = true"
     >
-      <span class="av-circle">{{ initials }}</span>
+      <UserAvatar :name="auth.user?.name" :src="auth.user?.avatarUrl" :size="22" />
       <span>Conta</span>
     </button>
   </nav>
@@ -112,18 +105,6 @@ function active(to: string) {
   background: none;
   border: 0;
   cursor: pointer;
-}
-.av-circle {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--grad-pitch);
-  color: #fff;
-  font-family: 'Oswald', sans-serif;
-  font-weight: 700;
-  font-size: 10px;
 }
 .av-item :deep(svg) {
   display: none;

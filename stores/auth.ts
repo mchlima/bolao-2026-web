@@ -42,11 +42,31 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function setTimezone(timezone: string): Promise<void> {
+  async function updateMe(body: {
+    name?: string;
+    timezone?: string;
+  }): Promise<void> {
     user.value = await useApi()<User>('/auth/me', {
       method: 'PATCH',
-      body: { timezone },
+      body,
     });
+  }
+
+  async function setTimezone(timezone: string): Promise<void> {
+    await updateMe({ timezone });
+  }
+
+  async function uploadAvatar(file: File): Promise<void> {
+    const fd = new FormData();
+    fd.append('file', file);
+    user.value = await useApi()<User>('/auth/me/avatar', {
+      method: 'POST',
+      body: fd,
+    });
+  }
+
+  async function removeAvatar(): Promise<void> {
+    user.value = await useApi()<User>('/auth/me/avatar', { method: 'DELETE' });
   }
 
   function logout(): void {
@@ -54,5 +74,18 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null;
   }
 
-  return { token, user, isAuthenticated, isAdmin, login, register, fetchMe, setTimezone, logout };
+  return {
+    token,
+    user,
+    isAuthenticated,
+    isAdmin,
+    login,
+    register,
+    fetchMe,
+    updateMe,
+    setTimezone,
+    uploadAvatar,
+    removeAvatar,
+    logout,
+  };
 });

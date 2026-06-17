@@ -95,7 +95,7 @@ onMounted(load);
       <AdminTable :columns="COLS" :rows="data?.data" grid="minmax(0,1fr) 96px 104px 150px auto" empty="Nenhum usuário." empty-icon="users">
         <template #col-user="{ row }">
           <span class="who">
-            <span class="av" :style="{ background: color(row.id), opacity: row.isActive ? 1 : 0.5 }">{{ initials(row.name) }}</span>
+            <span class="av" :style="{ background: color(row.id), opacity: row.isActive ? 1 : 0.5 }"><img v-if="row.avatarUrl" class="av-img" :src="row.avatarUrl" alt="" ><template v-else>{{ initials(row.name) }}</template></span>
             <span class="info"><span class="nm">{{ row.name }}<span v-if="row.id === auth.user?.id" class="metag">você</span></span><span class="em">{{ row.email }}</span></span>
           </span>
         </template>
@@ -133,7 +133,8 @@ onMounted(load);
 
 <style scoped>
 .who { display: flex; align-items: center; gap: 11px; min-width: 0; }
-.av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 12px; flex: 0 0 auto; }
+.av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 12px; flex: 0 0 auto; }
+.av-img { width: 100%; height: 100%; object-fit: cover; }
 .info { min-width: 0; }
 .nm { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .metag { font-size: 8.5px; font-weight: 800; text-transform: uppercase; color: #0a0e14; background: var(--gold); border-radius: 5px; padding: 1px 5px; }

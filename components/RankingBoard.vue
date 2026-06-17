@@ -48,7 +48,10 @@ function rowEntry(e: RankingEntry) {
         >
         <span class="font-numeric pos">{{ e.rank }}</span>
         <div class="who">
-          <span class="av" :style="{ background: color(e.user.id) }">{{ initials(e.user.name) }}</span>
+          <span class="av" :style="{ background: color(e.user.id) }">
+            <img v-if="e.user.avatarUrl" class="av-img" :src="e.user.avatarUrl" alt="" >
+            <template v-else>{{ initials(e.user.name) }}</template>
+          </span>
           <span class="nm">{{ e.user.name }}</span>
           <span v-if="e.isMe" class="youtag">Você</span>
         </div>
@@ -62,7 +65,10 @@ function rowEntry(e: RankingEntry) {
       <div class="row me big">
         <span class="font-numeric pos gold">{{ me.rank }}º</span>
         <div class="who">
-          <span class="av pitch">{{ initials(me.user.name) }}</span>
+          <span class="av pitch">
+            <img v-if="me.user.avatarUrl" class="av-img" :src="me.user.avatarUrl" alt="" >
+            <template v-else>{{ initials(me.user.name) }}</template>
+          </span>
           <span class="nm">{{ me.user.name }}</span>
           <span class="youtag">Você</span>
         </div>
@@ -121,11 +127,17 @@ function rowEntry(e: RankingEntry) {
   border-radius: 50%;
   display: grid;
   place-items: center;
+  overflow: hidden;
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
   font-size: 13px;
   flex: 0 0 auto;
+}
+.av-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .av.pitch {
   background: var(--grad-pitch);

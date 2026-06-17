@@ -73,7 +73,10 @@ async function makeOwner(m: PoolMemberView) {
 <template>
   <section class="list">
     <div v-for="m in pool?.members ?? []" :key="m.user.id" class="mrow">
-      <span class="av" :style="{ background: color(m.user.id) }">{{ initials(m.user.name) }}</span>
+      <span class="av" :style="{ background: color(m.user.id) }">
+        <img v-if="m.user.avatarUrl" class="av-img" :src="m.user.avatarUrl" alt="" >
+        <template v-else>{{ initials(m.user.name) }}</template>
+      </span>
       <div class="m-info">
         <span class="m-name">
           {{ m.user.name }}
@@ -117,11 +120,17 @@ async function makeOwner(m: PoolMemberView) {
   border-radius: 50%;
   display: grid;
   place-items: center;
+  overflow: hidden;
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
   font-size: 13px;
   flex: 0 0 auto;
+}
+.av-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .m-info {
   flex: 1;
