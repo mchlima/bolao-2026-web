@@ -537,25 +537,32 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   flex: none;
 }
 /* The user's predicted score, now shown at the top of the Bolão tab body. */
+/* "Seu palpite" — a defined card so the user's pick reads as a headline, not
+   faded floating text. Gold score to make it pop above the points card. */
 .rpred {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 9%, var(--bg-base)), var(--bg-base));
+  border: 1px solid color-mix(in srgb, var(--gold) 26%, var(--border));
+  border-radius: 14px;
 }
 .rpred-lbl {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--muted);
+  letter-spacing: 0.07em;
+  color: var(--text);
 }
 .rpred-score {
-  font-size: 17px;
+  font-size: 24px;
+  font-weight: 800;
   line-height: 1;
-  letter-spacing: 0.03em;
-  color: var(--text);
+  letter-spacing: 0.04em;
+  color: var(--gold);
 }
 .state {
   display: inline-flex;
