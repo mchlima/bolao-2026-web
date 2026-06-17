@@ -130,7 +130,8 @@ function whistleLabel(period: number, label: string): string {
         <div class="content">
           <span class="mdot" :class="minorCategory(e.type)" aria-hidden="true" />
           <span class="mbody">
-            <span class="mlabel">{{ eventLabel(e.type) }}</span><template v-if="e.player"> · {{ surname(e.player) }}</template>
+            <span class="mlabel">{{ eventLabel(e.type) }}</span>
+            <span v-if="e.player" class="mwho">{{ surname(e.player) }}</span>
           </span>
         </div>
       </div>
@@ -591,26 +592,32 @@ function whistleLabel(period: number, label: string): string {
 /* running play-by-play (minor) rows — lighter than the headline events: a small
    coloured dot + the type label + the player, in a muted single line */
 .ev.minor {
-  padding: 3px 0;
+  padding: 4px 0;
 }
 .ev.minor .content {
   gap: 7px;
+  align-items: flex-start;
 }
 .mbody {
   min-width: 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  gap: 1px;
 }
 .mlabel {
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text);
 }
+.mwho {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
 .mdot {
   flex: none;
+  margin-top: 4px;
   width: 7px;
   height: 7px;
   border-radius: 50%;
