@@ -728,8 +728,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 
 /* Bolão / Escalação tabs — same pill format as the tournament section tabs. */
-/* countdown to kickoff — a full-width bar between the hero and the tabs, sitting
-   a touch wider than the tab pills (14px insets vs the tabs' 20px) */
+/* countdown to kickoff — a full-bleed bar flush under the hero, carrying the
+   hero's own gradient so the two read as one continuous surface */
 .countdown {
   position: relative;
   z-index: 2;
@@ -737,11 +737,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 12px 14px 0;
-  padding: 9px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg-base);
+  margin: 0;
+  padding: 10px 20px;
+  background-image: linear-gradient(135deg, rgba(15, 179, 107, 0.16), rgba(30, 127, 240, 0.14));
   color: var(--muted);
 }
 .countdown .cd-ico {
@@ -761,9 +759,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   font-variant-numeric: tabular-nums;
 }
 /* under a day → the live HH:MM:SS reads larger, in the accent gold */
-.countdown.soon {
-  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
-}
 .countdown.soon .cd-ico {
   color: var(--gold);
 }
