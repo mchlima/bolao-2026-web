@@ -4,18 +4,24 @@ import type { Match, MatchStats, StatRow } from '~/types/api';
 // Team statistics of a match, consumed from OUR backend (/matches/:id/stats):
 // a home-vs-away comparison with a proportional bar. Refetches on the match
 // realtime channel (+ 60s poll while live). Renders nothing until ingested.
-const props = defineProps<{ match: Match }>();
+// `active` is the tab gate: while this tab is hidden it neither subscribes to the
+// realtime stream nor polls; it catches up with one refetch when opened. Defaults
+// on for standalone use.
+const props = defineProps<{ match: Match; active?: boolean }>();
 const emit = defineEmits<{ available: [boolean] }>();
 
 const { data, refresh } = await useAsyncData(
   `stats-${props.match.id}`,
   () => useApi()<MatchStats>(`/matches/${props.match.id}/stats`),
 );
-useRealtime(() => [`match:${props.match.id}`], () => refresh());
+useRealtime(() => (props.active !== false ? [`match:${props.match.id}`] : []), () => refresh());
+watch(() => props.active, (a) => {
+  if (a) refresh();
+});
 let poll: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
   poll = setInterval(() => {
-    if (props.match.status === 'LIVE') refresh();
+    if (props.active !== false && props.match.status === 'LIVE') refresh();
   }, 60_000);
 });
 onBeforeUnmount(() => clearInterval(poll));

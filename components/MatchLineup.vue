@@ -7,21 +7,27 @@ import type { LineupPlayer, LineupTeam, Match, MatchLineup } from '~/types/api';
 // the tactical formation per side, then the bench in the same format. Refetches
 // on the match realtime channel (+ a 60s poll while live) so subs land on their
 // own. Renders nothing until lineups exist (~1h before kickoff).
-const props = defineProps<{ match: Match }>();
+// `active` is the tab gate: while this tab is hidden it neither subscribes to the
+// realtime stream nor polls; it catches up with one refetch when opened. Defaults
+// on for standalone use.
+const props = defineProps<{ match: Match; active?: boolean }>();
 const emit = defineEmits<{ available: [boolean] }>();
 
 const { data, refresh } = await useAsyncData(
   `lineup-${props.match.id}`,
   () => useApi()<MatchLineup>(`/matches/${props.match.id}/lineup`),
 );
-useRealtime(() => [`match:${props.match.id}`], () => refresh());
+useRealtime(() => (props.active !== false ? [`match:${props.match.id}`] : []), () => refresh());
+watch(() => props.active, (a) => {
+  if (a) refresh();
+});
 
 // The robot only emits realtime events on score/status/card changes, so poll
 // while live too — substitutions don't move the score (endpoint caches 30s).
 let pollTimer: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
   pollTimer = setInterval(() => {
-    if (props.match.status === 'LIVE') refresh();
+    if (props.active !== false && props.match.status === 'LIVE') refresh();
   }, 60_000);
 });
 onBeforeUnmount(() => clearInterval(pollTimer));

@@ -15,7 +15,7 @@ const props = withDefaults(
   }>(),
   { title: 'Ranking da partida', backLabel: 'Voltar', hideBack: false },
 );
-const emit = defineEmits<{ back: []; refresh: [] }>();
+const emit = defineEmits<{ back: []; refresh: []; tab: [string] }>();
 
 const auth = useAuthStore();
 const ui = useUiStore();
@@ -104,6 +104,9 @@ const activeTab = computed(() => {
   if (aba === 'classificacao' && hasClassificacao.value) return 'classificacao';
   return 'bolao';
 });
+// Surface the active tab so the context wrapper can gate its ranking refetch to
+// the "bolão" tab (the hero/score stays always-on; the ranking is tab-scoped).
+watch(activeTab, (t) => emit('tab', t), { immediate: true });
 // The match path minus any trailing tab segment — the base to build tab links
 // from. Works for every route that renders the board (tournament / standalone /
 // pool), since it's derived from the current path rather than hard-coded.
@@ -424,13 +427,13 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       </div>
 
       <div v-show="activeTab === 'escalacao'" class="lntab">
-        <MatchLineup :match="match" />
+        <MatchLineup :match="match" :active="activeTab === 'escalacao'" />
       </div>
       <div v-show="activeTab === 'tempo'" class="lntab">
-        <MatchTimeline :match="match" />
+        <MatchTimeline :match="match" :active="activeTab === 'tempo'" />
       </div>
       <div v-show="activeTab === 'stats'" class="lntab">
-        <MatchStats :match="match" />
+        <MatchStats :match="match" :active="activeTab === 'stats'" />
       </div>
       <div v-show="activeTab === 'info'" class="lntab">
         <dl class="info-card">

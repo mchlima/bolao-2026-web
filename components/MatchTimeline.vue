@@ -5,18 +5,24 @@ import type { Match, MatchTimeline, TimelineEvent } from '~/types/api';
 // (/matches/:id/events) — grouped by period, home on the left, away on the
 // right of a centre spine. Refetches on the match realtime channel so new
 // events land live. Renders nothing until events exist.
-const props = defineProps<{ match: Match }>();
+// `active` is the tab gate: while this tab is hidden it neither subscribes to the
+// realtime stream nor polls, so a match page only pays for the tab on screen. It
+// catches up with one refetch when the tab opens. Defaults on for standalone use.
+const props = defineProps<{ match: Match; active?: boolean }>();
 const emit = defineEmits<{ available: [boolean] }>();
 
 const { data, refresh } = await useAsyncData(
   `timeline-${props.match.id}`,
   () => useApi()<MatchTimeline>(`/matches/${props.match.id}/events`),
 );
-useRealtime(() => [`match:${props.match.id}`], () => refresh());
+useRealtime(() => (props.active !== false ? [`match:${props.match.id}`] : []), () => refresh());
+watch(() => props.active, (a) => {
+  if (a) refresh();
+});
 let poll: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
   poll = setInterval(() => {
-    if (props.match.status === 'LIVE') refresh();
+    if (props.active !== false && props.match.status === 'LIVE') refresh();
   }, 60_000);
 });
 onBeforeUnmount(() => clearInterval(poll));
