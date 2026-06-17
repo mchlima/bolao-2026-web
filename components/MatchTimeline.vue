@@ -55,6 +55,12 @@ function surname(name: string | null): string {
   const parts = name.trim().split(/\s+/);
   return parts[parts.length - 1] || name;
 }
+// Short team name for a side — labels which team a VAR ruling concerns.
+function sideTeam(side: 'home' | 'away' | null): string | null {
+  if (side === 'home') return props.match.homeTeam?.shortName ?? null;
+  if (side === 'away') return props.match.awayTeam?.shortName ?? null;
+  return null;
+}
 const isGoal = (t: string) => t.includes('GOAL'); // GOAL / OWN_GOAL / PENALTY_GOAL
 // Coloured tag next to the player's name (pênalti/contra, sending-off, miss).
 function rowTag(e: TimelineEvent): string | null {
@@ -96,7 +102,7 @@ function whistleLabel(period: number, label: string): string {
       <!-- VAR review / decision -->
       <div v-else-if="e.type === 'VAR'" class="var">
         <span>
-          <b class="var-badge">VAR</b>{{ e.detail || 'Revisão do VAR' }}<small v-if="e.minute"> · {{ e.minute }}</small>
+          <b class="var-badge">VAR</b>{{ e.detail || 'Revisão do VAR' }}<template v-if="e.player"> · {{ surname(e.player) }}</template><small v-if="sideTeam(e.side) || e.minute"> ·<template v-if="sideTeam(e.side)"> {{ sideTeam(e.side) }}</template><template v-if="e.minute"> {{ e.minute }}</template></small>
         </span>
       </div>
 
