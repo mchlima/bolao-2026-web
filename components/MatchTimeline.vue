@@ -56,6 +56,10 @@ function surname(name: string | null): string {
   return parts[parts.length - 1] || name;
 }
 const isGoal = (t: string) => t.includes('GOAL'); // GOAL / OWN_GOAL / PENALTY_GOAL
+// Only a disallowed goal is drawn as a struck-through goal card on its team's
+// side. Other team-tagged VAR rulings (a confirmed goal, a review in progress)
+// must NOT look like an annulment — they fall through to the neutral VAR chip.
+const isVoidGoal = (e: TimelineEvent) => e.type === 'VAR' && !!e.side && e.detail === 'Gol anulado';
 // Coloured tag next to the player's name (pênalti/contra, sending-off, miss).
 function rowTag(e: TimelineEvent): string | null {
   if (e.type === 'PENALTY_GOAL') return 'pênalti';
@@ -96,7 +100,7 @@ function whistleLabel(period: number, label: string): string {
       <!-- VAR ruling tied to a team (a disallowed goal) shows on that team's side
            with the SAME vivid card as a real goal, but red and struck through —
            "a goal, that didn't count". A generic review (no side) stays a chip. -->
-      <div v-else-if="e.type === 'VAR' && e.side" class="ev goal void" :class="e.side">
+      <div v-else-if="isVoidGoal(e)" class="ev goal void" :class="e.side">
         <span class="min">{{ e.minute }}</span>
         <div class="content">
           <span class="icon goal"><span class="ball">⚽</span></span>
