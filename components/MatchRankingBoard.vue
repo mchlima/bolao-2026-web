@@ -306,19 +306,19 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         <div v-if="editable" class="mypred">
           <div class="mp-head">
             <span class="mp-title">Seu palpite</span>
-            <span class="mp-hint">use +/− para ajustar</span>
+            <span class="mp-hint">use as setas para ajustar</span>
           </div>
           <div class="mp-stepper">
             <div class="mp-col">
-              <button class="mp-step" @click="ph = clampScore(ph - 1)">−</button>
+              <button class="mp-step" aria-label="menos" @click="ph = clampScore(ph - 1)"><AppIcon name="chevronLeft" :size="22" :stroke="2.4" /></button>
               <span class="font-numeric mp-num">{{ ph }}</span>
-              <button class="mp-step" @click="ph = clampScore(ph + 1)">+</button>
+              <button class="mp-step" aria-label="mais" @click="ph = clampScore(ph + 1)"><AppIcon name="chevronRight" :size="22" :stroke="2.4" /></button>
             </div>
             <span class="font-numeric colon mp-colon">:</span>
             <div class="mp-col">
-              <button class="mp-step" @click="pa = clampScore(pa - 1)">−</button>
+              <button class="mp-step" aria-label="menos" @click="pa = clampScore(pa - 1)"><AppIcon name="chevronLeft" :size="22" :stroke="2.4" /></button>
               <span class="font-numeric mp-num">{{ pa }}</span>
-              <button class="mp-step" @click="pa = clampScore(pa + 1)">+</button>
+              <button class="mp-step" aria-label="mais" @click="pa = clampScore(pa + 1)"><AppIcon name="chevronRight" :size="22" :stroke="2.4" /></button>
             </div>
           </div>
           <button class="btn btn-gold btn-block mp-save" :disabled="saving" @click="savePrediction">
@@ -643,8 +643,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .mp-hint { font-size: 10.5px; font-weight: 600; color: var(--muted); }
 .mp-stepper { display: flex; align-items: center; justify-content: center; gap: 16px; }
 .mp-col { display: flex; align-items: center; gap: 10px; }
-.mp-step { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text); font-size: 19px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
-.mp-step:active { transform: scale(0.92); }
+.mp-step { width: 30px; height: 44px; border-radius: 9px; border: none; background: none; padding: 0; color: var(--muted); cursor: pointer; display: grid; place-items: center; transition: color 0.13s ease, transform 0.05s ease; }
+.mp-step:hover { color: var(--text); }
+.mp-step:active { transform: scale(0.86); color: var(--emerald); }
 .mp-num { font-size: 48px; line-height: 0.85; min-width: 30px; text-align: center; }
 .mp-colon { font-size: 40px; color: var(--muted); }
 .mp-save { margin-top: 14px; font-size: 14px; padding: 11px; }

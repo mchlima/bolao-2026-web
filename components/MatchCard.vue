@@ -149,15 +149,15 @@ const leftLabel = computed(() =>
         <template v-if="editable">
           <div class="edit">
             <div class="col">
-              <button class="step" aria-label="menos" @click="home = clamp(home - 1)">−</button>
+              <button class="step" aria-label="menos" @click="home = clamp(home - 1)"><AppIcon name="chevronLeft" :size="18" :stroke="2.4" /></button>
               <span class="font-numeric num">{{ home }}</span>
-              <button class="step" aria-label="mais" @click="home = clamp(home + 1)">+</button>
+              <button class="step" aria-label="mais" @click="home = clamp(home + 1)"><AppIcon name="chevronRight" :size="18" :stroke="2.4" /></button>
             </div>
             <span class="font-numeric colon">:</span>
             <div class="col">
-              <button class="step" aria-label="menos" @click="away = clamp(away - 1)">−</button>
+              <button class="step" aria-label="menos" @click="away = clamp(away - 1)"><AppIcon name="chevronLeft" :size="18" :stroke="2.4" /></button>
               <span class="font-numeric num">{{ away }}</span>
-              <button class="step" aria-label="mais" @click="away = clamp(away + 1)">+</button>
+              <button class="step" aria-label="mais" @click="away = clamp(away + 1)"><AppIcon name="chevronRight" :size="18" :stroke="2.4" /></button>
             </div>
             <button
               class="save"
@@ -399,20 +399,24 @@ const leftLabel = computed(() =>
   gap: 5px;
 }
 .step {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 30px;
   border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-base);
-  color: var(--text);
-  font-size: 16px;
-  line-height: 1;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--muted);
   cursor: pointer;
   display: grid;
   place-items: center;
+  transition: color 0.13s ease, transform 0.05s ease;
+}
+.step:hover {
+  color: var(--text);
 }
 .step:active {
-  transform: scale(0.92);
+  transform: scale(0.82);
+  color: var(--emerald);
 }
 .num {
   font-size: 30px;
@@ -537,9 +541,12 @@ const leftLabel = computed(() =>
 /* Phones: compact the prediction stepper so the team names beside it keep room. */
 @media (max-width: 430px) {
   .step {
-    width: 22px;
-    height: 22px;
-    font-size: 14px;
+    width: 20px;
+    height: 24px;
+  }
+  .step :deep(.app-icon) {
+    width: 15px;
+    height: 15px;
   }
   .num {
     font-size: 24px;

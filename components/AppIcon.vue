@@ -18,6 +18,8 @@ const ICONS: Record<string, string[]> = {
   filter: ['M3 5h18', 'M6 12h12', 'M10 19h4'],
   chevronDown: ['m6 9 6 6 6-6'],
   chevronRight: ['m9 6 6 6-6 6'],
+  chevronLeft: ['m15 6-6 6 6 6'],
+  chevronUp: ['m6 15 6-6 6 6'],
   arrowLeft: ['M19 12H5', 'm12 19-7-7 7-7'],
   arrowRight: ['M5 12h14', 'm12 5 7 7-7 7'],
   arrowUp: ['M12 19V5', 'm5 12 7-7 7 7'],
