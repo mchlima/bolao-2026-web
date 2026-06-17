@@ -92,7 +92,7 @@ const awayColor = computed(() => teamColor(props.match.awayTeam));
     type="button"
     @click="openShare"
   >
-    <AppIcon name="share" :size="16" :stroke="2" />Compartilhar
+    <AppIcon name="share" :size="16" :stroke="2" />Compartilhar resultado
   </button>
   <button v-else class="sh-btn" type="button" aria-label="Compartilhar" title="Compartilhar" @click="openShare">
     <AppIcon name="share" :size="17" :stroke="2" />
