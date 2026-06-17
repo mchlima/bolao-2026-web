@@ -123,6 +123,18 @@ function whistleLabel(period: number, label: string): string {
         </span>
       </div>
 
+      <!-- running play-by-play (foul/offside/corner/shot/penalty) — a lighter
+           side row: a coloured dot, the type label and the player when known -->
+      <div v-else-if="isMinorEvent(e.type)" class="ev minor" :class="e.side ?? 'home'">
+        <span class="min">{{ e.minute }}</span>
+        <div class="content">
+          <span class="mdot" :class="minorCategory(e.type)" aria-hidden="true" />
+          <span class="mbody">
+            <span class="mlabel">{{ eventLabel(e.type) }}</span><template v-if="e.player"> · {{ surname(e.player) }}</template>
+          </span>
+        </div>
+      </div>
+
       <div v-else class="ev" :class="[e.side ?? 'home', { goal: isGoal(e.type) }]">
         <span class="min">{{ e.minute }}</span>
 
@@ -168,8 +180,8 @@ function whistleLabel(period: number, label: string): string {
     <p class="tl-wait-t">{{ isLive ? 'A partida começou.' : 'Partida encerrada.' }}</p>
     <p class="tl-wait-s">
       {{ isLive
-        ? 'Os lances aparecem aqui ao vivo — gols, cartões e substituições.'
-        : 'Sem gols, cartões ou substituições registrados nesta partida.' }}
+        ? 'A narração aparece aqui ao vivo — gols, cartões, faltas, finalizações e mais.'
+        : 'Sem lances registrados nesta partida.' }}
     </p>
   </div>
 </template>
@@ -574,6 +586,47 @@ function whistleLabel(period: number, label: string): string {
   background: var(--azure, #1e7ff0);
   border-radius: 4px;
   padding: 2px 5px;
+}
+
+/* running play-by-play (minor) rows — lighter than the headline events: a small
+   coloured dot + the type label + the player, in a muted single line */
+.ev.minor {
+  padding: 3px 0;
+}
+.ev.minor .content {
+  gap: 7px;
+}
+.mbody {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mlabel {
+  font-weight: 700;
+  color: var(--text);
+}
+.mdot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.mdot.shot {
+  background: var(--azure, #1e7ff0);
+}
+.mdot.foul {
+  background: var(--gold, #c8a04a);
+}
+.mdot.offside {
+  background: #e07b39;
+}
+.mdot.pen {
+  background: var(--scarlet, #e23744);
 }
 
 /* the auto-scroll target; leave room for the fixed bottom nav */

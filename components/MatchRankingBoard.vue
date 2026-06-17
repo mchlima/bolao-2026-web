@@ -69,7 +69,7 @@ const hasClassificacao = computed(() => !!slots.classificacao);
 const matchTabs = computed(() => {
   const tabs = [{ key: 'bolao', label: 'Bolão' }];
   if (lineupAvailable.value) tabs.push({ key: 'escalacao', label: 'Escalação' });
-  if (timelineAvailable.value) tabs.push({ key: 'tempo', label: 'Linha do tempo' });
+  if (timelineAvailable.value) tabs.push({ key: 'tempo', label: 'Narração' });
   if (statsAvailable.value) tabs.push({ key: 'stats', label: 'Estatísticas' });
   if (hasClassificacao.value) tabs.push({ key: 'classificacao', label: 'Classificação' });
   return tabs;
