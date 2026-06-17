@@ -136,6 +136,7 @@ function whistleLabel(period: number, label: string): string {
           <span class="mbody">
             <span class="mlabel">{{ eventLabel(e.type) }}</span>
             <span v-if="e.player" class="mwho">{{ surname(e.player) }}</span>
+            <span v-if="e.type === 'SAVE' && e.detail" class="msaver">🧤 {{ surname(e.detail) }}</span>
           </span>
         </div>
       </div>
@@ -638,6 +639,17 @@ function whistleLabel(period: number, label: string): string {
 }
 .mdot.pen {
   background: var(--scarlet, #e23744);
+}
+.mdot.save {
+  background: var(--emerald, #0fb36b);
+}
+.mdot.woodwork {
+  background: var(--magenta, #e0218a);
+}
+.msaver {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--emerald);
 }
 
 /* the auto-scroll target; leave room for the fixed bottom nav */

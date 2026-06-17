@@ -18,6 +18,8 @@ export const EVENT_LABEL: Record<string, string> = {
   SHOT_ON_TARGET: 'Finalização no alvo',
   SHOT_OFF_TARGET: 'Finalização para fora',
   SHOT_BLOCKED: 'Finalização bloqueada',
+  SAVE: 'Defesa',
+  WOODWORK: 'Na trave',
   DELAY: 'Paralisação',
 };
 
@@ -32,12 +34,18 @@ const MINOR = new Set([
   'SHOT_ON_TARGET',
   'SHOT_OFF_TARGET',
   'SHOT_BLOCKED',
+  'SAVE',
+  'WOODWORK',
   'PENALTY_AWARDED',
 ]);
 export const isMinorEvent = (type: string): boolean => MINOR.has(type);
 
 // Colour category for a minor event's marker dot (quick visual cue beside the label).
-export function minorCategory(type: string): 'shot' | 'foul' | 'offside' | 'corner' | 'pen' | '' {
+export function minorCategory(
+  type: string,
+): 'shot' | 'foul' | 'offside' | 'corner' | 'pen' | 'save' | 'woodwork' | '' {
+  if (type === 'SAVE') return 'save';
+  if (type === 'WOODWORK') return 'woodwork';
   if (type.startsWith('SHOT_')) return 'shot';
   if (type === 'FOUL') return 'foul';
   if (type === 'OFFSIDE') return 'offside';
