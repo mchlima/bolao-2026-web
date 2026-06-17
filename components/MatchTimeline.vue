@@ -55,12 +55,6 @@ function surname(name: string | null): string {
   const parts = name.trim().split(/\s+/);
   return parts[parts.length - 1] || name;
 }
-// Short team name for a side — labels which team a VAR ruling concerns.
-function sideTeam(side: 'home' | 'away' | null): string | null {
-  if (side === 'home') return props.match.homeTeam?.shortName ?? null;
-  if (side === 'away') return props.match.awayTeam?.shortName ?? null;
-  return null;
-}
 const isGoal = (t: string) => t.includes('GOAL'); // GOAL / OWN_GOAL / PENALTY_GOAL
 // Coloured tag next to the player's name (pênalti/contra, sending-off, miss).
 function rowTag(e: TimelineEvent): string | null {
@@ -99,10 +93,26 @@ function whistleLabel(period: number, label: string): string {
         </span>
       </div>
 
-      <!-- VAR review / decision -->
+      <!-- VAR ruling tied to a team (a disallowed goal) shows on that team's side,
+           like a goal but voided — a struck-through name with a red tag and a
+           crossed-out ball. A generic review (no side) stays a centred chip. -->
+      <div v-else-if="e.type === 'VAR' && e.side" class="ev void" :class="e.side">
+        <span class="min">{{ e.minute }}</span>
+        <div class="content">
+          <span class="icon"><span class="void-ball" aria-hidden="true">⚽</span></span>
+          <span class="body">
+            <span class="nm">
+              <template v-if="e.player"><span class="void-nm">{{ surname(e.player) }}</span><span class="tag danger">{{ e.detail || 'anulado' }}</span></template>
+              <template v-else><span class="void-nm">{{ e.detail || 'Revisão do VAR' }}</span></template>
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <!-- VAR review / decision with no team — centred chip -->
       <div v-else-if="e.type === 'VAR'" class="var">
         <span>
-          <b class="var-badge">VAR</b>{{ e.detail || 'Revisão do VAR' }}<template v-if="e.player"> · {{ surname(e.player) }}</template><small v-if="sideTeam(e.side) || e.minute"> ·<template v-if="sideTeam(e.side)"> {{ sideTeam(e.side) }}</template><template v-if="e.minute"> {{ e.minute }}</template></small>
+          <b class="var-badge">VAR</b>{{ e.detail || 'Revisão do VAR' }}<small v-if="e.minute"> · {{ e.minute }}</small>
         </span>
       </div>
 
@@ -471,6 +481,37 @@ function whistleLabel(period: number, label: string): string {
   text-transform: none;
   letter-spacing: 0;
   color: var(--muted);
+}
+
+/* disallowed goal — a normal side row, but voided: greyed + a crossed-out ball
+   and a struck-through name, so it reads clearly as "this didn't count" */
+.ev.void .nm {
+  font-weight: 700;
+}
+.void-nm {
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--scarlet, #e23744) 75%, transparent);
+  color: var(--muted);
+}
+.void-ball {
+  position: relative;
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1;
+  filter: grayscale(1);
+  opacity: 0.7;
+}
+.void-ball::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 2px;
+  background: var(--scarlet, #e23744);
+  transform: rotate(-18deg);
 }
 
 /* VAR + stoppage markers — same centred chip as the whistle, different accents */
