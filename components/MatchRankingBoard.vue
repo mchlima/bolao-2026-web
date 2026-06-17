@@ -97,6 +97,44 @@ const playing = computed(
   () => match.value.status === 'LIVE' || match.value.status === 'FINISHED',
 );
 const isLive = computed(() => match.value.status === 'LIVE');
+
+// Countdown to kickoff, shown between the hero and the tabs while the match is
+// still SCHEDULED. `now` ticks every second on the client (the value is
+// client-only to avoid an SSR hydration mismatch on the changing seconds).
+const DAY_MS = 86_400_000;
+const now = ref(0);
+const mounted = ref(false);
+let cdTimer: ReturnType<typeof setInterval> | undefined;
+onMounted(() => {
+  mounted.value = true;
+  now.value = Date.now();
+  cdTimer = setInterval(() => (now.value = Date.now()), 1000);
+});
+onBeforeUnmount(() => clearInterval(cdTimer));
+
+const msToKickoff = computed(() => {
+  if (!match.value.kickoffAt) return null;
+  return new Date(match.value.kickoffAt).getTime() - now.value;
+});
+const showCountdown = computed(
+  () =>
+    mounted.value &&
+    match.value.status === 'SCHEDULED' &&
+    msToKickoff.value != null &&
+    msToKickoff.value > 0,
+);
+const countdownSoon = computed(() => (msToKickoff.value ?? Infinity) < DAY_MS);
+// < 1 day → HH:MM:SS (live, per-second); otherwise → "Xd HHh".
+const countdownText = computed(() => {
+  const ms = msToKickoff.value;
+  if (ms == null || ms <= 0) return '';
+  const t = Math.floor(ms / 1000);
+  const p = (n: number) => String(n).padStart(2, '0');
+  const d = Math.floor(t / 86400);
+  const h = Math.floor((t % 86400) / 3600);
+  if (d >= 1) return `${d}d ${p(h)}h`;
+  return `${p(h)}:${p(Math.floor((t % 3600) / 60))}:${p(t % 60)}`;
+});
 const shownHome = computed(() => (playing.value ? (match.value.homeScore ?? 0) : '–'));
 const shownAway = computed(() => (playing.value ? (match.value.awayScore ?? 0) : '–'));
 const homeWins = computed(
@@ -224,6 +262,13 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
           {{ match.stadium.name }}
         </div>
+      </div>
+
+      <!-- countdown to kickoff (scheduled matches only) — between hero and tabs -->
+      <div v-if="showCountdown" class="countdown" :class="{ soon: countdownSoon }">
+        <svg class="cd-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 8v4l2.5 2.5" /></svg>
+        <span class="cd-label">Começa em</span>
+        <span class="cd-value font-numeric">{{ countdownText }}</span>
       </div>
 
       <nav v-if="matchTabs.length > 1" class="ttabs" aria-label="Seções da partida">
@@ -683,6 +728,51 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 
 /* Bolão / Escalação tabs — same pill format as the tournament section tabs. */
+/* countdown to kickoff — a full-width bar between the hero and the tabs, sitting
+   a touch wider than the tab pills (14px insets vs the tabs' 20px) */
+.countdown {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 14px 0;
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  color: var(--muted);
+}
+.countdown .cd-ico {
+  flex: none;
+  color: var(--muted);
+}
+.cd-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.cd-value {
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+/* under a day → the live HH:MM:SS reads larger, in the accent gold */
+.countdown.soon {
+  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
+}
+.countdown.soon .cd-ico {
+  color: var(--gold);
+}
+.countdown.soon .cd-value {
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  color: var(--gold);
+}
+
 .ttabs {
   position: relative;
   z-index: 2;
