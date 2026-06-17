@@ -109,6 +109,14 @@ body {
    leaf card keeps the sticky headers in normal flow → rock-solid on scroll. */
 body.match-screen {
   background: var(--bg-surface);
+  /* Hide the bottom nav on the match screen (immersive, like a detail view) and
+     zero its height var so the layout reclaims the space: .main stops reserving
+     it and the card's min-height grows to fill to the real screen bottom. The
+     "Voltar" button is the way out — no nav needed here. */
+  --nav-h: 0px;
+}
+body.match-screen .bnav {
+  display: none;
 }
 /* The match screen drops the page's bottom padding (the card fills to the nav). */
 body.match-screen .page {
