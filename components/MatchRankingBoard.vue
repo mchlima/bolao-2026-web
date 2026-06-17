@@ -728,8 +728,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 
 /* Bolão / Escalação tabs — same pill format as the tournament section tabs. */
-/* countdown to kickoff — a full-bleed bar flush under the hero, carrying the
-   hero's own gradient so the two read as one continuous surface */
+/* countdown to kickoff — a full-bleed bar flush under the hero. Carries the
+   hero's gradient, but a touch more saturated and split off by a hairline, so it
+   reads as part of the hero with a subtle distinction. */
 .countdown {
   position: relative;
   z-index: 2;
@@ -739,7 +740,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   gap: 8px;
   margin: 0;
   padding: 10px 20px;
-  background-image: linear-gradient(135deg, rgba(15, 179, 107, 0.16), rgba(30, 127, 240, 0.14));
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background-image: linear-gradient(135deg, rgba(15, 179, 107, 0.24), rgba(30, 127, 240, 0.21));
   color: var(--muted);
 }
 .countdown .cd-ico {
