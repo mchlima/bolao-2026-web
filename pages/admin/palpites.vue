@@ -210,7 +210,7 @@ onMounted(async () => {
         </div>
         <AdminTable
           :columns="COLS" :rows="loading ? undefined : filteredRows"
-          grid="1.3fr 1.2fr 96px 210px 80px" empty="Nenhum jogo." empty-icon="ball"
+          grid="1.4fr 1.1fr 124px 210px 64px" empty="Nenhum jogo." empty-icon="ball"
         >
           <template #col-match="{ row }">
             <span class="mt">
@@ -302,8 +302,10 @@ onMounted(async () => {
 .cnt { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
 .mt { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .vs { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
-.dt { font-size: 11.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.res { display: flex; align-items: center; gap: 7px; }
+/* display:block so the ellipsis actually clamps inside the grid cell (an inline
+   span ignores overflow/text-overflow and would spill over the next column). */
+.dt { display: block; min-width: 0; font-size: 11.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.res { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .rscore { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; }
 .guess { display: flex; align-items: center; gap: 6px; }
 .sc {
