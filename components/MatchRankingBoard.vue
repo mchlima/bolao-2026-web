@@ -212,11 +212,17 @@ async function savePrediction() {
   }
 }
 
+// The chip is a MATCH-state indicator and the hero shows it on every tab, so it
+// must follow the always-fresh match.status — NOT ranking.provisional, whose
+// refetch is gated to the "Bolão" tab. On other tabs (Narração/Escalação/…) the
+// ranking goes stale, so keying the chip off it left it stuck on "AO VIVO" after
+// the final whistle even though the match had finished (match was already fresh).
 const stateMeta = computed(() => {
-  if (!ranking.value) return { label: 'Aguardando', color: 'var(--muted)', live: false };
-  if (provisional.value) return { label: 'Ao vivo · parcial', color: 'var(--scarlet)', live: true };
-  if (hasResult.value) return { label: 'Resultado final', color: 'var(--emerald)', live: false };
-  return { label: 'Aguardando resultado', color: 'var(--muted)', live: false };
+  if (match.value.status === 'LIVE')
+    return { label: 'Ao vivo · parcial', color: 'var(--scarlet)', live: true };
+  if (match.value.status === 'FINISHED')
+    return { label: 'Resultado final', color: 'var(--emerald)', live: false };
+  return { label: 'Aguardando', color: 'var(--muted)', live: false };
 });
 
 const top3 = computed(() =>
