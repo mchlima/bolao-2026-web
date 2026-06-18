@@ -33,9 +33,14 @@ function initials(name: string): string {
 }
 
 // Avatars are captured into the share image by modern-screenshot, which needs the
-// image to be CORS-readable. When it can't load (e.g. the R2 host has no CORS yet),
-// fall back to initials so the card never shows a broken avatar.
+// image to be CORS-readable. The r2.dev public host sends no CORS header, but the
+// same objects are served (with CORS) via the custom domain cdn.cravei.app — rewrite
+// to it. Fall back to initials on any load error so the card never shows a broken
+// avatar.
 const avatarFailed = reactive<Record<string, boolean>>({});
+function cdnAvatar(url: string): string {
+  return url.replace(/^https:\/\/pub-[^/]+\.r2\.dev\//, 'https://cdn.cravei.app/');
+}
 function color(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360;
@@ -123,7 +128,7 @@ function download() {
         <div class="sr-podium">
           <div v-for="{ e, slot } in podium" :key="e.user.id" class="sr-col">
             <div class="sr-av font-display" :style="{ background: e.user.avatarUrl && !avatarFailed[e.user.id] ? 'transparent' : color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 36px -6px ${MEDALS[slot]}` }">
-              <img v-if="e.user.avatarUrl && !avatarFailed[e.user.id]" :src="e.user.avatarUrl" crossorigin="anonymous" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" @error="avatarFailed[e.user.id] = true" />
+              <img v-if="e.user.avatarUrl && !avatarFailed[e.user.id]" :src="cdnAvatar(e.user.avatarUrl)" crossorigin="anonymous" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" @error="avatarFailed[e.user.id] = true" />
               <template v-else>{{ initials(e.user.name) }}</template>
             </div>
             <span class="sr-name">{{ e.user.name }}</span>
