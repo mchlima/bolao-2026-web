@@ -240,17 +240,20 @@ onMounted(async () => {
         <AdminTable
           v-if="!isMobile"
           :columns="COLS" :rows="loading ? undefined : filteredRows"
+          :row-class="(r) => (r.match.status === 'LIVE' ? 'live' : undefined)"
           grid="96px 1.5fr 0.9fr 104px 66px 168px 56px" empty="Nenhum jogo." empty-icon="ball"
         >
           <template #col-date="{ row }">
-            <span class="dcell">
-              <span class="dd">{{ fmtDate(row.match.kickoffAt) }}</span>
-              <span class="hh">{{ fmtTime(row.match.kickoffAt) }}</span>
+            <span class="datecell">
+              <span v-if="row.match.status === 'LIVE'" class="livedot" title="Ao vivo" />
+              <span class="dcell">
+                <span class="dd">{{ fmtDate(row.match.kickoffAt) }}</span>
+                <span class="hh">{{ fmtTime(row.match.kickoffAt) }}</span>
+              </span>
             </span>
           </template>
           <template #col-match="{ row }">
             <div class="mt-v">
-              <span v-if="row.match.status === 'LIVE'" class="livedot" title="Ao vivo" />
               <div class="teams">
                 <span class="tline">
                   <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="20" />
@@ -305,10 +308,13 @@ onMounted(async () => {
         <div v-else-if="loading" class="mloading">Carregando…</div>
         <div v-else-if="!filteredRows.length" class="mempty">Nenhum jogo.</div>
         <ul v-else class="mcards">
-          <li v-for="row in filteredRows" :key="row.match.id" class="mcard">
+          <li v-for="row in filteredRows" :key="row.match.id" class="mcard" :class="{ live: row.match.status === 'LIVE' }">
             <div class="mc-head">
-              <span class="mc-when">{{ fmtDate(row.match.kickoffAt) }} · {{ fmtTime(row.match.kickoffAt) }}</span>
-              <span v-if="row.match.status === 'LIVE'" class="mc-live"><span class="livedot" />Ao vivo</span>
+              <span class="mc-when">
+                <span v-if="row.match.status === 'LIVE'" class="livedot" />
+                {{ fmtDate(row.match.kickoffAt) }} · {{ fmtTime(row.match.kickoffAt) }}
+              </span>
+              <span v-if="row.match.status === 'LIVE'" class="mc-live">Ao vivo</span>
               <StatusPill v-else :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" />
             </div>
             <div class="mc-phase">
@@ -400,7 +406,13 @@ onMounted(async () => {
 .teams { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .tline { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .tn { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.datecell { display: flex; align-items: center; gap: 7px; }
 .dcell { display: flex; flex-direction: column; line-height: 1.25; }
+/* highlight the row of a live match (the dot sits at the start of the line) */
+:deep(.atr-row.live) {
+  background: color-mix(in srgb, var(--scarlet) 7%, transparent);
+  box-shadow: inset 3px 0 0 var(--scarlet);
+}
 .dd { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
 .hh { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 .livedot {
@@ -455,11 +467,16 @@ onMounted(async () => {
   border: 1px solid var(--border); border-radius: 13px;
   background: var(--bg-surface); padding: 12px;
 }
+.mcard.live {
+  border-color: color-mix(in srgb, var(--scarlet) 45%, var(--border));
+  box-shadow: inset 3px 0 0 var(--scarlet);
+  background: color-mix(in srgb, var(--scarlet) 6%, var(--bg-surface));
+}
 .mc-head {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   margin-bottom: 6px;
 }
-.mc-when { font-size: 12.5px; font-weight: 700; }
+.mc-when { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; }
 .mc-live {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;

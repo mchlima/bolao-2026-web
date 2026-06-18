@@ -13,6 +13,8 @@ withDefaults(
     /** null/undefined = loading; [] = empty */
     rows: T[] | null | undefined;
     rowKey?: (row: T, i: number) => string | number;
+    /** optional extra class per row (e.g. to highlight a live match) */
+    rowClass?: (row: T, i: number) => string | undefined;
     empty?: string;
     emptyIcon?: string;
     skeleton?: number;
@@ -38,7 +40,7 @@ withDefaults(
     <div class="atr-head">
       <span v-for="c in columns" :key="c.key" :class="[c.align === 'end' && 'end', c.mobileHide && 'm-hide']">{{ c.label }}</span>
     </div>
-    <div v-for="(row, i) in rows" :key="rowKey(row, i)" class="atr-row">
+    <div v-for="(row, i) in rows" :key="rowKey(row, i)" class="atr-row" :class="rowClass?.(row, i)">
       <span
         v-for="c in columns"
         :key="c.key"
