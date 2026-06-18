@@ -60,10 +60,14 @@ watch(
 );
 
 // Jump straight to the latest event at the bottom — used when the tab is opened
-// (the live-append above handles new events while it's already on screen).
+// (the live-append above handles new events while it's already on screen). Wait for
+// Vue's render (nextTick) AND the browser's layout (rAF) so the end marker is at its
+// final position; the router opts this tab out of scroll-to-top (see router.options).
 function scrollToEnd(): void {
   if (import.meta.server) return;
-  nextTick(() => endRef.value?.scrollIntoView({ block: 'end' }));
+  nextTick(() =>
+    requestAnimationFrame(() => endRef.value?.scrollIntoView({ block: 'end' })),
+  );
 }
 
 function surname(name: string | null): string {
