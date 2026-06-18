@@ -10,7 +10,7 @@ interface Score {
   points: number;
 }
 interface PredRow {
-  match: Match;
+  match: Match & { round?: { number: number | null; name: string | null } | null };
   prediction: { homeScore: number; awayScore: number } | null;
   score: Score | null;
 }
@@ -66,6 +66,13 @@ const loading = ref(false);
 const rowFilter = ref('');
 const statusFilter = ref('');
 
+// Desktop = AdminTable; mobile (≤720px) = bespoke cards (the generic label:value
+// collapse is awkward for 7 columns + stacked teams + an inline editor).
+const isMobile = ref(false);
+function scorable(r: PredRow): boolean {
+  return r.match.status === 'LIVE' || r.match.status === 'FINISHED';
+}
+
 async function loadRows() {
   if (!selectedUser.value || !seasonId.value) { rows.value = []; return; }
   loading.value = true;
@@ -97,36 +104,38 @@ const filteredRows = computed(() => {
 const statusOptions = ['LIVE', 'SCHEDULED', 'FINISHED', 'POSTPONED', 'CANCELLED'];
 
 // ── Inline edit / save ──
-// Local draft per match so typing doesn't mutate the loaded row until saved.
-const draft = reactive<Record<string, { home: string; away: string }>>({});
+// Local draft per match (null = blank, not yet a palpite — shown as "–").
+const draft = reactive<Record<string, { home: number | null; away: number | null }>>({});
 function draftFor(r: PredRow) {
   if (!draft[r.match.id]) {
     draft[r.match.id] = {
-      home: r.prediction ? String(r.prediction.homeScore) : '',
-      away: r.prediction ? String(r.prediction.awayScore) : '',
+      home: r.prediction ? r.prediction.homeScore : null,
+      away: r.prediction ? r.prediction.awayScore : null,
     };
   }
   return draft[r.match.id];
 }
+// Stepper: from "–" (null), up lands on 0 then 0..99; down clamps at 0.
+function bump(r: PredRow, side: 'home' | 'away', delta: number) {
+  const d = draftFor(r);
+  d[side] = Math.min(99, Math.max(0, (d[side] ?? -1) + delta));
+}
 const savingId = ref('');
 function dirty(r: PredRow): boolean {
   const d = draft[r.match.id];
-  if (!d || d.home === '' || d.away === '') return false;
+  if (!d || d.home === null || d.away === null) return false;
   if (!r.prediction) return true;
-  return Number(d.home) !== r.prediction.homeScore || Number(d.away) !== r.prediction.awayScore;
+  return d.home !== r.prediction.homeScore || d.away !== r.prediction.awayScore;
 }
 
 async function save(r: PredRow) {
   const d = draft[r.match.id];
-  if (!d || d.home === '' || d.away === '') return ui.toast('error', 'Informe os dois placares');
-  const home = Number(d.home), away = Number(d.away);
-  if (!Number.isInteger(home) || !Number.isInteger(away) || home < 0 || away < 0 || home > 99 || away > 99)
-    return ui.toast('error', 'Placar inválido (0–99)');
+  if (!d || d.home === null || d.away === null) return;
   savingId.value = r.match.id;
   try {
     const res = await useApi()<{ homeScore: number; awayScore: number; score: Score | null }>(
       `/admin/predictions/${selectedUser.value!.id}/${r.match.id}`,
-      { method: 'PUT', body: { homeScore: home, awayScore: away } },
+      { method: 'PUT', body: { homeScore: d.home, awayScore: d.away } },
     );
     r.prediction = { homeScore: res.homeScore, awayScore: res.awayScore };
     r.score = res.score;
@@ -138,16 +147,35 @@ async function save(r: PredRow) {
   }
 }
 
+// Date split into "dd/MM/yyyy" (top) and "HH:mm" (bottom), in the user's tz.
+function fmtDate(iso: string): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', timeZone: tz.value,
+  }).format(new Date(iso));
+}
+function fmtTime(iso: string): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit', minute: '2-digit', timeZone: tz.value,
+  }).format(new Date(iso));
+}
+function teamName(team: { name?: string } | null | undefined, placeholder?: string | null): string {
+  return team?.name ?? placeholder ?? 'A definir';
+}
+
 const COLS: AdminColumn[] = [
+  { key: 'date', label: 'Data' },
   { key: 'match', label: 'Partida' },
   { key: 'phase', label: 'Fase', mobileHide: true },
-  { key: 'date', label: 'Data', mobileHide: true },
+  { key: 'status', label: 'Status' },
   { key: 'result', label: 'Resultado' },
-  { key: 'guess', label: 'Palpite do usuário' },
+  { key: 'guess', label: 'Palpite' },
   { key: 'pts', label: 'Pts', align: 'end' },
 ];
 
 onMounted(async () => {
+  const mq = window.matchMedia('(max-width: 720px)');
+  isMobile.value = mq.matches;
+  mq.addEventListener('change', (e) => (isMobile.value = e.matches));
   const tt = await useApi()<Paginated<Tournament>>('/seasons?pageSize=100');
   tournaments.value = tt.data;
 });
@@ -210,41 +238,58 @@ onMounted(async () => {
           <span class="cnt">{{ filteredRows.length }} jogo(s)</span>
         </div>
         <AdminTable
+          v-if="!isMobile"
           :columns="COLS" :rows="loading ? undefined : filteredRows"
-          grid="1.4fr 0.9fr 168px 120px 200px 60px" empty="Nenhum jogo." empty-icon="ball"
+          grid="96px 1.5fr 0.9fr 104px 66px 168px 56px" empty="Nenhum jogo." empty-icon="ball"
         >
-          <template #col-match="{ row }">
-            <span class="mt">
-              <span v-if="row.match.status === 'LIVE'" class="livedot" title="Ao vivo" />
-              <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="22" />
-              <span class="vs">{{ teamAbbr(row.match.homeTeam, row.match.homeSourceLabel) }} × {{ teamAbbr(row.match.awayTeam, row.match.awaySourceLabel) }}</span>
-              <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="22" />
+          <template #col-date="{ row }">
+            <span class="dcell">
+              <span class="dd">{{ fmtDate(row.match.kickoffAt) }}</span>
+              <span class="hh">{{ fmtTime(row.match.kickoffAt) }}</span>
             </span>
           </template>
-          <template #col-phase="{ row }">
-            <span class="dt">{{ row.match.phaseLabel }}<template v-if="row.match.groupName"> {{ row.match.groupName }}</template></span>
+          <template #col-match="{ row }">
+            <div class="mt-v">
+              <span v-if="row.match.status === 'LIVE'" class="livedot" title="Ao vivo" />
+              <div class="teams">
+                <span class="tline">
+                  <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="20" />
+                  <span class="tn">{{ teamName(row.match.homeTeam, row.match.homeSourceLabel) }}</span>
+                </span>
+                <span class="tline">
+                  <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="20" />
+                  <span class="tn">{{ teamName(row.match.awayTeam, row.match.awaySourceLabel) }}</span>
+                </span>
+              </div>
+            </div>
           </template>
-          <template #col-date="{ row }">
-            <span class="dt">{{ formatKickoff(row.match.kickoffAt, tz) }}</span>
+          <template #col-phase="{ row }">
+            <span class="phcell">
+              <span class="ph-main">{{ row.match.phaseLabel || row.match.round?.name }}</span>
+              <span v-if="row.match.groupName" class="ph-sub">Grupo {{ row.match.groupName }}</span>
+              <span v-if="row.match.round?.number != null" class="ph-sub">Rodada {{ row.match.round.number }}</span>
+            </span>
+          </template>
+          <template #col-status="{ row }">
+            <!-- LIVE is signalled by the dot in the Partida column, so its status
+                 cell stays empty; the other statuses show their pill. -->
+            <StatusPill v-if="row.match.status !== 'LIVE'" :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" />
           </template>
           <template #col-result="{ row }">
-            <div class="res">
-              <!-- LIVE is signalled by the dot in the Partida column, so here it
-                   shows only the score; other statuses keep their pill. -->
-              <StatusPill v-if="row.match.status !== 'LIVE'" :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" />
-              <b v-if="row.match.status === 'LIVE' || row.match.status === 'FINISHED'" class="rscore">{{ row.match.homeScore }}–{{ row.match.awayScore }}</b>
-            </div>
+            <b v-if="row.match.status === 'LIVE' || row.match.status === 'FINISHED'" class="rscore">{{ row.match.homeScore }}–{{ row.match.awayScore }}</b>
+            <span v-else class="pts-none">—</span>
           </template>
           <template #col-guess="{ row }">
             <div class="guess">
-              <input v-model="draftFor(row).home" type="number" min="0" max="99" class="sc" inputmode="numeric" />
+              <ScoreStepper :value="draftFor(row).home" label="placar do mandante" @bump="(d) => bump(row, 'home', d)" />
               <span class="x">×</span>
-              <input v-model="draftFor(row).away" type="number" min="0" max="99" class="sc" inputmode="numeric" />
+              <ScoreStepper :value="draftFor(row).away" label="placar do visitante" @bump="(d) => bump(row, 'away', d)" />
               <button
-                class="btn btn-primary save" :disabled="!dirty(row) || savingId === row.match.id"
-                @click="save(row)"
+                v-if="dirty(row)" class="btn btn-primary save" :disabled="savingId === row.match.id"
+                aria-label="Salvar palpite" @click="save(row)"
               >
-                {{ savingId === row.match.id ? '…' : 'Salvar' }}
+                <span v-if="savingId === row.match.id" class="spin" />
+                <AppIcon v-else name="check" :size="16" :stroke="2.8" />
               </button>
             </div>
           </template>
@@ -255,6 +300,50 @@ onMounted(async () => {
             <span v-else class="pts-none">—</span>
           </template>
         </AdminTable>
+
+        <!-- mobile: one card per match -->
+        <div v-else-if="loading" class="mloading">Carregando…</div>
+        <div v-else-if="!filteredRows.length" class="mempty">Nenhum jogo.</div>
+        <ul v-else class="mcards">
+          <li v-for="row in filteredRows" :key="row.match.id" class="mcard">
+            <div class="mc-head">
+              <span class="mc-when">{{ fmtDate(row.match.kickoffAt) }} · {{ fmtTime(row.match.kickoffAt) }}</span>
+              <span v-if="row.match.status === 'LIVE'" class="mc-live"><span class="livedot" />Ao vivo</span>
+              <StatusPill v-else :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" />
+            </div>
+            <div class="mc-phase">
+              {{ row.match.phaseLabel || row.match.round?.name
+              }}<template v-if="row.match.groupName"> · Grupo {{ row.match.groupName }}</template
+              ><template v-if="row.match.round?.number != null"> · Rodada {{ row.match.round.number }}</template>
+            </div>
+            <div class="mc-teams">
+              <div class="mc-trow">
+                <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="22" />
+                <span class="mc-tn">{{ teamName(row.match.homeTeam, row.match.homeSourceLabel) }}</span>
+                <b v-if="scorable(row)" class="mc-sc">{{ row.match.homeScore }}</b>
+              </div>
+              <div class="mc-trow">
+                <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="22" />
+                <span class="mc-tn">{{ teamName(row.match.awayTeam, row.match.awaySourceLabel) }}</span>
+                <b v-if="scorable(row)" class="mc-sc">{{ row.match.awayScore }}</b>
+              </div>
+            </div>
+            <div class="mc-foot">
+              <span class="mc-lbl">Palpite</span>
+              <ScoreStepper :value="draftFor(row).home" label="placar do mandante" @bump="(d) => bump(row, 'home', d)" />
+              <span class="x">×</span>
+              <ScoreStepper :value="draftFor(row).away" label="placar do visitante" @bump="(d) => bump(row, 'away', d)" />
+              <button
+                v-if="dirty(row)" class="btn btn-primary save" :disabled="savingId === row.match.id"
+                aria-label="Salvar palpite" @click="save(row)"
+              >
+                <span v-if="savingId === row.match.id" class="spin" />
+                <AppIcon v-else name="check" :size="16" :stroke="2.8" />
+              </button>
+              <span v-if="row.score" class="pts mc-pts" :title="TIER_LABEL[row.score.tier] ?? row.score.tier">{{ row.score.points }} pts</span>
+            </div>
+          </li>
+        </ul>
       </template>
     </div>
   </div>
@@ -307,7 +396,13 @@ onMounted(async () => {
 .fsearch { flex: 1; min-width: 180px; }
 .fstatus { flex: none; width: 170px; }
 .cnt { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
-.mt { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.mt-v { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.teams { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tline { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.tn { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dcell { display: flex; flex-direction: column; line-height: 1.25; }
+.dd { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
+.hh { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 .livedot {
   flex: none;
   width: 8px;
@@ -321,24 +416,67 @@ onMounted(async () => {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
 }
-.vs { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
-/* display:block so the ellipsis actually clamps inside the grid cell (an inline
-   span ignores overflow/text-overflow and would spill over the next column). */
-.dt { display: block; min-width: 0; font-size: 11.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.res { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.phcell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.3; }
+.ph-main { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph-sub { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rscore { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; }
-.guess { display: flex; align-items: center; gap: 6px; }
-.sc {
-  width: 46px; text-align: center; padding: 6px 4px;
-  border: 1px solid var(--border); border-radius: 8px; background: var(--bg-base);
-  color: var(--text); font: inherit; font-weight: 700;
-}
+.guess { display: flex; align-items: center; gap: 7px; }
 .x { color: var(--muted); font-weight: 700; }
-.save { padding: 7px 12px; font-size: 12.5px; }
+.save {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+}
+.spin {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, #fff 45%, transparent);
+  border-top-color: #fff;
+  animation: pl-spin 0.7s linear infinite;
+}
+@keyframes pl-spin {
+  to { transform: rotate(360deg); }
+}
 .pts {
   display: inline-grid; place-items: center; min-width: 30px; padding: 3px 8px;
   border-radius: 999px; background: color-mix(in srgb, var(--emerald) 16%, transparent);
   color: var(--emerald); font-weight: 800; font-size: 13px;
 }
 .pts-none { color: var(--muted); }
+
+/* ── mobile cards ── */
+.mloading, .mempty { padding: 2rem 0; text-align: center; color: var(--muted); font-weight: 600; }
+.mcards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.mcard {
+  border: 1px solid var(--border); border-radius: 13px;
+  background: var(--bg-surface); padding: 12px;
+}
+.mc-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-bottom: 6px;
+}
+.mc-when { font-size: 12.5px; font-weight: 700; }
+.mc-live {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--scarlet);
+}
+.mc-phase { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+.mc-teams { display: flex; flex-direction: column; gap: 7px; }
+.mc-trow { display: flex; align-items: center; gap: 9px; }
+.mc-tn { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-sc { flex: none; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 17px; }
+.mc-foot {
+  display: flex; align-items: center; gap: 7px;
+  margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--border);
+}
+.mc-lbl {
+  flex: none; font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted);
+}
+.mc-pts { margin-left: auto; }
 </style>
