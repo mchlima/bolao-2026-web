@@ -315,6 +315,29 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       </div>
 
       <div v-show="activeTab === 'bolao'" class="body">
+        <!-- DESLOGADO: em vez do pódio/ranking, um convite simples ao cadastro.
+             O herói (placar) continua acima; aqui vendemos o jogo do bolão. -->
+        <div v-if="!auth.isAuthenticated" class="join">
+          <span class="join-badge"><AppIcon name="trophy" :size="24" /></span>
+          <h2 class="join-title font-display">Entre no jogo. Crave o placar.</h2>
+          <p class="join-lead">
+            Dê seu palpite em <b>{{ homeName }}</b> x <b>{{ awayName }}</b> e veja
+            sua posição no ranking se mexer <b>ao vivo</b> a cada gol — junto com a
+            galera do seu bolão.
+          </p>
+          <ul class="join-feats">
+            <li><AppIcon name="ball" :size="16" class="jf-ic" /> Palpite nos jogos e dispute o ranking ao vivo</li>
+            <li><AppIcon name="users" :size="16" class="jf-ic" /> Bolões privados com seus amigos</li>
+            <li><AppIcon name="star" :size="16" class="jf-ic" /> Pontuação que premia quem crava o placar</li>
+          </ul>
+          <div class="join-cta">
+            <NuxtLink :to="authLink('/register')" class="btn btn-gold btn-block">Criar conta grátis</NuxtLink>
+            <NuxtLink :to="authLink('/login')" class="btn btn-block">Já tenho conta</NuxtLink>
+          </div>
+          <p class="join-trust">Grátis · sem instalar nada · pronto em 1 minuto</p>
+        </div>
+
+        <template v-else>
         <!-- editável: stepper -->
         <div v-if="editable" class="mypred">
           <div class="mp-head">
@@ -338,9 +361,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             {{ me?.prediction ? 'Atualizar palpite' : 'Confirmar palpite' }}
           </button>
         </div>
-
-        <!-- aberto, deslogado -->
-        <NuxtLink v-else-if="isOpen && !auth.isAuthenticated" :to="authLink('/login')" class="btn btn-block login-cta">Entre para palpitar <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
 
         <!-- seu palpite × placar → pontos (o coração do acompanhamento ao vivo).
              O placar palpitado (antes no hero) e o compartilhamento moram aqui. -->
@@ -367,9 +387,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <ShareMatch variant="button" :match="match" :me="me" />
           </div>
         </template>
-
-        <!-- jogando/encerrado, deslogado: convida a entrar (já passou o kickoff) -->
-        <NuxtLink v-else-if="!auth.isAuthenticated" :to="authLink('/login')" class="btn btn-block login-cta">Entre para palpitar nos próximos jogos <AppIcon name="arrowRight" :size="15" :stroke="2.4" /></NuxtLink>
 
         <!-- jogando, logado, sem palpite -->
         <div v-else-if="playing" class="nopred">
@@ -434,6 +451,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             </div>
           </div>
         </div>
+        </template>
       </div>
 
       <div v-show="activeTab === 'escalacao'" class="lntab">
@@ -662,7 +680,72 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .mp-num { font-size: 48px; line-height: 0.85; min-width: 30px; text-align: center; }
 .mp-colon { font-size: 40px; color: var(--muted); }
 .mp-save { margin-top: 14px; font-size: 14px; padding: 11px; }
-.login-cta { margin-bottom: 20px; }
+
+/* Convite ao cadastro — substitui o pódio/ranking para quem está deslogado. */
+.join {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 4px 4px;
+}
+.join-badge {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 32%, var(--border));
+  margin-bottom: 14px;
+}
+.join-title {
+  font-size: 24px;
+  line-height: 1.1;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+.join-lead {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  max-width: 36ch;
+  margin: 0 0 18px;
+}
+.join-lead b { color: var(--text); }
+.join-feats {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  width: 100%;
+  max-width: 340px;
+  text-align: left;
+}
+.join-feats li {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.jf-ic { flex: none; color: var(--emerald); }
+.join-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 340px;
+}
+.join-trust {
+  margin: 14px 0 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
 
 /* pontos do palpite — o placar do palpite agora fica junto do resultado acima. */
 .pred-vs {
