@@ -229,7 +229,10 @@ export interface Match {
   groupName: string | null;
   liveClock: string | null; // ESPN live clock while LIVE, e.g. "67'"
   roundId: string | null;
+  round?: { number: number | null; name: string | null } | null; // matchday (number) or knockout round (name)
   matchNumber: number | null;
+  attendance?: number | null; // crowd, from ESPN gameInfo
+  referee?: string | null; // main referee, from ESPN gameInfo
   predictionsOpen: boolean | null; // manual override; null = automatic rule
   autoManaged: boolean; // true = ESPN robot drives score/status; false = admin took over
   // Availability counts (present on GET /matches/:id) — drive which match tabs show.

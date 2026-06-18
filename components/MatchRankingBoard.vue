@@ -48,9 +48,13 @@ const infoRows = computed(() => {
   if (m.season?.name) rows.push({ icon: 'trophy', label: 'Torneio', value: m.season.name });
   if (m.phaseLabel) rows.push({ icon: 'calendar', label: 'Fase', value: m.phaseLabel });
   if (m.groupName) rows.push({ icon: 'users', label: 'Grupo', value: `Grupo ${m.groupName}` });
+  // Matchday (number) only — a knockout round.name would just repeat phaseLabel.
+  if (m.round?.number != null) rows.push({ icon: 'refresh', label: 'Rodada', value: `Rodada ${m.round.number}` });
   if (kickoffText.value) rows.push({ icon: 'clock', label: 'Data', value: kickoffText.value });
   if (m.stadium?.name) rows.push({ icon: 'stadium', label: 'Estádio', value: m.stadium.name });
   if (stadiumLocation.value) rows.push({ icon: 'mapPin', label: 'Local', value: stadiumLocation.value });
+  if (m.attendance) rows.push({ icon: 'users', label: 'Público', value: m.attendance.toLocaleString('pt-BR') });
+  if (m.referee) rows.push({ icon: 'user', label: 'Árbitro', value: m.referee });
   return rows;
 });
 const infoAvailable = computed(() => infoRows.value.length > 0);
