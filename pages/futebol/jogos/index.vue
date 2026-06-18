@@ -54,6 +54,17 @@ const { data, pending, refresh } = await useAsyncData(
   },
   { watch: [day, competitionId] },
 );
+// Only a USER-initiated load (day / tournament change) shows loading feedback;
+// a background realtime refresh (robot SSE, every ~10-15s) must stay SILENT — else
+// the whole list blinks (`pending` would dim it to 45%) on every robot write, even
+// when nothing visible changed. `navigating` tracks only the day/filter path.
+const navigating = ref(false);
+watch([day, competitionId], () => {
+  navigating.value = true;
+});
+watch(pending, (p) => {
+  if (!p) navigating.value = false;
+});
 // Nearest days that actually have games (computed server-side, honouring the
 // tournament filter) — lets the day arrows skip over empty dates.
 const nav = computed(() => data.value?.nav ?? { prevDate: null, nextDate: null });
@@ -199,7 +210,7 @@ function fmtDayLabel(date: string): string {
       </button>
     </div>
 
-    <div v-if="pending && data" class="ag-busy" aria-live="polite">
+    <div v-if="navigating && data" class="ag-busy" aria-live="polite">
       <span class="ag-spin" />Carregando jogos…
     </div>
     <SkeletonList v-if="pending && !data" variant="match" :count="4" />
@@ -209,7 +220,7 @@ function fmtDayLabel(date: string): string {
         Ir para o próximo dia com jogos <AppIcon name="arrowRight" :size="15" :stroke="2.4" />
       </button>
     </div>
-    <div v-else class="ag-list" :class="{ busy: pending }">
+    <div v-else class="ag-list" :class="{ busy: navigating }">
       <template v-if="liveMatches.length">
         <span class="ag-live-lbl"><span class="lvdot" />Ao vivo</span>
         <MatchCard v-for="m in liveMatches" :key="m.id" :match="m" :prediction="predMap[m.id] ?? null" @saved="onSaved" />
