@@ -18,6 +18,8 @@ withDefaults(
     empty?: string;
     emptyIcon?: string;
     skeleton?: number;
+    /** hide the column header row */
+    hideHead?: boolean;
   }>(),
   {
     rowKey: (row: any, i: number) => row?.id ?? i,
@@ -37,7 +39,7 @@ withDefaults(
   </div>
 
   <div v-else class="atable" :style="{ '--cols': grid }">
-    <div class="atr-head">
+    <div v-if="!hideHead" class="atr-head">
       <span v-for="c in columns" :key="c.key" :class="[c.align === 'end' && 'end', c.mobileHide && 'm-hide']">{{ c.label }}</span>
     </div>
     <div v-for="(row, i) in rows" :key="rowKey(row, i)" class="atr-row" :class="rowClass?.(row, i)">

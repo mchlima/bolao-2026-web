@@ -31,6 +31,9 @@ const TIER_LABEL: Record<string, string> = {
 // ── Tournament picker ──
 const tournaments = ref<Tournament[]>([]);
 const seasonId = ref('');
+const seasonName = computed(
+  () => tournaments.value.find((t) => t.id === seasonId.value)?.name ?? '',
+);
 
 // ── User picker (search dropdown) ──
 const userSearch = ref('');
@@ -162,10 +165,18 @@ function teamName(team: { name?: string } | null | undefined, placeholder?: stri
   return team?.name ?? placeholder ?? 'A definir';
 }
 
+function stadiumLoc(s: { city: string; state: string | null; country: string }): string {
+  // Prefer state as the second part, but skip it when it just repeats the city
+  // (e.g. "Cidade do México"); fall back to country.
+  const second = s.state && s.state !== s.city ? s.state : s.country !== s.city ? s.country : '';
+  return [s.city, second].filter(Boolean).join(', ');
+}
+
 const COLS: AdminColumn[] = [
   { key: 'date', label: 'Data' },
   { key: 'match', label: 'Partida' },
   { key: 'phase', label: 'Fase', mobileHide: true },
+  { key: 'stadium', label: 'Estádio', mobileHide: true },
   { key: 'status', label: 'Status' },
   { key: 'result', label: 'Resultado' },
   { key: 'guess', label: 'Palpite' },
@@ -239,9 +250,10 @@ onMounted(async () => {
         </div>
         <AdminTable
           v-if="!isMobile"
+          hide-head
           :columns="COLS" :rows="loading ? undefined : filteredRows"
           :row-class="(r) => (r.match.status === 'LIVE' ? 'live' : undefined)"
-          grid="96px 1.5fr 0.9fr 104px 66px 168px 56px" empty="Nenhum jogo." empty-icon="ball"
+          grid="88px 1.4fr 0.85fr 1fr 96px 58px 150px 46px" empty="Nenhum jogo." empty-icon="ball"
         >
           <template #col-date="{ row }">
             <span class="dcell">
@@ -265,10 +277,18 @@ onMounted(async () => {
           </template>
           <template #col-phase="{ row }">
             <span class="phcell">
+              <span v-if="seasonName" class="ph-season">{{ seasonName }}</span>
               <span class="ph-main">{{ row.match.phaseLabel || row.match.round?.name }}</span>
               <span v-if="row.match.groupName" class="ph-sub">Grupo {{ row.match.groupName }}</span>
               <span v-if="row.match.round?.number != null" class="ph-sub">Rodada {{ row.match.round.number }}</span>
             </span>
+          </template>
+          <template #col-stadium="{ row }">
+            <span v-if="row.match.stadium" class="stcell">
+              <span class="st-name">{{ row.match.stadium.name }}</span>
+              <span class="st-loc">{{ stadiumLoc(row.match.stadium) }}</span>
+            </span>
+            <span v-else class="pts-none">—</span>
           </template>
           <template #col-status="{ row }">
             <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
@@ -308,21 +328,25 @@ onMounted(async () => {
               <span class="mc-when">{{ fmtDate(row.match.kickoffAt) }} · {{ fmtTime(row.match.kickoffAt) }}</span>
               <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
             </div>
+            <div v-if="seasonName" class="mc-season">{{ seasonName }}</div>
             <div class="mc-phase">
               {{ row.match.phaseLabel || row.match.round?.name
               }}<template v-if="row.match.groupName"> · Grupo {{ row.match.groupName }}</template
               ><template v-if="row.match.round?.number != null"> · Rodada {{ row.match.round.number }}</template>
             </div>
+            <div v-if="row.match.stadium" class="mc-venue">
+              <AppIcon name="stadium" :size="13" :stroke="2" /> {{ row.match.stadium.name }} · {{ stadiumLoc(row.match.stadium) }}
+            </div>
             <div class="mc-teams">
               <div class="mc-trow">
                 <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="22" />
                 <span class="mc-tn">{{ teamName(row.match.homeTeam, row.match.homeSourceLabel) }}</span>
-                <b v-if="scorable(row)" class="mc-sc">{{ row.match.homeScore }}</b>
+                <b class="mc-sc" :class="{ none: !scorable(row) }">{{ scorable(row) ? row.match.homeScore : '-' }}</b>
               </div>
               <div class="mc-trow">
                 <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="22" />
                 <span class="mc-tn">{{ teamName(row.match.awayTeam, row.match.awaySourceLabel) }}</span>
-                <b v-if="scorable(row)" class="mc-sc">{{ row.match.awayScore }}</b>
+                <b class="mc-sc" :class="{ none: !scorable(row) }">{{ scorable(row) ? row.match.awayScore : '-' }}</b>
               </div>
             </div>
             <div class="mc-foot">
@@ -406,8 +430,15 @@ onMounted(async () => {
 .dd { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
 .hh { font-size: 11.5px; color: var(--muted); font-weight: 600; }
 .phcell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.3; }
-.ph-main { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph-season {
+  font-size: 13px; font-weight: 700; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ph-main { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ph-sub { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stcell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.3; }
+.st-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-loc { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rscore { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; }
 .guess { display: flex; align-items: center; gap: 7px; }
 .x { color: var(--muted); font-weight: 700; }
@@ -454,11 +485,14 @@ onMounted(async () => {
   margin-bottom: 6px;
 }
 .mc-when { font-size: 12.5px; font-weight: 700; }
-.mc-phase { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+.mc-season { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.mc-phase { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+.mc-venue { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
 .mc-teams { display: flex; flex-direction: column; gap: 7px; }
 .mc-trow { display: flex; align-items: center; gap: 9px; }
 .mc-tn { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mc-sc { flex: none; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 17px; }
+.mc-sc.none { color: var(--muted); }
 .mc-foot {
   display: flex; align-items: center; gap: 7px;
   margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--border);
