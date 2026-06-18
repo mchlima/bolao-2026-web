@@ -181,6 +181,12 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
 <style scoped>
 .lineup {
   margin-top: 4px;
+  /* Panel so the lineup reads as a card on the match surface instead of floating
+     transparently (matches the Informações tab's card). */
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
 }
 .heads {
   display: grid;
