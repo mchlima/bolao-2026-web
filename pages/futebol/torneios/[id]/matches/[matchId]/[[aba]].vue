@@ -23,7 +23,11 @@ function goBack() {
          The group table / bracket goes into the board's "Classificação" tab. -->
     <MatchRankingView :match-id="matchId" @back="goBack">
       <template #classificacao>
-        <MatchPhaseContext :season-id="id" :match-id="matchId" />
+        <MatchPhaseContext
+          :season-id="id"
+          :match-id="matchId"
+          :active="route.params.aba === 'classificacao'"
+        />
       </template>
     </MatchRankingView>
   </div>

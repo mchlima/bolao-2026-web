@@ -3,7 +3,11 @@ import type { BracketStage, BracketTie, Match, StageStandings } from '~/types/ap
 
 // The phase "slice" for a match: its group (classification + round card) or its
 // knockout tie. Reuses StandingsTable / GroupRoundCard / BracketTieCard.
-const props = defineProps<{ seasonId: string; matchId: string }>();
+// `active` gates this tab: its payload is heavy (standings + bracket + every
+// season match) and the tournament room fires on ANY match update, so while the
+// "Classificação" tab is hidden it neither subscribes nor refetches; it refetches
+// once when opened. Defaults on for standalone use.
+const props = defineProps<{ seasonId: string; matchId: string; active?: boolean }>();
 
 const { data, refresh } = await useAsyncData(`match-phase-${props.matchId}`, async () => {
   const api = useApi();
@@ -17,8 +21,15 @@ const { data, refresh } = await useAsyncData(`match-phase-${props.matchId}`, asy
 });
 
 // Standings, bracket and the round card all depend on every match in the season,
-// so resync on any update in the tournament room (not just this match's).
-useRealtime(() => [`tournament:${props.seasonId}`], () => refresh());
+// so resync on any update in the tournament room (not just this match's) — but
+// only while the tab is on screen.
+useRealtime(
+  () => (props.active !== false ? [`tournament:${props.seasonId}`] : []),
+  () => refresh(),
+);
+watch(() => props.active, (a) => {
+  if (a) refresh();
+});
 
 const match = computed(() => data.value?.match ?? null);
 const isGroup = computed(() => !!match.value?.groupName);

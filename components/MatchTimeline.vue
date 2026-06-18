@@ -17,10 +17,13 @@ const { data, refresh } = await useAsyncData(
 );
 useRealtime(() => (props.active !== false ? [`match:${props.match.id}`] : []), () => refresh());
 watch(() => props.active, (a) => {
-  if (a) refresh();
+  if (!a) return;
+  refresh();
+  scrollToEnd(); // opening the tab → land on the latest event
 });
 let poll: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
+  if (props.active) scrollToEnd(); // deep-linked straight to this tab
   poll = setInterval(() => {
     if (props.active !== false && props.match.status === 'LIVE') refresh();
   }, 60_000);
@@ -55,6 +58,13 @@ watch(
   },
   { immediate: true },
 );
+
+// Jump straight to the latest event at the bottom — used when the tab is opened
+// (the live-append above handles new events while it's already on screen).
+function scrollToEnd(): void {
+  if (import.meta.server) return;
+  nextTick(() => endRef.value?.scrollIntoView({ block: 'end' }));
+}
 
 function surname(name: string | null): string {
   if (!name) return '';
