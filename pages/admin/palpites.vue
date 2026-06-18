@@ -140,7 +140,8 @@ async function save(r: PredRow) {
 
 const COLS: AdminColumn[] = [
   { key: 'match', label: 'Partida' },
-  { key: 'when', label: 'Fase · Data', mobileHide: true },
+  { key: 'phase', label: 'Fase', mobileHide: true },
+  { key: 'date', label: 'Data', mobileHide: true },
   { key: 'result', label: 'Resultado' },
   { key: 'guess', label: 'Palpite do usuário' },
   { key: 'pts', label: 'Pts', align: 'end' },
@@ -210,7 +211,7 @@ onMounted(async () => {
         </div>
         <AdminTable
           :columns="COLS" :rows="loading ? undefined : filteredRows"
-          grid="1.4fr 1.1fr 124px 210px 64px" empty="Nenhum jogo." empty-icon="ball"
+          grid="1.4fr 0.9fr 168px 120px 200px 60px" empty="Nenhum jogo." empty-icon="ball"
         >
           <template #col-match="{ row }">
             <span class="mt">
@@ -220,8 +221,11 @@ onMounted(async () => {
               <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="22" />
             </span>
           </template>
-          <template #col-when="{ row }">
-            <span class="dt">{{ row.match.phaseLabel }}<template v-if="row.match.groupName"> {{ row.match.groupName }}</template> · {{ formatKickoff(row.match.kickoffAt, tz) }}</span>
+          <template #col-phase="{ row }">
+            <span class="dt">{{ row.match.phaseLabel }}<template v-if="row.match.groupName"> {{ row.match.groupName }}</template></span>
+          </template>
+          <template #col-date="{ row }">
+            <span class="dt">{{ formatKickoff(row.match.kickoffAt, tz) }}</span>
           </template>
           <template #col-result="{ row }">
             <div class="res">
