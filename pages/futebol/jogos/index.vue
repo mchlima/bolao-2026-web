@@ -58,22 +58,49 @@ const { data, pending, refresh } = await useAsyncData(
 // tournament filter) — lets the day arrows skip over empty dates.
 const nav = computed(() => data.value?.nav ?? { prevDate: null, nextDate: null });
 const matches = computed<Match[]>(() => (data.value?.days ?? []).flatMap((d) => d.matches));
-// Server-confirmed live games get the labelled "Ao vivo" section; the rest
-// follow status priority (agendada → adiada → encerrada), finished sinking to
-// the bottom. A reactive clock re-sorts live — a just-kicked-off game (not yet
-// flipped to LIVE by the robot) floats to the very top of the rest.
+// Live games surface on EVERY date: a match that kicked off yesterday but is still
+// running must show today too. So fetch LIVE matches independently of the selected
+// day (scope=live) and render them in the "Ao vivo" section regardless of `day`;
+// the day fetch still drives "Mais jogos do dia". The rest follow status priority
+// (agendada → adiada → encerrada), finished sinking to the bottom, with a reactive
+// clock re-sorting a just-kicked-off game (not yet flipped to LIVE) to the top.
+const { data: liveData, refresh: refreshLive } = await useAsyncData(
+  'agenda-live',
+  () => {
+    const qs = new URLSearchParams({ scope: 'live' });
+    if (competitionId.value) qs.set('competitionId', competitionId.value);
+    return useApi()<{ days: { date: string; matches: Match[] }[] }>(
+      `/agenda?${qs.toString()}`,
+    );
+  },
+  { watch: [competitionId] },
+);
 const now = useNow();
-const liveMatches = computed(() => matches.value.filter((m) => m.status === 'LIVE'));
+const liveMatches = computed<Match[]>(() =>
+  (liveData.value?.days ?? []).flatMap((d) => d.matches),
+);
 const restMatches = computed(() =>
   matches.value.filter((m) => m.status !== 'LIVE').sort(listingComparator(now.value)),
 );
 
-// Reflect live changes (goals/status): subscribe to every tournament shown today
-// and re-fetch when the robot emits an update for it.
-const liveChannels = computed(() => [
-  ...new Set(matches.value.map((m) => m.seasonId).filter(Boolean)),
-].map((seasonId) => `tournament:${seasonId}`));
-useRealtime(() => liveChannels.value, () => refresh());
+// Reflect live changes (goals/status): subscribe to the tournaments of both the
+// day's games and the live games, and re-fetch both when the robot emits.
+const liveChannels = computed(() =>
+  [
+    ...new Set(
+      [...matches.value, ...liveMatches.value]
+        .map((m) => m.seasonId)
+        .filter(Boolean),
+    ),
+  ].map((seasonId) => `tournament:${seasonId}`),
+);
+useRealtime(
+  () => liveChannels.value,
+  () => {
+    refresh();
+    refreshLive();
+  },
+);
 
 // The user's predictions (all seasons) so each card shows the saved palpite
 // instead of an empty editor. Loaded once — independent of the day/competition.
@@ -176,7 +203,7 @@ function fmtDayLabel(date: string): string {
       <span class="ag-spin" />Carregando jogos…
     </div>
     <SkeletonList v-if="pending && !data" variant="match" :count="4" />
-    <div v-else-if="!matches.length" class="ag-empty">
+    <div v-else-if="!matches.length && !liveMatches.length" class="ag-empty">
       <p class="muted">Nenhum jogo neste dia.</p>
       <button v-if="nav.nextDate" type="button" class="ag-empty-next" @click="goDay(nav.nextDate)">
         Ir para o próximo dia com jogos <AppIcon name="arrowRight" :size="15" :stroke="2.4" />
