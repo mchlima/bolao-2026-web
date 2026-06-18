@@ -326,7 +326,7 @@ const COLS: AdminColumn[] = [
 .dt { display: inline-flex; align-items: baseline; gap: 5px; min-width: 0; }
 .dot { color: var(--muted); }
 /* more breathing room between columns */
-:deep(.atr-row) { gap: 20px; }
+:deep(.atr-row) { gap: 32px; }
 /* Fase + Estádio (the mobile-hidden columns) align to the top of the row so their
    first lines line up, instead of the shorter Estádio floating in the middle. */
 :deep(.atr-cell.m-hide) { align-self: flex-start; }
