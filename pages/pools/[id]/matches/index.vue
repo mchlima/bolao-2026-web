@@ -69,13 +69,7 @@ const results = computed<Match[]>(() =>
       conforme as partidas acontecem — toque num jogo para ver quem cravou.
     </p>
     <div v-else class="matches">
-      <MatchCard
-        v-for="m in results"
-        :key="m.id"
-        :match="m"
-        :prediction="predMap[m.id] ?? null"
-        :pool-id="id"
-      />
+      <MatchList :matches="results" :predictions="predMap" :pool-id="id" />
     </div>
   </section>
 </template>

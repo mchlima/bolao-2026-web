@@ -2,17 +2,17 @@
 // Vertical score stepper: chevron-up on top, the number in the middle, chevron-
 // down on the bottom. Shows "–" when the value is null (no palpite yet). Emits a
 // delta (+1 / -1); the parent clamps and stores it.
-defineProps<{ value: number | null; label?: string }>();
+defineProps<{ value: number | null; label?: string; readonly?: boolean }>();
 const emit = defineEmits<{ bump: [delta: number] }>();
 </script>
 
 <template>
   <div class="stp">
-    <button type="button" class="stp-b" :aria-label="`Aumentar ${label ?? ''}`" @click="emit('bump', 1)">
+    <button v-if="!readonly" type="button" class="stp-b" :aria-label="`Aumentar ${label ?? ''}`" @click="emit('bump', 1)">
       <AppIcon name="chevronUp" :size="18" :stroke="2.6" />
     </button>
     <span class="stp-n">{{ value ?? '–' }}</span>
-    <button type="button" class="stp-b" :aria-label="`Diminuir ${label ?? ''}`" @click="emit('bump', -1)">
+    <button v-if="!readonly" type="button" class="stp-b" :aria-label="`Diminuir ${label ?? ''}`" @click="emit('bump', -1)">
       <AppIcon name="chevronDown" :size="18" :stroke="2.6" />
     </button>
   </div>

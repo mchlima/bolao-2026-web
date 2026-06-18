@@ -1,36 +1,23 @@
 <script setup lang="ts">
-import type { Match, Paginated, Tournament, User } from '~/types/api';
+import type { Paginated, Tournament, User } from '~/types/api';
+import type { PredRow, PredScore } from '~/components/MatchPredictionList.vue';
 
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
-const tz = useTz();
-
-interface Score {
-  tier: string;
-  points: number;
-}
-interface PredRow {
-  match: Match & { round?: { number: number | null; name: string | null } | null };
-  prediction: { homeScore: number; awayScore: number } | null;
-  score: Score | null;
-}
+// Filters live in the query string so a direct URL pre-applies them (and the
+// page is shareable). Hydrated below from route.query; kept in sync via a watcher.
+const route = useRoute();
+const router = useRouter();
+const initialUserId = (route.query.userId as string) || '';
 
 const STATUS_LABEL: Record<string, string> = {
   SCHEDULED: 'Agendada', LIVE: 'Ao vivo', FINISHED: 'Encerrada',
   CANCELLED: 'Cancelada', POSTPONED: 'Adiada',
 };
-const STATUS_TONE: Record<string, 'azure' | 'scarlet' | 'neutral'> = {
-  SCHEDULED: 'azure', LIVE: 'scarlet', FINISHED: 'neutral',
-  CANCELLED: 'neutral', POSTPONED: 'neutral',
-};
-const TIER_LABEL: Record<string, string> = {
-  EXACT: 'Cravou', WINNER_GOALS: 'Vencedor + gols', GOAL_DIFF: 'Saldo',
-  LOSER_GOALS: 'Gols do perdedor', OUTCOME: 'Resultado', NONE: 'Errou',
-};
 
 // ── Tournament picker ──
 const tournaments = ref<Tournament[]>([]);
-const seasonId = ref('');
+const seasonId = ref((route.query.seasonId as string) || '');
 const seasonName = computed(
   () => tournaments.value.find((t) => t.id === seasonId.value)?.name ?? '',
 );
@@ -66,15 +53,8 @@ function clearUser() {
 // ── Rows ──
 const rows = ref<PredRow[]>([]);
 const loading = ref(false);
-const rowFilter = ref('');
-const statusFilter = ref('');
-
-// Desktop = AdminTable; mobile (≤720px) = bespoke cards (the generic label:value
-// collapse is awkward for 7 columns + stacked teams + an inline editor).
-const isMobile = ref(false);
-function scorable(r: PredRow): boolean {
-  return r.match.status === 'LIVE' || r.match.status === 'FINISHED';
-}
+const rowFilter = ref((route.query.q as string) || '');
+const statusFilter = ref((route.query.status as string) || '');
 
 async function loadRows() {
   if (!selectedUser.value || !seasonId.value) { rows.value = []; return; }
@@ -91,6 +71,19 @@ async function loadRows() {
 }
 watch([selectedUser, seasonId], loadRows);
 
+// Reflect the active filters in the URL (replace, not push — no history spam).
+watch(
+  [() => selectedUser.value?.id, seasonId, rowFilter, statusFilter],
+  () => {
+    const query: Record<string, string> = {};
+    if (selectedUser.value) query.userId = selectedUser.value.id;
+    if (seasonId.value) query.seasonId = seasonId.value;
+    if (statusFilter.value) query.status = statusFilter.value;
+    if (rowFilter.value.trim()) query.q = rowFilter.value.trim();
+    router.replace({ query }).catch(() => {});
+  },
+);
+
 const filteredRows = computed(() => {
   const q = rowFilter.value.trim().toLowerCase();
   const st = statusFilter.value;
@@ -106,89 +99,25 @@ const filteredRows = computed(() => {
 // match is live right now, since editing a live game is the main use case).
 const statusOptions = ['LIVE', 'SCHEDULED', 'FINISHED', 'POSTPONED', 'CANCELLED'];
 
-// ── Inline edit / save ──
-// Local draft per match (null = blank, not yet a palpite — shown as "–").
-const draft = reactive<Record<string, { home: number | null; away: number | null }>>({});
-function draftFor(r: PredRow) {
-  if (!draft[r.match.id]) {
-    draft[r.match.id] = {
-      home: r.prediction ? r.prediction.homeScore : null,
-      away: r.prediction ? r.prediction.awayScore : null,
-    };
-  }
-  return draft[r.match.id];
+// Admin can edit ANY match (no kickoff lock); persist via the admin endpoint.
+async function adminSave(r: PredRow, home: number, away: number) {
+  return useApi()<{ homeScore: number; awayScore: number; score: PredScore | null }>(
+    `/admin/predictions/${selectedUser.value!.id}/${r.match.id}`,
+    { method: 'PUT', body: { homeScore: home, awayScore: away } },
+  );
 }
-// Stepper: from "–" (null), up lands on 0 then 0..99; down clamps at 0.
-function bump(r: PredRow, side: 'home' | 'away', delta: number) {
-  const d = draftFor(r);
-  d[side] = Math.min(99, Math.max(0, (d[side] ?? -1) + delta));
-}
-const savingId = ref('');
-function dirty(r: PredRow): boolean {
-  const d = draft[r.match.id];
-  if (!d || d.home === null || d.away === null) return false;
-  if (!r.prediction) return true;
-  return d.home !== r.prediction.homeScore || d.away !== r.prediction.awayScore;
-}
-
-async function save(r: PredRow) {
-  const d = draft[r.match.id];
-  if (!d || d.home === null || d.away === null) return;
-  savingId.value = r.match.id;
-  try {
-    const res = await useApi()<{ homeScore: number; awayScore: number; score: Score | null }>(
-      `/admin/predictions/${selectedUser.value!.id}/${r.match.id}`,
-      { method: 'PUT', body: { homeScore: d.home, awayScore: d.away } },
-    );
-    r.prediction = { homeScore: res.homeScore, awayScore: res.awayScore };
-    r.score = res.score;
-    ui.toast('success', 'Palpite lançado');
-  } catch (e) {
-    ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro ao salvar');
-  } finally {
-    savingId.value = '';
-  }
-}
-
-// Date split into "dd/MM/yyyy" (top) and "HH:mm" (bottom), in the user's tz.
-function fmtDate(iso: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit', month: '2-digit', year: 'numeric', timeZone: tz.value,
-  }).format(new Date(iso));
-}
-function fmtTime(iso: string): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    hour: '2-digit', minute: '2-digit', timeZone: tz.value,
-  }).format(new Date(iso));
-}
-function teamName(team: { name?: string } | null | undefined, placeholder?: string | null): string {
-  return team?.name ?? placeholder ?? 'A definir';
-}
-
-function stadiumLoc(s: { city: string; state: string | null; country: string }): string {
-  // Prefer state as the second part, but skip it when it just repeats the city
-  // (e.g. "Cidade do México"); fall back to country.
-  const second = s.state && s.state !== s.city ? s.state : s.country !== s.city ? s.country : '';
-  return [s.city, second].filter(Boolean).join(', ');
-}
-
-const COLS: AdminColumn[] = [
-  { key: 'date', label: 'Data' },
-  { key: 'match', label: 'Partida' },
-  { key: 'phase', label: 'Fase', mobileHide: true },
-  { key: 'stadium', label: 'Estádio', mobileHide: true },
-  { key: 'status', label: 'Status' },
-  { key: 'result', label: 'Resultado' },
-  { key: 'guess', label: 'Palpite' },
-  { key: 'pts', label: 'Pts', align: 'end' },
-];
 
 onMounted(async () => {
-  const mq = window.matchMedia('(max-width: 720px)');
-  isMobile.value = mq.matches;
-  mq.addEventListener('change', (e) => (isMobile.value = e.matches));
   const tt = await useApi()<Paginated<Tournament>>('/seasons?pageSize=100');
   tournaments.value = tt.data;
+  // Direct URL: resolve the user from ?userId so the picker shows + rows load.
+  if (initialUserId) {
+    try {
+      selectedUser.value = await useApi()<User>(`/admin/users/${initialUserId}`);
+    } catch {
+      // stale/invalid id in the URL — just drop it silently
+    }
+  }
 });
 </script>
 
@@ -248,123 +177,15 @@ onMounted(async () => {
           </select>
           <span class="cnt">{{ filteredRows.length }} jogo(s)</span>
         </div>
-        <AdminTable
-          v-if="!isMobile"
-          hide-head
-          :columns="COLS" :rows="loading ? undefined : filteredRows"
-          :row-class="(r) => (r.match.status === 'LIVE' ? 'live' : undefined)"
-          grid="88px 1.4fr 0.85fr 1fr 96px 58px 150px 46px" empty="Nenhum jogo." empty-icon="ball"
-        >
-          <template #col-date="{ row }">
-            <span class="dcell">
-              <span class="dd">{{ fmtDate(row.match.kickoffAt) }}</span>
-              <span class="hh">{{ fmtTime(row.match.kickoffAt) }}</span>
-            </span>
-          </template>
-          <template #col-match="{ row }">
-            <div class="mt-v">
-              <div class="teams">
-                <span class="tline">
-                  <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="20" />
-                  <span class="tn">{{ teamName(row.match.homeTeam, row.match.homeSourceLabel) }}</span>
-                </span>
-                <span class="tline">
-                  <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="20" />
-                  <span class="tn">{{ teamName(row.match.awayTeam, row.match.awaySourceLabel) }}</span>
-                </span>
-              </div>
-            </div>
-          </template>
-          <template #col-phase="{ row }">
-            <span class="phcell">
-              <span v-if="seasonName" class="ph-season">{{ seasonName }}</span>
-              <span class="ph-main">{{ row.match.phaseLabel || row.match.round?.name }}</span>
-              <span v-if="row.match.groupName" class="ph-sub">Grupo {{ row.match.groupName }}</span>
-              <span v-if="row.match.round?.number != null" class="ph-sub">Rodada {{ row.match.round.number }}</span>
-            </span>
-          </template>
-          <template #col-stadium="{ row }">
-            <span v-if="row.match.stadium" class="stcell">
-              <span class="st-name">{{ row.match.stadium.name }}</span>
-              <span class="st-loc">{{ stadiumLoc(row.match.stadium) }}</span>
-            </span>
-            <span v-else class="pts-none">—</span>
-          </template>
-          <template #col-status="{ row }">
-            <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
-          </template>
-          <template #col-result="{ row }">
-            <b v-if="row.match.status === 'LIVE' || row.match.status === 'FINISHED'" class="rscore">{{ row.match.homeScore }}–{{ row.match.awayScore }}</b>
-            <span v-else class="pts-none">—</span>
-          </template>
-          <template #col-guess="{ row }">
-            <div class="guess">
-              <ScoreStepper :value="draftFor(row).home" label="placar do mandante" @bump="(d) => bump(row, 'home', d)" />
-              <span class="x">×</span>
-              <ScoreStepper :value="draftFor(row).away" label="placar do visitante" @bump="(d) => bump(row, 'away', d)" />
-              <button
-                v-if="dirty(row)" class="btn btn-primary save" :disabled="savingId === row.match.id"
-                aria-label="Salvar palpite" @click="save(row)"
-              >
-                <span v-if="savingId === row.match.id" class="spin" />
-                <AppIcon v-else name="check" :size="16" :stroke="2.8" />
-              </button>
-            </div>
-          </template>
-          <template #col-pts="{ row }">
-            <span v-if="row.score" class="pts" :title="TIER_LABEL[row.score.tier] ?? row.score.tier">
-              {{ row.score.points }}
-            </span>
-            <span v-else class="pts-none">—</span>
-          </template>
-        </AdminTable>
-
-        <!-- mobile: one card per match -->
-        <div v-else-if="loading" class="mloading">Carregando…</div>
-        <div v-else-if="!filteredRows.length" class="mempty">Nenhum jogo.</div>
-        <ul v-else class="mcards">
-          <li v-for="row in filteredRows" :key="row.match.id" class="mcard" :class="{ live: row.match.status === 'LIVE' }">
-            <div class="mc-head">
-              <span class="mc-when">{{ fmtDate(row.match.kickoffAt) }} · {{ fmtTime(row.match.kickoffAt) }}</span>
-              <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
-            </div>
-            <div v-if="seasonName" class="mc-season">{{ seasonName }}</div>
-            <div class="mc-phase">
-              {{ row.match.phaseLabel || row.match.round?.name
-              }}<template v-if="row.match.groupName"> · Grupo {{ row.match.groupName }}</template
-              ><template v-if="row.match.round?.number != null"> · Rodada {{ row.match.round.number }}</template>
-            </div>
-            <div v-if="row.match.stadium" class="mc-venue">
-              <AppIcon name="stadium" :size="13" :stroke="2" /> {{ row.match.stadium.name }} · {{ stadiumLoc(row.match.stadium) }}
-            </div>
-            <div class="mc-teams">
-              <div class="mc-trow">
-                <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="22" />
-                <span class="mc-tn">{{ teamName(row.match.homeTeam, row.match.homeSourceLabel) }}</span>
-                <b class="mc-sc" :class="{ none: !scorable(row) }">{{ scorable(row) ? row.match.homeScore : '-' }}</b>
-              </div>
-              <div class="mc-trow">
-                <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="22" />
-                <span class="mc-tn">{{ teamName(row.match.awayTeam, row.match.awaySourceLabel) }}</span>
-                <b class="mc-sc" :class="{ none: !scorable(row) }">{{ scorable(row) ? row.match.awayScore : '-' }}</b>
-              </div>
-            </div>
-            <div class="mc-foot">
-              <span class="mc-lbl">Palpite</span>
-              <ScoreStepper :value="draftFor(row).home" label="placar do mandante" @bump="(d) => bump(row, 'home', d)" />
-              <span class="x">×</span>
-              <ScoreStepper :value="draftFor(row).away" label="placar do visitante" @bump="(d) => bump(row, 'away', d)" />
-              <button
-                v-if="dirty(row)" class="btn btn-primary save" :disabled="savingId === row.match.id"
-                aria-label="Salvar palpite" @click="save(row)"
-              >
-                <span v-if="savingId === row.match.id" class="spin" />
-                <AppIcon v-else name="check" :size="16" :stroke="2.8" />
-              </button>
-              <span v-if="row.score" class="pts mc-pts" :title="TIER_LABEL[row.score.tier] ?? row.score.tier">{{ row.score.points }} pts</span>
-            </div>
-          </li>
-        </ul>
+        <MatchPredictionList
+          :key="(selectedUser?.id ?? '') + ':' + seasonId"
+          :rows="filteredRows"
+          :loading="loading"
+          :season-name="seasonName"
+          :row-to="(r) => `/futebol/torneios/${seasonId}/matches/${r.match.id}`"
+          :save-fn="adminSave"
+          saved-message="Palpite lançado"
+        />
       </template>
     </div>
   </div>
@@ -417,89 +238,4 @@ onMounted(async () => {
 .fsearch { flex: 1; min-width: 180px; }
 .fstatus { flex: none; width: 170px; }
 .cnt { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
-.mt-v { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.teams { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.tline { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.tn { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dcell { display: flex; flex-direction: column; line-height: 1.25; }
-/* highlight the row of a live match (status shown in the Status column) */
-:deep(.atr-row.live) {
-  background: color-mix(in srgb, var(--scarlet) 7%, transparent);
-  box-shadow: inset 3px 0 0 var(--scarlet);
-}
-.dd { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
-.hh { font-size: 11.5px; color: var(--muted); font-weight: 600; }
-.phcell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.3; }
-.ph-season {
-  font-size: 13px; font-weight: 700; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.ph-main { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ph-sub { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.stcell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.3; }
-.st-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.st-loc { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rscore { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; }
-.guess { display: flex; align-items: center; gap: 7px; }
-.x { color: var(--muted); font-weight: 700; }
-.save {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-}
-.spin {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 2px solid color-mix(in srgb, #fff 45%, transparent);
-  border-top-color: #fff;
-  animation: pl-spin 0.7s linear infinite;
-}
-@keyframes pl-spin {
-  to { transform: rotate(360deg); }
-}
-.pts {
-  display: inline-grid; place-items: center; min-width: 30px; padding: 3px 8px;
-  border-radius: 999px; background: color-mix(in srgb, var(--emerald) 16%, transparent);
-  color: var(--emerald); font-weight: 800; font-size: 13px;
-}
-.pts-none { color: var(--muted); }
-
-/* ── mobile cards ── */
-.mloading, .mempty { padding: 2rem 0; text-align: center; color: var(--muted); font-weight: 600; }
-.mcards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.mcard {
-  border: 1px solid var(--border); border-radius: 13px;
-  background: var(--bg-surface); padding: 12px;
-}
-.mcard.live {
-  border-color: color-mix(in srgb, var(--scarlet) 45%, var(--border));
-  box-shadow: inset 3px 0 0 var(--scarlet);
-  background: color-mix(in srgb, var(--scarlet) 6%, var(--bg-surface));
-}
-.mc-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  margin-bottom: 6px;
-}
-.mc-when { font-size: 12.5px; font-weight: 700; }
-.mc-season { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.mc-phase { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
-.mc-venue { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
-.mc-teams { display: flex; flex-direction: column; gap: 7px; }
-.mc-trow { display: flex; align-items: center; gap: 9px; }
-.mc-tn { flex: 1; min-width: 0; font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mc-sc { flex: none; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 17px; }
-.mc-sc.none { color: var(--muted); }
-.mc-foot {
-  display: flex; align-items: center; gap: 7px;
-  margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--border);
-}
-.mc-lbl {
-  flex: none; font-size: 10px; font-weight: 800; text-transform: uppercase;
-  letter-spacing: 0.06em; color: var(--muted);
-}
-.mc-pts { margin-left: auto; }
 </style>

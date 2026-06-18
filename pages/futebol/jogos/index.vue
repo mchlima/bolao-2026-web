@@ -223,10 +223,10 @@ function fmtDayLabel(date: string): string {
     <div v-else class="ag-list" :class="{ busy: navigating }">
       <template v-if="liveMatches.length">
         <span class="ag-live-lbl"><span class="lvdot" />Ao vivo</span>
-        <MatchCard v-for="m in liveMatches" :key="m.id" :match="m" :prediction="predMap[m.id] ?? null" @saved="onSaved" />
+        <MatchList :matches="liveMatches" :predictions="predMap" show-season @saved="onSaved" />
         <span v-if="restMatches.length" class="ag-live-lbl rest">Mais jogos do dia</span>
       </template>
-      <MatchCard v-for="m in restMatches" :key="m.id" :match="m" :prediction="predMap[m.id] ?? null" @saved="onSaved" />
+      <MatchList :matches="restMatches" :predictions="predMap" show-season @saved="onSaved" />
     </div>
   </div>
 </template>

@@ -179,15 +179,7 @@ function clearFilters() {
 
       <div v-for="sec in sections" :key="sec.title" class="section">
         <h2 class="font-display section-title">{{ sec.title }}</h2>
-        <div class="matches">
-          <MatchCard
-            v-for="m in sec.matches"
-            :key="m.id"
-            :match="m"
-            :prediction="predMap[m.id] ?? null"
-            @saved="onSaved"
-          />
-        </div>
+        <MatchList :matches="sec.matches" :predictions="predMap" @saved="onSaved" />
       </div>
     </template>
   </div>

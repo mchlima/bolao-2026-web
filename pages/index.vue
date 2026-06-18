@@ -249,7 +249,7 @@ const ranking = [
         <NuxtLink to="/futebol/jogos" class="hs-all">Agenda completa <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
       </div>
       <div class="hs-grid">
-        <MatchCard v-for="m in hubMatches" :key="m.id" :match="m" :prediction="predMap[m.id] ?? null" @saved="onPredSaved" />
+        <MatchList :matches="hubMatches" :predictions="predMap" show-season @saved="onPredSaved" />
       </div>
     </section>
 

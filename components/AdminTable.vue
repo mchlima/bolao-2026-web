@@ -15,6 +15,10 @@ withDefaults(
     rowKey?: (row: T, i: number) => string | number;
     /** optional extra class per row (e.g. to highlight a live match) */
     rowClass?: (row: T, i: number) => string | undefined;
+    /** make the whole row a link to this target (falsy = not a link) */
+    rowTo?: (row: T, i: number) => string | null | undefined;
+    /** aria-label for the row link (defaults to "Abrir") */
+    rowLabel?: (row: T, i: number) => string;
     empty?: string;
     emptyIcon?: string;
     skeleton?: number;
@@ -42,7 +46,14 @@ withDefaults(
     <div v-if="!hideHead" class="atr-head">
       <span v-for="c in columns" :key="c.key" :class="[c.align === 'end' && 'end', c.mobileHide && 'm-hide']">{{ c.label }}</span>
     </div>
-    <div v-for="(row, i) in rows" :key="rowKey(row, i)" class="atr-row" :class="rowClass?.(row, i)">
+    <div v-for="(row, i) in rows" :key="rowKey(row, i)" class="atr-row" :class="[rowClass?.(row, i), rowTo?.(row, i) && 'has-link']">
+      <!-- whole-row link; interactive cells are raised above it via z-index -->
+      <NuxtLink
+        v-if="rowTo?.(row, i)"
+        :to="rowTo(row, i) as string"
+        class="atr-link"
+        :aria-label="rowLabel?.(row, i) ?? 'Abrir'"
+      />
       <span
         v-for="c in columns"
         :key="c.key"
@@ -79,11 +90,21 @@ withDefaults(
   color: var(--muted);
 }
 .atr-row {
+  position: relative;
   border-top: 1px solid var(--border);
   transition: background 0.12s;
 }
 .atr-row:hover {
   background: color-mix(in srgb, var(--muted) 5%, transparent);
+}
+/* stretched row link — covers the row so it behaves as one button */
+.atr-link {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.atr-row.has-link:hover {
+  background: color-mix(in srgb, var(--muted) 9%, transparent);
 }
 .end {
   text-align: right;
