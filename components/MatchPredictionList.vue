@@ -325,8 +325,10 @@ const COLS: AdminColumn[] = [
 .when { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .dt { display: inline-flex; align-items: baseline; gap: 5px; min-width: 0; }
 .dot { color: var(--muted); }
-/* more breathing room between columns */
-:deep(.atr-row) { gap: 32px; }
+/* breathing room comes from each cell's right padding, not a grid gap */
+:deep(.atr-row) { gap: 0; }
+:deep(.atr-cell) { padding-right: 32px; }
+:deep(.atr-cell:last-child) { padding-right: 0; }
 /* Fase + Estádio (the mobile-hidden columns) align to the top of the row so their
    first lines line up, instead of the shorter Estádio floating in the middle. */
 :deep(.atr-cell.m-hide) { align-self: flex-start; }
