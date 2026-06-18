@@ -214,6 +214,7 @@ onMounted(async () => {
         >
           <template #col-match="{ row }">
             <span class="mt">
+              <span v-if="row.match.status === 'LIVE'" class="livedot" title="Ao vivo" />
               <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="22" />
               <span class="vs">{{ teamAbbr(row.match.homeTeam, row.match.homeSourceLabel) }} × {{ teamAbbr(row.match.awayTeam, row.match.awaySourceLabel) }}</span>
               <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="22" />
@@ -224,7 +225,9 @@ onMounted(async () => {
           </template>
           <template #col-result="{ row }">
             <div class="res">
-              <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
+              <!-- LIVE is signalled by the dot in the Partida column, so here it
+                   shows only the score; other statuses keep their pill. -->
+              <StatusPill v-if="row.match.status !== 'LIVE'" :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" />
               <b v-if="row.match.status === 'LIVE' || row.match.status === 'FINISHED'" class="rscore">{{ row.match.homeScore }}–{{ row.match.awayScore }}</b>
             </div>
           </template>
@@ -301,6 +304,19 @@ onMounted(async () => {
 .fstatus { flex: none; width: 170px; }
 .cnt { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
 .mt { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.livedot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--scarlet);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--scarlet) 22%, transparent);
+  animation: pl-live 1.2s ease-in-out infinite;
+}
+@keyframes pl-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
 .vs { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
 /* display:block so the ellipsis actually clamps inside the grid cell (an inline
    span ignores overflow/text-overflow and would spill over the next column). */
