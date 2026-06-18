@@ -244,12 +244,9 @@ onMounted(async () => {
           grid="96px 1.5fr 0.9fr 104px 66px 168px 56px" empty="Nenhum jogo." empty-icon="ball"
         >
           <template #col-date="{ row }">
-            <span class="datecell">
-              <span v-if="row.match.status === 'LIVE'" class="livedot" title="Ao vivo" />
-              <span class="dcell">
-                <span class="dd">{{ fmtDate(row.match.kickoffAt) }}</span>
-                <span class="hh">{{ fmtTime(row.match.kickoffAt) }}</span>
-              </span>
+            <span class="dcell">
+              <span class="dd">{{ fmtDate(row.match.kickoffAt) }}</span>
+              <span class="hh">{{ fmtTime(row.match.kickoffAt) }}</span>
             </span>
           </template>
           <template #col-match="{ row }">
@@ -274,9 +271,7 @@ onMounted(async () => {
             </span>
           </template>
           <template #col-status="{ row }">
-            <!-- LIVE is signalled by the dot in the Partida column, so its status
-                 cell stays empty; the other statuses show their pill. -->
-            <StatusPill v-if="row.match.status !== 'LIVE'" :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" />
+            <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
           </template>
           <template #col-result="{ row }">
             <b v-if="row.match.status === 'LIVE' || row.match.status === 'FINISHED'" class="rscore">{{ row.match.homeScore }}–{{ row.match.awayScore }}</b>
@@ -310,12 +305,8 @@ onMounted(async () => {
         <ul v-else class="mcards">
           <li v-for="row in filteredRows" :key="row.match.id" class="mcard" :class="{ live: row.match.status === 'LIVE' }">
             <div class="mc-head">
-              <span class="mc-when">
-                <span v-if="row.match.status === 'LIVE'" class="livedot" />
-                {{ fmtDate(row.match.kickoffAt) }} · {{ fmtTime(row.match.kickoffAt) }}
-              </span>
-              <span v-if="row.match.status === 'LIVE'" class="mc-live">Ao vivo</span>
-              <StatusPill v-else :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" />
+              <span class="mc-when">{{ fmtDate(row.match.kickoffAt) }} · {{ fmtTime(row.match.kickoffAt) }}</span>
+              <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
             </div>
             <div class="mc-phase">
               {{ row.match.phaseLabel || row.match.round?.name
@@ -406,28 +397,14 @@ onMounted(async () => {
 .teams { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .tline { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .tn { font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.datecell { display: flex; align-items: center; gap: 7px; }
 .dcell { display: flex; flex-direction: column; line-height: 1.25; }
-/* highlight the row of a live match (the dot sits at the start of the line) */
+/* highlight the row of a live match (status shown in the Status column) */
 :deep(.atr-row.live) {
   background: color-mix(in srgb, var(--scarlet) 7%, transparent);
   box-shadow: inset 3px 0 0 var(--scarlet);
 }
 .dd { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
 .hh { font-size: 11.5px; color: var(--muted); font-weight: 600; }
-.livedot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--scarlet);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--scarlet) 22%, transparent);
-  animation: pl-live 1.2s ease-in-out infinite;
-}
-@keyframes pl-live {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.35; }
-}
 .phcell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.3; }
 .ph-main { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ph-sub { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -476,12 +453,7 @@ onMounted(async () => {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   margin-bottom: 6px;
 }
-.mc-when { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; }
-.mc-live {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-  color: var(--scarlet);
-}
+.mc-when { font-size: 12.5px; font-weight: 700; }
 .mc-phase { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
 .mc-teams { display: flex; flex-direction: column; gap: 7px; }
 .mc-trow { display: flex; align-items: center; gap: 9px; }
