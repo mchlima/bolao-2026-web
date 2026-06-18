@@ -92,6 +92,11 @@ const groups: { title?: string; items: NavItem[] }[] = [
         live: true,
         icon: ['M9 8a5 5 0 0 0 0 8', 'M15 8a5 5 0 0 1 0 8', 'M6 5a9 9 0 0 0 0 14', 'M18 5a9 9 0 0 1 0 14', 'M12 11.5a.5.5 0 1 0 0 1 .5.5 0 0 0 0-1z'],
       },
+      {
+        to: '/admin/palpites',
+        label: 'Palpites',
+        icon: ['M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z', 'M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z', 'M12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'],
+      },
     ],
   },
   {
