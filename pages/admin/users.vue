@@ -114,7 +114,7 @@ async function sendNotify() {
       `/admin/users/${notifyFor.value.id}/notifications`,
       { method: 'POST', body: { title: notifyForm.title.trim(), body: notifyForm.body.trim(), url: notifyForm.url.trim() || undefined, sendAt } },
     );
-    ui.toast('success', res.immediate ? 'Notificação será enviada em até 1 minuto.' : `Notificação agendada para ${fmtWhen(res.sendAt)}.`);
+    ui.toast('success', res.immediate ? 'Notificação enviada.' : `Notificação agendada para ${fmtWhen(res.sendAt)}.`);
     notifyFor.value = null;
   } catch (e) { err(e); }
   finally { sendingNotif.value = false; }
@@ -209,7 +209,7 @@ onMounted(load);
           <input v-model="notifyForm.sendAt" type="datetime-local" class="input" />
           <p class="nt-hint">No seu horário local. Despachada no minuto agendado.</p>
         </template>
-        <p v-else class="nt-hint">Enviada em até 1 minuto — o robô despacha a cada minuto.</p>
+        <p v-else class="nt-hint">Enviada imediatamente.</p>
       </div>
       <template #footer>
         <button class="btn" @click="notifyFor = null">Cancelar</button>
