@@ -103,6 +103,10 @@ function predMode(r: PredRow): 'edit' | 'view' | 'login' | 'empty' {
   if (props.loginPrompt(r)) return 'login';
   return 'empty';
 }
+// Points chip text: "0" when none, "+10" for a positive score.
+function fmtPts(n: number): string {
+  return n > 0 ? `+${n}` : String(n);
+}
 
 const draft = reactive<Record<string, { home: number | null; away: number | null }>>({});
 function draftFor(r: PredRow) {
@@ -309,22 +313,27 @@ const COLS: AdminColumn[] = [
         </div>
 
         <div
-          v-if="predMode(row) === 'login' || scoreOf(row) || savingId === row.match.id"
+          v-if="predMode(row) === 'login' || savingId === row.match.id"
           class="b-foot"
         >
           <NuxtLink v-if="predMode(row) === 'login'" :to="loginTo" class="cta">
             Entre para palpitar <AppIcon name="arrowRight" :size="13" :stroke="2.4" />
           </NuxtLink>
           <span v-if="savingId === row.match.id" class="psaving" aria-label="Salvando" />
-          <span v-if="scoreOf(row)" class="pts mc-pts" :title="TIER_LABEL[scoreOf(row)!.tier] ?? scoreOf(row)!.tier">{{ scoreOf(row)!.points }} pts</span>
         </div>
       </div>
       <div class="mc-meta">
-        <div v-if="showSeason && seasonOf(row)" class="mc-season">{{ seasonOf(row) }}</div>
-        <div class="mc-phase">
-          {{ row.match.phaseLabel || row.match.round?.name
-          }}<template v-if="row.match.groupName"> · Grupo {{ row.match.groupName }}</template
-          ><template v-if="row.match.round?.number != null"> · Rodada {{ row.match.round.number }}</template>
+        <div class="mc-meta-info">
+          <div v-if="showSeason && seasonOf(row)" class="mc-season">{{ seasonOf(row) }}</div>
+          <div class="mc-phase">
+            {{ row.match.phaseLabel || row.match.round?.name
+            }}<template v-if="row.match.groupName"> · Grupo {{ row.match.groupName }}</template
+            ><template v-if="row.match.round?.number != null"> · Rodada {{ row.match.round.number }}</template>
+          </div>
+        </div>
+        <div v-if="scoreOf(row)" class="mc-score" :style="{ '--c': tierColor(scoreOf(row)!.tier) }">
+          <span class="mc-ptschip font-numeric">{{ fmtPts(scoreOf(row)!.points) }}</span>
+          <span class="mc-tierchip">{{ TIER_LABEL[scoreOf(row)!.tier] ?? scoreOf(row)!.tier }}</span>
         </div>
       </div>
     </li>
@@ -416,9 +425,22 @@ const COLS: AdminColumn[] = [
   margin-bottom: 12px;
 }
 .mc-when { font-size: 12.5px; font-weight: 700; }
-.mc-meta { margin-top: 12px; }
+/* season/fase à esquerda; pontos (cima) + tipo de acerto (baixo) à direita */
+.mc-meta { margin-top: 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.mc-meta-info { min-width: 0; }
 .mc-season { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
 .mc-phase { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.mc-score { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.mc-ptschip {
+  display: inline-grid; place-items: center; min-width: 34px; padding: 3px 10px;
+  border-radius: 999px; font-weight: 800; font-size: 14px; line-height: 1;
+  color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent);
+}
+.mc-tierchip {
+  font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+  border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); border-radius: 999px;
+  padding: 2px 8px; color: var(--c); white-space: nowrap;
+}
 /* time (esquerda) + palpite (direita): grid de 2 colunas, uma linha por time,
    pra que cada placar do palpite fique na mesma linha do seu time. */
 .mc-body {
@@ -464,5 +486,4 @@ const COLS: AdminColumn[] = [
   line-height: 1;
 }
 .mc-sc.none { color: var(--muted); }
-.mc-pts { margin: 0; }
 </style>
