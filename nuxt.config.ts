@@ -1,4 +1,20 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
+// Google Analytics (GA4). Loaded only in production builds so dev traffic doesn't
+// pollute the property. ID overridable via NUXT_PUBLIC_GTAG_ID at build time.
+const GTAG_ID = process.env.NUXT_PUBLIC_GTAG_ID || 'G-9WDG5EDPWF';
+const gtagScripts =
+  process.env.NODE_ENV === 'production' && GTAG_ID
+    ? [
+        { src: `https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`, async: true },
+        {
+          // Defines the global gtag() + sends the initial page view. SPA route
+          // changes are tracked by plugins/gtag.client.ts.
+          children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GTAG_ID}');`,
+        },
+      ]
+    : [];
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
   devtools: { enabled: true },
@@ -85,6 +101,7 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: { lang: 'pt-BR' },
       title: 'Cravei',
+      script: gtagScripts,
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
