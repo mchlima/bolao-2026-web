@@ -50,12 +50,11 @@ const myTz = useTz();
 // Logged-in: a personal greeting + the member's standing in the main (ongoing)
 // tournament — same StandingHero used on the pool home.
 const firstName = computed(() => (auth.user?.name ?? '').trim().split(/\s+/)[0] ?? '');
-const greeting = computed(() => {
+const salute = computed(() => {
   const h = Number(
     new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false }),
   );
-  const part = h >= 5 && h < 12 ? 'Bom dia' : h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite';
-  return firstName.value ? `${part}, ${firstName.value}` : part;
+  return h >= 5 && h < 12 ? 'Bom dia' : h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite';
 });
 const primarySeason = computed(
   () => (torneios.value ?? []).find((t) => t.status === 'ONGOING') ?? (torneios.value ?? [])[0] ?? null,
@@ -237,14 +236,18 @@ const ranking = [
 
 <template>
   <div class="land-page">
-    <PageHeader title="Início" subtitle="Seus torneios e os próximos jogos." />
-
     <!-- PWA: convite discreto p/ instalar (só aparece quando instalável) -->
     <InstallBanner />
 
     <!-- logado: saudação + sua posição/pontos no torneio principal -->
     <section v-if="auth.isAuthenticated" class="welcome">
-      <p class="greet">{{ greeting }}</p>
+      <div class="greet">
+        <UserAvatar :name="auth.user?.name" :src="auth.user?.avatarUrl" :size="48" class="greet-av" />
+        <div class="greet-txt">
+          <span class="greet-hi">{{ salute }}</span>
+          <span class="greet-name">{{ firstName || 'Bem-vindo' }}</span>
+        </div>
+      </div>
       <StandingHero
         v-if="primarySeason"
         :me="standingMe"
@@ -496,10 +499,33 @@ const ranking = [
   margin: 4px 0 22px;
 }
 .greet {
-  font-size: clamp(19px, 5vw, 23px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.greet-av {
+  box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 4px color-mix(in srgb, var(--emerald) 55%, transparent);
+}
+.greet-txt {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+.greet-hi {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+.greet-name {
+  font-size: clamp(21px, 5.5vw, 26px);
   font-weight: 800;
-  line-height: 1.15;
-  margin-bottom: 14px;
+  line-height: 1.12;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 /* portal: torneios em destaque — quick access to each tournament's hub */
 .hubnav-wrap {
