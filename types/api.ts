@@ -67,6 +67,9 @@ export interface Stadium {
   city: string;
   state: string | null;
   country: string;
+  photoUrl?: string | null;
+  photoCredit?: string | null;
+  photoSourceUrl?: string | null;
 }
 
 export type SeasonFormat = 'LEAGUE' | 'GROUPS' | 'KNOCKOUT' | 'GROUPS_KNOCKOUT';

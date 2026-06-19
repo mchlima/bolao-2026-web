@@ -42,6 +42,9 @@ const stadiumLocation = computed(() => {
   if (!s) return '';
   return [s.city, s.state, s.country].filter(Boolean).join(', ');
 });
+// Stadium photo (Wikimedia, mirrored to R2) — painted behind the hero gradient.
+const stadiumPhoto = computed(() => props.match.stadium?.photoUrl ?? null);
+const stadiumCredit = computed(() => props.match.stadium?.photoCredit ?? null);
 const infoRows = computed(() => {
   const m = props.match;
   const rows: Array<{ icon: string; label: string; value: string }> = [];
@@ -266,7 +269,11 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       <div class="msticky">
       <!-- RESULTADO — hero kept to the matchup: teams, score and the live chip.
            Meta/venue/prediction live in the tabs (Informações / Bolão) now. -->
-      <div class="result-head">
+      <div
+        class="result-head"
+        :class="{ 'has-photo': stadiumPhoto }"
+        :style="stadiumPhoto ? { '--hero-photo': `url(${stadiumPhoto})` } : undefined"
+      >
         <div v-if="!hideBack" class="rhead-top">
           <button class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
         </div>
@@ -290,6 +297,18 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <span v-else-if="stateMeta.live" class="dot" />{{ stateMeta.live ? (match.liveClock || 'Ao vivo') : stateMeta.label }}
           </span>
         </div>
+        <!-- crédito da foto (licença Wikimedia/CC) — discreto no rodapé do hero -->
+        <a
+          v-if="stadiumPhoto && stadiumCredit"
+          class="photo-credit"
+          :href="match.stadium?.photoSourceUrl || undefined"
+          target="_blank"
+          rel="noopener nofollow"
+          :title="`Foto: ${stadiumCredit}`"
+        >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          {{ stadiumCredit }}
+        </a>
       </div>
 
       <!-- countdown to kickoff (scheduled matches only) — between hero and tabs -->
@@ -552,6 +571,46 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .detail.live .result-head {
   background: linear-gradient(135deg, rgba(232, 54, 43, 0.14), rgba(224, 33, 138, 0.1));
 }
+/* foto do estádio atrás do gradiente do hero, com scrim escuro p/ legibilidade */
+.result-head.has-photo {
+  background-image:
+    linear-gradient(135deg, rgba(15, 179, 107, 0.5), rgba(30, 127, 240, 0.46)),
+    linear-gradient(180deg, rgba(8, 12, 18, 0.42), rgba(8, 12, 18, 0.76)),
+    var(--hero-photo);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #fff;
+}
+.detail.live .result-head.has-photo {
+  background-image:
+    linear-gradient(135deg, rgba(232, 54, 43, 0.52), rgba(224, 33, 138, 0.44)),
+    linear-gradient(180deg, rgba(8, 12, 18, 0.4), rgba(8, 12, 18, 0.74)),
+    var(--hero-photo);
+}
+.result-head.has-photo .tname { color: #fff; }
+.result-head.has-photo .colon { color: rgba(255, 255, 255, 0.6); }
+.result-head.has-photo .back { color: rgba(255, 255, 255, 0.82); }
+.result-head.has-photo .back:hover { color: #fff; }
+.photo-credit {
+  position: absolute;
+  right: 10px;
+  bottom: 5px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 72%;
+  font-size: 8.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.58);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.photo-credit svg { flex: none; }
+.photo-credit:hover { color: rgba(255, 255, 255, 0.9); }
 .rhead-top {
   display: flex;
   align-items: center;
