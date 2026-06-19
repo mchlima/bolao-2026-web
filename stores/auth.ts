@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { AuthResponse, User } from '~/types/api';
+import type { AccountConnections, AuthResponse, User } from '~/types/api';
 
 export const useAuthStore = defineStore('auth', () => {
   const token = useAuthToken();
@@ -28,6 +28,28 @@ export const useAuthStore = defineStore('auth', () => {
     });
     token.value = res.accessToken;
     user.value = res.user;
+  }
+
+  // Login OR signup with Google — the API does find-or-create and returns the
+  // same AuthResponse as password login, so the session is set the same way.
+  async function loginWithGoogle(idToken: string): Promise<void> {
+    const res = await useApi()<AuthResponse>('/auth/google', {
+      method: 'POST',
+      body: { idToken },
+    });
+    token.value = res.accessToken;
+    user.value = res.user;
+  }
+
+  async function linkGoogle(idToken: string): Promise<AccountConnections> {
+    return await useApi()<AccountConnections>('/auth/google/link', {
+      method: 'POST',
+      body: { idToken },
+    });
+  }
+
+  async function fetchConnections(): Promise<AccountConnections> {
+    return await useApi()<AccountConnections>('/auth/connections');
   }
 
   async function fetchMe(): Promise<void> {
@@ -78,6 +100,9 @@ export const useAuthStore = defineStore('auth', () => {
     isAdmin,
     login,
     register,
+    loginWithGoogle,
+    linkGoogle,
+    fetchConnections,
     fetchMe,
     updateMe,
     setTimezone,

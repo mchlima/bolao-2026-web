@@ -42,6 +42,22 @@ async function submit() {
     loading.value = false;
   }
 }
+
+async function onGoogle(idToken: string) {
+  loading.value = true;
+  try {
+    await auth.loginWithGoogle(idToken);
+    ui.toast('success', 'Conta criada! Boa sorte nos palpites.');
+    router.push(redirect.value);
+  } catch (e) {
+    ui.toast(
+      'error',
+      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível cadastrar com o Google.',
+    );
+  } finally {
+    loading.value = false;
+  }
+}
 </script>
 
 <template>
@@ -75,6 +91,8 @@ async function submit() {
             {{ loading ? 'Cadastrando…' : 'Criar conta' }}
           </button>
         </form>
+        <div class="sep"><span>ou</span></div>
+        <GoogleSignInButton text="signup_with" @credential="onGoogle" @error="ui.toast('error', 'Falha no cadastro com o Google.')" />
       </div>
     </div>
   </div>
@@ -173,5 +191,22 @@ label {
   font-size: 12px;
   font-weight: 600;
   margin: 0.5rem 0 0;
+}
+.sep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 16px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.sep::before,
+.sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 </style>

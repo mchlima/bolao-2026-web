@@ -31,6 +31,22 @@ async function submit() {
     loading.value = false;
   }
 }
+
+async function onGoogle(idToken: string) {
+  loading.value = true;
+  try {
+    await auth.loginWithGoogle(idToken);
+    ui.toast('success', 'Bem-vindo!');
+    router.push(redirect.value);
+  } catch (e) {
+    ui.toast(
+      'error',
+      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível entrar com o Google.',
+    );
+  } finally {
+    loading.value = false;
+  }
+}
 </script>
 
 <template>
@@ -58,6 +74,8 @@ async function submit() {
             {{ loading ? 'Entrando…' : 'Entrar' }}
           </button>
         </form>
+        <div class="sep"><span>ou</span></div>
+        <GoogleSignInButton text="continue_with" @credential="onGoogle" @error="ui.toast('error', 'Falha no login com o Google.')" />
       </div>
     </div>
   </div>
@@ -141,5 +159,22 @@ label {
   margin-top: 1rem;
   padding: 14px;
   font-size: 16px;
+}
+.sep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 16px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.sep::before,
+.sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 </style>

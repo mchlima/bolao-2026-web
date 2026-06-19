@@ -80,6 +80,11 @@ export interface AuthResponse {
   user: User;
 }
 
+/** Which third-party identities the user has linked (profile "Contas conectadas"). */
+export interface AccountConnections {
+  google: boolean;
+}
+
 // Unified external-provider references (ESPN, GE, …), stored as one JSON blob
 // per entity. Mirrors the API's externalIds column. Keys are sparse.
 export interface ExternalIds {

@@ -82,6 +82,25 @@ async function removePhoto() {
     avatarBusy.value = false;
   }
 }
+
+// ── contas conectadas ──
+const connections = ref<{ google: boolean } | null>(null);
+onMounted(async () => {
+  try {
+    connections.value = await auth.fetchConnections();
+  } catch {
+    /* silencioso: a seção só aparece quando carrega */
+  }
+});
+
+async function onLinkGoogle(idToken: string) {
+  try {
+    connections.value = await auth.linkGoogle(idToken);
+    ui.toast('success', 'Conta Google vinculada.');
+  } catch (e) {
+    ui.toast('error', apiMsg(e));
+  }
+}
 </script>
 
 <template>
@@ -152,6 +171,23 @@ async function removePhoto() {
       <div class="field">
         <span class="field-lbl">E-mail</span>
         <span class="ro">{{ auth.user?.email }}</span>
+      </div>
+    </div>
+
+    <div v-if="connections" class="card pad conn">
+      <h2 class="sec-title">Contas conectadas</h2>
+      <div class="conn-row">
+        <div class="conn-id">
+          <GoogleMark :size="22" />
+          <div>
+            <span class="conn-name">Google</span>
+            <span class="conn-state" :class="{ on: connections.google }">
+              {{ connections.google ? 'Conectado' : 'Não conectado' }}
+            </span>
+          </div>
+        </div>
+        <span v-if="connections.google" class="conn-ok"><AppIcon name="check" :size="14" :stroke="2.6" />Vinculado</span>
+        <GoogleSignInButton v-else text="continue_with" @credential="onLinkGoogle" @error="ui.toast('error', 'Falha ao vincular o Google.')" />
       </div>
     </div>
   </div>
@@ -243,5 +279,51 @@ async function removePhoto() {
 .ro {
   font-size: 15px;
   color: var(--text);
+}
+.conn {
+  margin-top: 16px;
+}
+.sec-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+.conn-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.conn-id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.conn-id > div {
+  display: flex;
+  flex-direction: column;
+}
+.conn-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+.conn-state {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.conn-state.on {
+  color: var(--emerald);
+}
+.conn-ok {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--emerald);
+  font-size: 13px;
+  font-weight: 700;
 }
 </style>

@@ -104,6 +104,11 @@ export default defineNuxtConfig({
       // if prod ever uses a different pair.
       vapidPublicKey:
         'BM5G2yXLusVKolVbgP6P42CcetINMAUBKb4EiERuxWjoLpyOKtJX4WthuPImMsSx2w95g_S0jiOkl5z2YUGKXVg',
+      // Google Identity Services OAuth Client ID (público — embutido na página).
+      // O mesmo client atende localhost:3001 e cravei.app (origens autorizadas no
+      // Google Cloud). Override via NUXT_PUBLIC_GOOGLE_CLIENT_ID se necessário.
+      googleClientId:
+        '490721850065-9pqn9l5g9bgur6u4hs9ppee5vn2gbhuf.apps.googleusercontent.com',
     },
   },
 
