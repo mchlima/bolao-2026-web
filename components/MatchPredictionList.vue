@@ -59,10 +59,6 @@ const STATUS_TONE: Record<string, 'azure' | 'scarlet' | 'neutral'> = {
   SCHEDULED: 'azure', LIVE: 'scarlet', FINISHED: 'neutral',
   CANCELLED: 'neutral', POSTPONED: 'neutral',
 };
-const TIER_LABEL: Record<string, string> = {
-  EXACT: 'Cravou', WINNER_GOALS: 'Vencedor + gols', GOAL_DIFF: 'Saldo',
-  LOSER_GOALS: 'Gols do perdedor', OUTCOME: 'Resultado', NONE: 'Errou',
-};
 
 // Desktop = AdminTable; mobile (≤720px) = cards (same split as the admin screen).
 const isMobile = ref(false);
@@ -106,6 +102,22 @@ function predMode(r: PredRow): 'edit' | 'view' | 'login' | 'empty' {
 // Points chip text: "0" when none, "+10" for a positive score.
 function fmtPts(n: number): string {
   return n > 0 ? `+${n}` : String(n);
+}
+// Highlight a card when the match is still open and the user hasn't palpitado yet
+// (a nudge to predict before kickoff).
+function needsPrediction(r: PredRow): boolean {
+  return props.editable(r) && !predOf(r);
+}
+// Suggestive label for the accuracy chip — uses the app-wide tierLabel (e.g.
+// OUTCOME → "Acertou o vencedor", or "Acertou o empate" on a draw), with the
+// punchier "Errou" for a no-score guess.
+function tierChip(r: PredRow): string {
+  const tier = scoreOf(r)?.tier;
+  if (!tier) return '';
+  if (tier === 'NONE') return 'Errou';
+  const m = r.match;
+  const isDraw = scorable(r) && (m.homeScore ?? 0) === (m.awayScore ?? 0);
+  return tierLabel(tier, isDraw);
 }
 
 const draft = reactive<Record<string, { home: number | null; away: number | null }>>({});
@@ -179,7 +191,6 @@ const COLS: AdminColumn[] = [
   { key: 'match', label: 'Partida' },
   { key: 'phase', label: 'Fase', mobileHide: true },
   { key: 'stadium', label: 'Estádio', mobileHide: true },
-  { key: 'guess', label: 'Palpite' },
   { key: 'pts', label: 'Pts', align: 'end' },
 ];
 </script>
@@ -187,13 +198,12 @@ const COLS: AdminColumn[] = [
 <template>
   <AdminTable
     v-if="!isMobile"
-    hide-head
     :columns="COLS" :rows="loading ? undefined : rows"
     :row-key="(r) => r.match.id"
     :row-class="(r) => (r.match.status === 'LIVE' ? 'live' : undefined)"
     :row-to="(r) => rowTo(r) ?? undefined"
     :row-label="(r) => `Acompanhar ${teamName(r.match.homeTeam, r.match.homeSourceLabel)} x ${teamName(r.match.awayTeam, r.match.awaySourceLabel)}`"
-    grid="minmax(0, 250px) 0.85fr 1fr 150px 46px" empty="Nenhum jogo." empty-icon="ball"
+    grid="minmax(0, 300px) 0.85fr 1fr 46px" empty="Nenhum jogo." empty-icon="ball"
   >
     <template #col-match="{ row }">
       <div class="when">
@@ -206,16 +216,29 @@ const COLS: AdminColumn[] = [
       </div>
       <div class="teams">
         <span class="tline">
-          <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="20" />
+          <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="24" />
           <span class="tn">{{ teamName(row.match.homeTeam, row.match.homeSourceLabel) }}</span>
           <b class="tsc" :class="{ none: !scorable(row) }">{{ scorable(row) ? row.match.homeScore : '–' }}</b>
+          <span v-if="predMode(row) !== 'login'" class="tpred" :class="{ raise: predMode(row) === 'edit' }">
+            <ScoreStepper v-if="predMode(row) === 'edit'" horizontal :value="draftFor(row).home" label="placar do mandante" @bump="(d) => bump(row, 'home', d)" />
+            <ScoreStepper v-else-if="predMode(row) === 'view'" horizontal readonly :value="predOf(row)!.homeScore" />
+            <ScoreStepper v-else horizontal readonly :value="null" />
+          </span>
         </span>
         <span class="tline">
-          <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="20" />
+          <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="24" />
           <span class="tn">{{ teamName(row.match.awayTeam, row.match.awaySourceLabel) }}</span>
           <b class="tsc" :class="{ none: !scorable(row) }">{{ scorable(row) ? row.match.awayScore : '–' }}</b>
+          <span v-if="predMode(row) !== 'login'" class="tpred" :class="{ raise: predMode(row) === 'edit' }">
+            <ScoreStepper v-if="predMode(row) === 'edit'" horizontal :value="draftFor(row).away" label="placar do visitante" @bump="(d) => bump(row, 'away', d)" />
+            <ScoreStepper v-else-if="predMode(row) === 'view'" horizontal readonly :value="predOf(row)!.awayScore" />
+            <ScoreStepper v-else horizontal readonly :value="null" />
+          </span>
         </span>
       </div>
+      <NuxtLink v-if="predMode(row) === 'login'" :to="loginTo" class="cta mt-cta">
+        Palpitar <AppIcon name="arrowRight" :size="13" :stroke="2.4" />
+      </NuxtLink>
     </template>
     <template #col-phase="{ row }">
       <span class="phcell">
@@ -232,33 +255,8 @@ const COLS: AdminColumn[] = [
       </span>
       <span v-else class="pts-none">—</span>
     </template>
-    <template #col-guess="{ row }">
-      <!-- editable: stepper editor -->
-      <div v-if="editable(row)" class="guess">
-        <ScoreStepper :value="draftFor(row).home" label="placar do mandante" @bump="(d) => bump(row, 'home', d)" />
-        <span class="x">×</span>
-        <ScoreStepper :value="draftFor(row).away" label="placar do visitante" @bump="(d) => bump(row, 'away', d)" />
-        <span v-if="savingId === row.match.id" class="psaving" aria-label="Salvando" />
-      </div>
-      <!-- locked, has a guess: same look as the editor, minus the chevrons -->
-      <div v-else-if="predOf(row)" class="gline">
-        <ScoreStepper :value="predOf(row)!.homeScore" readonly />
-        <span class="x">×</span>
-        <ScoreStepper :value="predOf(row)!.awayScore" readonly />
-      </div>
-      <!-- open, logged out -->
-      <NuxtLink v-else-if="loginPrompt(row)" :to="loginTo" class="cta">
-        Palpitar <AppIcon name="arrowRight" :size="13" :stroke="2.4" />
-      </NuxtLink>
-      <!-- no guess: same look, just empty ( – × – ) -->
-      <div v-else class="gline">
-        <ScoreStepper :value="null" readonly />
-        <span class="x">×</span>
-        <ScoreStepper :value="null" readonly />
-      </div>
-    </template>
     <template #col-pts="{ row }">
-      <span v-if="scoreOf(row)" class="pts" :title="TIER_LABEL[scoreOf(row)!.tier] ?? scoreOf(row)!.tier">
+      <span v-if="scoreOf(row)" class="pts" :title="tierChip(row)">
         {{ scoreOf(row)!.points }}
       </span>
       <span v-else class="pts-none">—</span>
@@ -269,7 +267,7 @@ const COLS: AdminColumn[] = [
   <div v-else-if="loading" class="mloading">Carregando…</div>
   <div v-else-if="!rows.length" class="mempty">Nenhum jogo.</div>
   <ul v-else class="mcards">
-    <li v-for="row in rows" :key="row.match.id" class="mcard" :class="{ live: row.match.status === 'LIVE' }">
+    <li v-for="row in rows" :key="row.match.id" class="mcard" :class="{ finished: row.match.status === 'FINISHED', scheduled: row.match.status === 'SCHEDULED', postponed: row.match.status === 'POSTPONED', needs: needsPrediction(row), live: row.match.status === 'LIVE' }">
       <NuxtLink
         v-if="rowTo(row)" :to="rowTo(row)!" class="mc-link"
         :aria-label="`Acompanhar ${teamName(row.match.homeTeam, row.match.homeSourceLabel)} x ${teamName(row.match.awayTeam, row.match.awaySourceLabel)}`"
@@ -285,7 +283,7 @@ const COLS: AdminColumn[] = [
         <span v-if="predMode(row) !== 'login'" class="b-cap b-cap-p">Palpite</span>
 
         <div class="b-team home mc-trow">
-          <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="26" />
+          <TeamBadge :team="row.match.homeTeam" :placeholder="row.match.homeSourceLabel" :size="30" />
           <span class="mc-tn">{{ teamName(row.match.homeTeam, row.match.homeSourceLabel) }}</span>
           <b class="mc-sc" :class="{ none: !scorable(row) }">{{ scorable(row) ? row.match.homeScore : '–' }}</b>
         </div>
@@ -299,7 +297,7 @@ const COLS: AdminColumn[] = [
         </div>
 
         <div class="b-team away mc-trow">
-          <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="26" />
+          <TeamBadge :team="row.match.awayTeam" :placeholder="row.match.awaySourceLabel" :size="30" />
           <span class="mc-tn">{{ teamName(row.match.awayTeam, row.match.awaySourceLabel) }}</span>
           <b class="mc-sc" :class="{ none: !scorable(row) }">{{ scorable(row) ? row.match.awayScore : '–' }}</b>
         </div>
@@ -312,14 +310,10 @@ const COLS: AdminColumn[] = [
           <ScoreStepper v-else horizontal readonly :value="null" />
         </div>
 
-        <div
-          v-if="predMode(row) === 'login' || savingId === row.match.id"
-          class="b-foot"
-        >
-          <NuxtLink v-if="predMode(row) === 'login'" :to="loginTo" class="cta">
+        <div v-if="predMode(row) === 'login'" class="b-foot">
+          <NuxtLink :to="loginTo" class="cta">
             Entre para palpitar <AppIcon name="arrowRight" :size="13" :stroke="2.4" />
           </NuxtLink>
-          <span v-if="savingId === row.match.id" class="psaving" aria-label="Salvando" />
         </div>
       </div>
       <div class="mc-meta">
@@ -333,7 +327,7 @@ const COLS: AdminColumn[] = [
         </div>
         <div v-if="scoreOf(row)" class="mc-score" :style="{ '--c': tierColor(scoreOf(row)!.tier) }">
           <span class="mc-ptschip font-numeric">{{ fmtPts(scoreOf(row)!.points) }}</span>
-          <span class="mc-tierchip">{{ TIER_LABEL[scoreOf(row)!.tier] ?? scoreOf(row)!.tier }}</span>
+          <span class="mc-tierchip">{{ tierChip(row) }}</span>
         </div>
       </div>
     </li>
@@ -343,8 +337,8 @@ const COLS: AdminColumn[] = [
 <style scoped>
 .teams { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .tline { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.tn { flex: 1; font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tsc { flex: none; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 15px; line-height: 1; }
+.tn { flex: 1; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tsc { flex: none; width: 18px; text-align: center; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 15px; line-height: 1; }
 .tsc.none { color: var(--muted); }
 /* date+time (left) + status chip (right) above the teams, within the Partida column */
 .when { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
@@ -374,28 +368,16 @@ const COLS: AdminColumn[] = [
 .stcell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.3; }
 .st-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .st-loc { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-/* raised above the row link so the stepper/save stay clickable */
-.guess { display: flex; align-items: center; gap: 7px; position: relative; z-index: 2; }
-/* read-only guess (locked / empty): same flex, but NOT raised so a click still
-   falls through to the row link */
-.gline { display: flex; align-items: center; gap: 7px; }
-.x { color: var(--muted); font-weight: 700; }
+/* palpite na linha do time (mesma orientação do card): placar real + stepper.
+   Editável é elevado acima do link da linha pra os chevrons continuarem clicáveis;
+   o read-only NÃO é elevado, então o clique cai no link da partida. */
+.tpred { flex: none; display: inline-flex; align-items: center; margin-left: 2px; }
+.tpred.raise { position: relative; z-index: 2; }
+/* CTA abaixo dos times (deslogado) */
+.mt-cta { margin-top: 7px; }
 .cta {
   position: relative; z-index: 2;
   display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; color: var(--gold);
-}
-/* auto-save: discreet spinner where the save button used to be */
-.psaving {
-  flex: none;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 2px solid color-mix(in srgb, var(--text) 18%, transparent);
-  border-top-color: var(--gold);
-  animation: pl-spin 0.7s linear infinite;
-}
-@keyframes pl-spin {
-  to { transform: rotate(360deg); }
 }
 .pts {
   display: inline-grid; place-items: center; min-width: 30px; padding: 3px 8px;
@@ -415,6 +397,30 @@ const COLS: AdminColumn[] = [
 }
 .mcard:hover { border-color: color-mix(in srgb, var(--text) 22%, var(--border)); }
 .mc-link { position: absolute; inset: 0; z-index: 1; border-radius: inherit; }
+/* Destaques por estado, em ordem de prioridade (mesma especificidade → a última
+   regra vence): encerrada (cinza) / agendada (azul) / adiada (magenta) < não
+   palpitada (amarelo) < ao vivo (vermelho). */
+.mcard.finished {
+  border-color: color-mix(in srgb, var(--muted) 35%, var(--border));
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--muted) 70%, transparent);
+  background: color-mix(in srgb, var(--muted) 5%, var(--bg-surface));
+}
+.mcard.scheduled {
+  border-color: color-mix(in srgb, var(--azure) 45%, var(--border));
+  box-shadow: inset 3px 0 0 var(--azure);
+  background: color-mix(in srgb, var(--azure) 6%, var(--bg-surface));
+}
+.mcard.postponed {
+  border-color: color-mix(in srgb, var(--magenta) 45%, var(--border));
+  box-shadow: inset 3px 0 0 var(--magenta);
+  background: color-mix(in srgb, var(--magenta) 6%, var(--bg-surface));
+}
+/* jogo aberto que o usuário ainda não palpitou — destaque amarelo (nudge) */
+.mcard.needs {
+  border-color: color-mix(in srgb, var(--gold) 50%, var(--border));
+  box-shadow: inset 3px 0 0 var(--gold);
+  background: color-mix(in srgb, var(--gold) 7%, var(--bg-surface));
+}
 .mcard.live {
   border-color: color-mix(in srgb, var(--scarlet) 45%, var(--border));
   box-shadow: inset 3px 0 0 var(--scarlet);
@@ -473,7 +479,7 @@ const COLS: AdminColumn[] = [
 }
 .mc-body.login .b-foot { justify-content: center; }
 .mc-trow { display: flex; align-items: center; gap: 9px; min-width: 0; }
-.mc-tn { flex: 1; min-width: 0; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-tn { flex: 1; min-width: 0; font-weight: 700; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* placar real com a mesma caixa do número do palpite (ScoreStepper horizontal):
    Oswald 18px, 22px de largura centralizada, pra alinhar e combinar visualmente. */
 .mc-sc {
