@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { User } from '~/types/api';
+import type { MenuItem } from '~/components/KebabMenu.vue';
 
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
@@ -119,6 +120,29 @@ async function sendNotify() {
   finally { sendingNotif.value = false; }
 }
 
+// All row actions, unified into one "⋮" menu. Notification entry only when the
+// user has push enabled.
+function actionsFor(u: User): MenuItem[] {
+  const items: MenuItem[] = [];
+  items.push({ key: 'notify', label: 'Enviar notificação', icon: 'bell', tone: 'emerald', onSelect: () => openNotify(u) });
+  items.push({
+    key: 'role',
+    label: u.role === 'ADMIN' ? 'Remover admin' : 'Promover a admin',
+    icon: 'star',
+    tone: 'gold',
+    onSelect: () => toggleRole(u),
+  });
+  items.push({ key: 'pwd', label: 'Gerar nova senha', icon: 'refresh', tone: 'azure', onSelect: () => resetPassword(u) });
+  items.push({
+    key: 'active',
+    label: u.isActive ? 'Desativar acesso' : 'Reativar acesso',
+    icon: 'power',
+    tone: u.isActive ? 'danger' : 'emerald',
+    onSelect: () => toggleActive(u),
+  });
+  return items;
+}
+
 onMounted(load);
 </script>
 
@@ -155,10 +179,7 @@ onMounted(load);
         </template>
         <template #col-actions="{ row }">
           <div class="acts">
-            <IconButton v-if="row.pushEnabled" icon="bell" label="Enviar notificação" tone="emerald" :size="30" @click="openNotify(row)" />
-            <IconButton icon="star" :label="row.role === 'ADMIN' ? 'Remover admin' : 'Promover a admin'" tone="gold" :active="row.role === 'ADMIN'" :size="30" @click="toggleRole(row)" />
-            <IconButton icon="refresh" label="Gerar nova senha" tone="azure" :size="30" @click="resetPassword(row)" />
-            <IconButton icon="power" :label="row.isActive ? 'Desativar' : 'Reativar'" :tone="row.isActive ? 'danger' : 'emerald'" :size="30" @click="toggleActive(row)" />
+            <KebabMenu :items="actionsFor(row)" :size="30" />
           </div>
         </template>
       </AdminTable>
@@ -167,6 +188,10 @@ onMounted(load);
     </div>
 
     <AppModal v-if="notifyFor" :title="`Notificar ${notifyFor.name}`" @close="notifyFor = null">
+      <p v-if="!notifyFor.pushEnabled" class="nt-warn">
+        <AppIcon name="bell" :size="15" :stroke="2" />
+        <span>Este usuário não tem notificações push ativadas — a mensagem chegará <strong>apenas no app</strong> (sininho/inbox).</span>
+      </p>
       <div class="adm-form nt-form">
         <label>Título</label>
         <input v-model="notifyForm.title" class="input" maxlength="120" placeholder="Ex.: Não esqueça o seu palpite!" />
@@ -218,6 +243,20 @@ onMounted(load);
 .nt-form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 6px; }
 .nt-area { resize: vertical; min-height: 70px; font: inherit; }
 .nt-hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.nt-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text);
+  background: color-mix(in srgb, var(--gold) 12%, var(--bg-base));
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--border));
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.nt-warn :deep(svg) { color: var(--gold); flex: none; margin-top: 1px; }
 .tp-msg { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
 .tp-box { font-size: 28px; letter-spacing: 0.1em; text-align: center; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
 </style>
