@@ -108,6 +108,16 @@ function fmtPts(n: number): string {
 function needsPrediction(r: PredRow): boolean {
   return props.editable(r) && !predOf(r);
 }
+// Single winning highlight class (by priority) — shared by the card and the
+// desktop table row: live > não palpitada > agendada / adiada / encerrada.
+function highlight(r: PredRow): string | undefined {
+  if (r.match.status === 'LIVE') return 'live';
+  if (needsPrediction(r)) return 'needs';
+  if (r.match.status === 'SCHEDULED') return 'scheduled';
+  if (r.match.status === 'POSTPONED') return 'postponed';
+  if (r.match.status === 'FINISHED') return 'finished';
+  return undefined;
+}
 // Suggestive label for the accuracy chip — uses the app-wide tierLabel (e.g.
 // OUTCOME → "Acertou o vencedor", or "Acertou o empate" on a draw), with the
 // punchier "Errou" for a no-score guess.
@@ -200,7 +210,7 @@ const COLS: AdminColumn[] = [
     v-if="!isMobile"
     :columns="COLS" :rows="loading ? undefined : rows"
     :row-key="(r) => r.match.id"
-    :row-class="(r) => (r.match.status === 'LIVE' ? 'live' : undefined)"
+    :row-class="(r) => highlight(r)"
     :row-to="(r) => rowTo(r) ?? undefined"
     :row-label="(r) => `Acompanhar ${teamName(r.match.homeTeam, r.match.homeSourceLabel)} x ${teamName(r.match.awayTeam, r.match.awaySourceLabel)}`"
     grid="minmax(0, 300px) 0.85fr 1fr 46px" empty="Nenhum jogo." empty-icon="ball"
@@ -267,7 +277,7 @@ const COLS: AdminColumn[] = [
   <div v-else-if="loading" class="mloading">Carregando…</div>
   <div v-else-if="!rows.length" class="mempty">Nenhum jogo.</div>
   <ul v-else class="mcards">
-    <li v-for="row in rows" :key="row.match.id" class="mcard" :class="{ finished: row.match.status === 'FINISHED', scheduled: row.match.status === 'SCHEDULED', postponed: row.match.status === 'POSTPONED', needs: needsPrediction(row), live: row.match.status === 'LIVE' }">
+    <li v-for="row in rows" :key="row.match.id" class="mcard" :class="highlight(row)">
       <NuxtLink
         v-if="rowTo(row)" :to="rowTo(row)!" class="mc-link"
         :aria-label="`Acompanhar ${teamName(row.match.homeTeam, row.match.homeSourceLabel)} x ${teamName(row.match.awayTeam, row.match.awaySourceLabel)}`"
@@ -351,7 +361,24 @@ const COLS: AdminColumn[] = [
 /* Fase + Estádio (the mobile-hidden columns) align to the top of the row so their
    first lines line up, instead of the shorter Estádio floating in the middle. */
 :deep(.atr-cell.m-hide) { align-self: flex-start; }
-/* highlight the row of a live match (status shown in the Status column) */
+/* Destaque da linha por estado — mesma semântica do card (highlight() já resolve
+   a prioridade, então só uma classe chega por linha). */
+:deep(.atr-row.finished) {
+  background: color-mix(in srgb, var(--muted) 6%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--muted) 70%, transparent);
+}
+:deep(.atr-row.scheduled) {
+  background: color-mix(in srgb, var(--azure) 7%, transparent);
+  box-shadow: inset 3px 0 0 var(--azure);
+}
+:deep(.atr-row.postponed) {
+  background: color-mix(in srgb, var(--magenta) 7%, transparent);
+  box-shadow: inset 3px 0 0 var(--magenta);
+}
+:deep(.atr-row.needs) {
+  background: color-mix(in srgb, var(--gold) 8%, transparent);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
 :deep(.atr-row.live) {
   background: color-mix(in srgb, var(--scarlet) 7%, transparent);
   box-shadow: inset 3px 0 0 var(--scarlet);

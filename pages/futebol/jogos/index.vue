@@ -210,17 +210,16 @@ function fmtDayLabel(date: string): string {
       </button>
     </div>
 
-    <div v-if="navigating && data" class="ag-busy" aria-live="polite">
-      <span class="ag-spin" />Carregando jogos…
-    </div>
-    <SkeletonList v-if="pending && !data" variant="match" :count="4" />
+    <!-- Skeleton no load inicial E na navegação de datas/filtro (user-initiated);
+         um refresh de fundo (realtime) não cai aqui, então a lista não pisca. -->
+    <SkeletonList v-if="navigating || (pending && !data)" variant="match" :count="4" />
     <div v-else-if="!matches.length && !liveMatches.length" class="ag-empty">
       <p class="muted">Nenhum jogo neste dia.</p>
       <button v-if="nav.nextDate" type="button" class="ag-empty-next" @click="goDay(nav.nextDate)">
         Ir para o próximo dia com jogos <AppIcon name="arrowRight" :size="15" :stroke="2.4" />
       </button>
     </div>
-    <div v-else class="ag-list" :class="{ busy: navigating }">
+    <div v-else class="ag-list">
       <template v-if="liveMatches.length">
         <span class="ag-live-lbl"><span class="lvdot" />Ao vivo</span>
         <MatchList :matches="liveMatches" :predictions="predMap" show-season @saved="onSaved" />
@@ -428,34 +427,6 @@ function fmtDayLabel(date: string): string {
 .ag-list {
   display: grid;
   gap: 10px;
-}
-.ag-list.busy {
-  opacity: 0.45;
-  pointer-events: none;
-  transition: opacity 0.12s;
-}
-.ag-busy {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--muted);
-}
-.ag-spin {
-  flex: none;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  border-top-color: var(--gold);
-  animation: ag-spin 0.7s linear infinite;
-}
-@keyframes ag-spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 .ag-live-lbl {
   display: inline-flex;
