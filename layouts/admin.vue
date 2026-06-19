@@ -122,6 +122,11 @@ const groups: { title?: string; items: NavItem[] }[] = [
         label: 'Usuários',
         icon: ['M16 19v-1a4 4 0 0 0-8 0v1', 'M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6'],
       },
+      {
+        to: '/admin/campaigns',
+        label: 'Campanhas',
+        icon: ['M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9', 'M13.7 21a2 2 0 0 1-3.4 0'],
+      },
     ],
   },
 ];

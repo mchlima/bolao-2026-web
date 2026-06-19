@@ -12,6 +12,55 @@ export type ScoreTier =
   | 'OUTCOME'
   | 'NONE';
 
+// ── Notification campaigns (admin broadcast) ──
+export type AudienceField =
+  | 'followsTeam'
+  | 'role'
+  | 'isActive'
+  | 'pushEnabled'
+  | 'inPool'
+  | 'hasPredicted'
+  | 'timezone'
+  | 'createdAt';
+
+export interface AudienceCondition {
+  field: AudienceField;
+  operator: string;
+  value?: unknown;
+}
+export interface AudienceGroup {
+  op: 'and' | 'or';
+  children: AudienceNode[];
+}
+export type AudienceNode = AudienceGroup | AudienceCondition;
+
+export type CampaignStatus =
+  | 'DRAFT'
+  | 'SCHEDULED'
+  | 'SENDING'
+  | 'SENT'
+  | 'CANCELLED'
+  | 'FAILED';
+
+export interface NotificationCampaign {
+  id: string;
+  title: string;
+  body: string;
+  url: string | null;
+  channels: string[];
+  audienceAll: boolean;
+  filter: AudienceNode | null;
+  status: CampaignStatus;
+  sendAt: string | null;
+  startedAt: string | null;
+  sentAt: string | null;
+  totalRecipients: number | null;
+  deliveredCount: number;
+  createdById: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   name: string;
