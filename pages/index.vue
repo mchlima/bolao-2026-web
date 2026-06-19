@@ -130,13 +130,16 @@ function weekId(iso: string | number, tz: string): number {
   const mondayBased = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7; // 0=Mon..6=Sun
   return dayNum - mondayBased;
 }
-// Followed upcoming matches trimmed to the current week (seg–dom) in the user tz.
+// Followed matches: live games now + upcoming trimmed to the current week
+// (seg–dom) in the user tz. listingComparator floats the live ones to the top.
 const myMatchesWeek = computed<Match[]>(() => {
   const list = myMatches.value ?? [];
   if (!list.length) return [];
   const tz = myTz.value;
   const thisWeek = weekId(now.value, tz);
-  return list.filter((m) => weekId(m.kickoffAt, tz) === thisWeek);
+  return list
+    .filter((m) => m.status === 'LIVE' || weekId(m.kickoffAt, tz) === thisWeek)
+    .sort(listingComparator(now.value));
 });
 const desc =
   'Palpite nos 104 jogos da Copa 2026, crie bolões privados com os amigos e acompanhe o ranking mudar ao vivo a cada gol. Placares automáticos, classificação completa e pontuação por proximidade. Grátis.';
