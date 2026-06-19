@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, Paginated, Prediction, Tournament } from '~/types/api';
+import type { FollowingView, Match, Paginated, Prediction, Tournament } from '~/types/api';
 // Single home for everyone (default layout → AppHeader + bottom nav). Logged-out
 // visitors also get the marketing pitch below the portal; logged-in users see
 // just the portal (torneios + próximos jogos) — same início as the public one.
@@ -39,13 +39,24 @@ function onPredSaved(p: Prediction) {
   predMap.value = { ...predMap.value, [p.matchId]: p };
 }
 
-// "Seus jogos": próximos jogos que o usuário segue (a partida ou um dos times).
-// O backend devolve os próximos 8 dias; recortamos pra semana atual (seg–dom)
-// no fuso do usuário mais abaixo (myMatchesWeek).
-const { data: myMatches, refresh: refreshMyMatches } = await useAsyncData('home-my-matches', () =>
-  auth.token ? useApi()<Match[]>('/me/matches/upcoming') : Promise.resolve([] as Match[]),
+// "Seus jogos": agrupado por time — os 2 próximos jogos de cada time seguido
+// (qualquer data) + as partidas seguidas avulsas. `followedTeamCount` (todos os
+// times seguidos, mesmo sem jogo) define o estado vazio: segue nada → CTA pra
+// escolher times; segue mas sem jogo agendado → aviso leve.
+const { data: following, refresh: refreshMyMatches } = await useAsyncData('home-following', () =>
+  auth.token
+    ? useApi()<FollowingView>('/me/matches/following')
+    : Promise.resolve({ teams: [], others: [], followedTeamCount: 0 } as FollowingView),
 );
-const myTz = useTz();
+const followTeams = computed(() => following.value?.teams ?? []);
+const followOthers = computed(() => following.value?.others ?? []);
+const followedTeamCount = computed(() => following.value?.followedTeamCount ?? 0);
+const hasFollowing = computed(() => followTeams.value.length > 0 || followOthers.value.length > 0);
+// Flat list of every shown match — for live channel subscription.
+const followMatches = computed<Match[]>(() => [
+  ...followTeams.value.flatMap((g) => g.matches),
+  ...followOthers.value,
+]);
 
 // Logged-in: a personal greeting + the member's standing slider (GERAL + pools,
 // grouped by tournament). The slider (StandingHeroSlider) is self-contained: it
@@ -67,7 +78,7 @@ const liveChannels = computed(() => {
   const ids = new Set(
     (hub.value?.agenda.days ?? []).flatMap((d) => d.matches).map((m) => m.seasonId).filter(Boolean),
   );
-  for (const m of myMatches.value ?? []) if (m.seasonId) ids.add(m.seasonId);
+  for (const m of followMatches.value) if (m.seasonId) ids.add(m.seasonId);
   if (primarySeason.value) ids.add(primarySeason.value.id);
   return [...ids].map((id) => `tournament:${id}`);
 });
@@ -107,33 +118,6 @@ const liveCount = computed(
       .filter((m) => m.status === 'LIVE').length,
 );
 
-// Monday-based week id for an instant, in the given tz: the day-number of that
-// week's Monday. Two instants in the same Mon–Sun week share the id, so the
-// "Seus jogos" set naturally rolls over on Monday.
-function weekId(iso: string | number, tz: string): number {
-  const parts = Object.fromEntries(
-    new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
-      .formatToParts(new Date(iso))
-      .map((p) => [p.type, p.value]),
-  );
-  const y = Number(parts.year);
-  const m = Number(parts.month);
-  const d = Number(parts.day);
-  const dayNum = Math.floor(Date.UTC(y, m - 1, d) / 86_400_000); // days since epoch (local wall date)
-  const mondayBased = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7; // 0=Mon..6=Sun
-  return dayNum - mondayBased;
-}
-// Followed matches: live games now + upcoming trimmed to the current week
-// (seg–dom) in the user tz. listingComparator floats the live ones to the top.
-const myMatchesWeek = computed<Match[]>(() => {
-  const list = myMatches.value ?? [];
-  if (!list.length) return [];
-  const tz = myTz.value;
-  const thisWeek = weekId(now.value, tz);
-  return list
-    .filter((m) => m.status === 'LIVE' || weekId(m.kickoffAt, tz) === thisWeek)
-    .sort(listingComparator(now.value));
-});
 const desc =
   'Palpite nos 104 jogos da Copa 2026, crie bolões privados com os amigos e acompanhe o ranking mudar ao vivo a cada gol. Placares automáticos, classificação completa e pontuação por proximidade. Grátis.';
 useSeoMeta({
@@ -247,14 +231,55 @@ const ranking = [
       <StandingHeroSlider />
     </section>
 
-    <!-- SEUS JOGOS: próximos da semana (seg–dom) que o usuário segue (partida ou time) -->
-    <section v-if="auth.isAuthenticated && myMatchesWeek.length" class="hubstrip mymatches">
+    <!-- SEUS JOGOS: sempre visível p/ logado — jogos da semana que ele segue, ou
+         um CTA pra escolher times quando ainda não segue nada -->
+    <section v-if="auth.isAuthenticated" class="hubstrip mymatches">
       <div class="hs-head">
         <h2 class="font-display"><AppIcon name="bell" :size="18" :stroke="2.2" class="mm-ic" />Seus jogos</h2>
-        <NuxtLink to="/meus-times" class="hs-all">Meus times <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
+        <NuxtLink v-if="hasFollowing" to="/meus-times" class="hs-all">Meus times <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
       </div>
-      <div class="hs-grid">
-        <MatchList :matches="myMatchesWeek" :predictions="predMap" show-season @saved="onPredSaved" />
+
+      <!-- agrupado por time: cada time seguido + seus 2 próximos jogos -->
+      <template v-if="hasFollowing">
+        <div v-for="g in followTeams" :key="g.team.id" class="mm-group">
+          <div class="mm-team">
+            <TeamBadge :team="g.team" :size="22" />
+            <span class="mm-team-nm">{{ g.team.name }}</span>
+          </div>
+          <div class="hs-grid">
+            <MatchList :matches="g.matches" :predictions="predMap" show-season @saved="onPredSaved" />
+          </div>
+        </div>
+        <!-- partidas seguidas avulsas (não cobertas por um time seguido) -->
+        <div v-if="followOthers.length" class="mm-group">
+          <div class="mm-team">
+            <AppIcon name="star" :size="17" class="mm-team-ic" />
+            <span class="mm-team-nm">Outros jogos que você segue</span>
+          </div>
+          <div class="hs-grid">
+            <MatchList :matches="followOthers" :predictions="predMap" show-season @saved="onPredSaved" />
+          </div>
+        </div>
+      </template>
+
+      <!-- vazio + não segue nada: CTA chamativo pra escolher os times -->
+      <NuxtLink v-else-if="!followedTeamCount" to="/meus-times" class="mm-cta">
+        <span class="mm-cta-glow" aria-hidden="true" />
+        <span class="mm-cta-ic"><AppIcon name="shield" :size="28" :stroke="2.1" /></span>
+        <div class="mm-cta-txt">
+          <b class="font-display">Siga os times do seu coração</b>
+          <span>Escolha seus times e a gente te avisa quando eles entram em campo — pra palpitar antes do apito e acompanhar o jogo ao vivo.</span>
+        </div>
+        <span class="mm-cta-go">Escolher meus times <AppIcon name="chevronRight" :size="16" :stroke="2.6" /></span>
+      </NuxtLink>
+
+      <!-- vazio + já segue times, mas nenhum tem jogo agendado -->
+      <div v-else class="mm-rest">
+        <span class="mm-rest-ic"><AppIcon name="shield" :size="20" :stroke="2.1" /></span>
+        <div class="mm-rest-txt">
+          <b>Seus times não têm jogos agendados</b>
+          <span>Assim que marcarem, eles aparecem aqui. Veja a <NuxtLink to="/futebol/jogos">agenda completa</NuxtLink> ou <NuxtLink to="/meus-times">ajuste seus times</NuxtLink>.</span>
+        </div>
       </div>
     </section>
 
@@ -632,6 +657,156 @@ const ranking = [
 }
 .mm-ic {
   color: var(--gold);
+}
+/* "Seus jogos" agrupado por time */
+.mm-group + .mm-group {
+  margin-top: 16px;
+}
+.mm-team {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 9px;
+}
+.mm-team-nm {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.mm-team-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: var(--gold);
+}
+/* "Seus jogos" vazio — CTA pra escolher times (chamativo) */
+.mm-cta {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 16px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--emerald) 34%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--emerald) 13%, transparent), color-mix(in srgb, var(--azure) 11%, transparent)), var(--bg-surface);
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.mm-cta:hover {
+  border-color: color-mix(in srgb, var(--emerald) 55%, var(--border));
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px -18px color-mix(in srgb, var(--emerald) 90%, transparent);
+}
+.mm-cta-glow {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -70px;
+  top: -90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--gold) 24%, transparent), transparent 70%);
+  pointer-events: none;
+}
+.mm-cta-ic {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: var(--grad-pitch);
+  color: #fff;
+  box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--emerald) 80%, transparent);
+}
+.mm-cta-txt {
+  position: relative;
+  flex: 1 1 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.mm-cta-txt b {
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+.mm-cta-txt span {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.mm-cta-go {
+  position: relative;
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 11px 17px;
+  border-radius: 11px;
+  background: var(--gold);
+  color: #0a0e14;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .mm-cta-go {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
+/* "Seus jogos" vazio — segue times, mas nenhum joga nesta semana */
+.mm-rest {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 18px;
+  border-radius: 16px;
+  border: 1px dashed var(--border);
+  background: var(--bg-surface);
+}
+.mm-rest-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--azure) 12%, transparent);
+  color: var(--azure);
+}
+.mm-rest-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mm-rest-txt b {
+  font-size: 14px;
+  font-weight: 700;
+}
+.mm-rest-txt span {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.mm-rest-txt a {
+  color: var(--azure);
+  font-weight: 700;
 }
 .hs-head {
   display: flex;

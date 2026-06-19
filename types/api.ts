@@ -385,6 +385,18 @@ export interface MyStandingsResponse {
   tournaments: MyStandingsTournament[];
 }
 
+// GET /me/matches/following — the home "Seus jogos", grouped by followed team:
+// each team's next 2 upcoming games (any date) + followed-by-match games.
+export interface FollowingTeamGroup {
+  team: Team;
+  matches: Match[];
+}
+export interface FollowingView {
+  teams: FollowingTeamGroup[];
+  others: Match[];
+  followedTeamCount: number;
+}
+
 export interface ApiError {
   statusCode: number;
   code: string;
