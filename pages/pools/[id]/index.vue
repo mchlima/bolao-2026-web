@@ -91,7 +91,13 @@ async function leavePool() {
 <template>
   <section v-if="pool" class="ov">
     <!-- member standing (shared component) -->
-    <StandingHero :me="me" :total="total" :cta-to="`/futebol/torneios/${pool.tournament.id}`" />
+    <StandingHero
+      :me="me"
+      :total="total"
+      :title="pool.name"
+      :subtitle="pool.tournament.name"
+      :cta-to="`/futebol/torneios/${pool.tournament.id}`"
+    />
 
     <!-- podium leaders (same panel as the Ranking tab) -->
     <RankingPodium

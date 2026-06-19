@@ -1,16 +1,32 @@
 <script setup lang="ts">
 import type { RankingEntry } from '~/types/api';
 // Member standing card (position + points/cravadas/pontuadas). Shared by the pool
-// home and the início — pass the ranking's `currentUser` (or null) + total, plus
-// where the "fazer palpites" CTA should go when the user hasn't predicted yet.
+// home, the início's standings slider and the pool home — pass the ranking's
+// `currentUser` (or null) + total, plus where the "fazer palpites" CTA should go
+// when the user hasn't predicted yet. `title` is the scope name (pool name, or
+// "GERAL" for the season-wide ranking) and replaces the old "Sua posição" eyebrow;
+// `subtitle` is the Season name, rendered as a chip. Both default to the legacy
+// "Sua posição" caption / no chip so existing call sites keep working.
 // Classes are `sh-*` prefixed: a generic `.hero` collides with the parent page's
 // scoped `.hero` (Vue leaks the parent scope id onto a child's root element).
-defineProps<{ me: RankingEntry | null; total: number; ctaTo: string }>();
+withDefaults(
+  defineProps<{
+    me: RankingEntry | null;
+    total: number;
+    ctaTo: string;
+    title?: string;
+    subtitle?: string | null;
+  }>(),
+  { title: 'Sua posição', subtitle: null },
+);
 </script>
 
 <template>
   <div class="sh-card">
-    <span class="sh-cap">Sua posição</span>
+    <div class="sh-head">
+      <span class="sh-cap">{{ title }}</span>
+      <span v-if="subtitle" class="sh-chip">{{ subtitle }}</span>
+    </div>
     <div class="sh-rank font-display">
       <template v-if="me">
         <span class="num">{{ me.rank }}</span><span class="ord">º</span>
@@ -48,12 +64,37 @@ defineProps<{ me: RankingEntry | null; total: number; ctaTo: string }>();
   padding: 20px;
   color: #fff;
 }
+.sh-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
 .sh-cap {
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.78);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.sh-chip {
+  flex: none;
+  max-width: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 4px 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .sh-rank {
   display: flex;

@@ -363,6 +363,28 @@ export interface RankingResponse {
   revealed?: boolean; // match ranking: false until kickoff (others hidden)
 }
 
+// GET /me/standings — the current user's position in every scope they play, for
+// the início's "Sua posição" slider. Grouped by tournament: each tournament has a
+// GERAL (season-wide) standing followed by the user's pools in that tournament.
+export interface MyStanding {
+  me: RankingEntry | null;
+  total: number;
+}
+export interface MyPoolStanding extends MyStanding {
+  poolId: string;
+  name: string; // pool name
+}
+export interface MyStandingsTournament {
+  id: string;
+  name: string;
+  status: TournamentStatus;
+  general: MyStanding;
+  pools: MyPoolStanding[];
+}
+export interface MyStandingsResponse {
+  tournaments: MyStandingsTournament[];
+}
+
 export interface ApiError {
   statusCode: number;
   code: string;

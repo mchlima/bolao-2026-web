@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, Paginated, Prediction, RankingResponse, Tournament } from '~/types/api';
+import type { Match, Paginated, Prediction, Tournament } from '~/types/api';
 // Single home for everyone (default layout → AppHeader + bottom nav). Logged-out
 // visitors also get the marketing pitch below the portal; logged-in users see
 // just the portal (torneios + próximos jogos) — same início as the public one.
@@ -47,8 +47,9 @@ const { data: myMatches, refresh: refreshMyMatches } = await useAsyncData('home-
 );
 const myTz = useTz();
 
-// Logged-in: a personal greeting + the member's standing in the main (ongoing)
-// tournament — same StandingHero used on the pool home.
+// Logged-in: a personal greeting + the member's standing slider (GERAL + pools,
+// grouped by tournament). The slider (StandingHeroSlider) is self-contained: it
+// fetches /me/standings and refreshes itself live.
 const firstName = computed(() => (auth.user?.name ?? '').trim().split(/\s+/)[0] ?? '');
 const salute = computed(() => {
   const h = Number(
@@ -59,13 +60,6 @@ const salute = computed(() => {
 const primarySeason = computed(
   () => (torneios.value ?? []).find((t) => t.status === 'ONGOING') ?? (torneios.value ?? [])[0] ?? null,
 );
-const { data: standing, refresh: refreshStanding } = await useAsyncData('home-standing', () =>
-  auth.token && primarySeason.value
-    ? useApi()<RankingResponse>(`/seasons/${primarySeason.value.id}/ranking`)
-    : Promise.resolve(null),
-);
-const standingMe = computed(() => standing.value?.currentUser ?? null);
-const standingTotal = computed(() => standing.value?.totalParticipants ?? 0);
 
 // Live: the próximos-jogos strip + the standing must reflect goals/status changes.
 // Subscribe to every tournament shown (strip matches + the primary season).
@@ -79,7 +73,6 @@ const liveChannels = computed(() => {
 });
 useRealtime(() => liveChannels.value, () => {
   refreshHub();
-  refreshStanding();
   refreshMyMatches();
 });
 
@@ -251,12 +244,7 @@ const ranking = [
           <span class="greet-name">{{ firstName || 'Bem-vindo' }}</span>
         </div>
       </div>
-      <StandingHero
-        v-if="primarySeason"
-        :me="standingMe"
-        :total="standingTotal"
-        :cta-to="`/futebol/torneios/${primarySeason.id}`"
-      />
+      <StandingHeroSlider />
     </section>
 
     <!-- SEUS JOGOS: próximos da semana (seg–dom) que o usuário segue (partida ou time) -->
