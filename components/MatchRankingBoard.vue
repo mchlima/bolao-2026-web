@@ -269,11 +269,11 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       <div class="msticky">
       <!-- RESULTADO — hero kept to the matchup: teams, score and the live chip.
            Meta/venue/prediction live in the tabs (Informações / Bolão) now. -->
-      <div
-        class="result-head"
-        :class="{ 'has-photo': stadiumPhoto }"
-        :style="stadiumPhoto ? { '--hero-photo': `url(${stadiumPhoto})` } : undefined"
-      >
+      <div class="result-head" :class="{ 'has-photo': stadiumPhoto }">
+        <template v-if="stadiumPhoto">
+          <img class="rh-photo" :src="stadiumPhoto" alt="" aria-hidden="true" >
+          <div class="rh-grad" aria-hidden="true" />
+        </template>
         <div v-if="!hideBack" class="rhead-top">
           <button class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
         </div>
@@ -572,21 +572,37 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   background: linear-gradient(135deg, rgba(232, 54, 43, 0.14), rgba(224, 33, 138, 0.1));
 }
 /* foto do estádio atrás do gradiente do hero, com scrim escuro p/ legibilidade */
-.result-head.has-photo {
-  background-image:
-    linear-gradient(135deg, rgba(15, 179, 107, 0.5), rgba(30, 127, 240, 0.46)),
-    linear-gradient(180deg, rgba(8, 12, 18, 0.42), rgba(8, 12, 18, 0.76)),
-    var(--hero-photo);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  color: #fff;
+.result-head.has-photo { color: #fff; }
+/* foto como <img> real (object-position: center → pega o meio, sem depender de
+   background-position em camadas). Gradiente colorido + scrim por cima. */
+.rh-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
-.detail.live .result-head.has-photo {
-  background-image:
+.rh-grad {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(135deg, rgba(15, 179, 107, 0.5), rgba(30, 127, 240, 0.46)),
+    linear-gradient(180deg, rgba(8, 12, 18, 0.42), rgba(8, 12, 18, 0.76));
+}
+.detail.live .rh-grad {
+  background:
     linear-gradient(135deg, rgba(232, 54, 43, 0.52), rgba(224, 33, 138, 0.44)),
-    linear-gradient(180deg, rgba(8, 12, 18, 0.4), rgba(8, 12, 18, 0.74)),
-    var(--hero-photo);
+    linear-gradient(180deg, rgba(8, 12, 18, 0.4), rgba(8, 12, 18, 0.74));
+}
+/* conteúdo acima das camadas de foto/gradiente */
+.result-head.has-photo > .rhead-top,
+.result-head.has-photo > .result,
+.result-head.has-photo > .rstate {
+  position: relative;
+  z-index: 2;
 }
 .result-head.has-photo .tname { color: #fff; }
 .result-head.has-photo .colon { color: rgba(255, 255, 255, 0.6); }
