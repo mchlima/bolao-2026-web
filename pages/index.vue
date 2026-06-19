@@ -39,6 +39,14 @@ function onPredSaved(p: Prediction) {
   predMap.value = { ...predMap.value, [p.matchId]: p };
 }
 
+// "Seus jogos": próximos jogos que o usuário segue (a partida ou um dos times).
+// O backend devolve os próximos 8 dias; recortamos pra semana atual (seg–dom)
+// no fuso do usuário mais abaixo (myMatchesWeek).
+const { data: myMatches, refresh: refreshMyMatches } = await useAsyncData('home-my-matches', () =>
+  auth.token ? useApi()<Match[]>('/me/matches/upcoming') : Promise.resolve([] as Match[]),
+);
+const myTz = useTz();
+
 // Logged-in: a personal greeting + the member's standing in the main (ongoing)
 // tournament — same StandingHero used on the pool home.
 const firstName = computed(() => (auth.user?.name ?? '').trim().split(/\s+/)[0] ?? '');
@@ -66,12 +74,14 @@ const liveChannels = computed(() => {
   const ids = new Set(
     (hub.value?.agenda.days ?? []).flatMap((d) => d.matches).map((m) => m.seasonId).filter(Boolean),
   );
+  for (const m of myMatches.value ?? []) if (m.seasonId) ids.add(m.seasonId);
   if (primarySeason.value) ids.add(primarySeason.value.id);
   return [...ids].map((id) => `tournament:${id}`);
 });
 useRealtime(() => liveChannels.value, () => {
   refreshHub();
   refreshStanding();
+  refreshMyMatches();
 });
 
 // Quick badge from the tournament name (skip FIFA/years/short words).
@@ -104,6 +114,31 @@ const liveCount = computed(
       .flatMap((d) => d.matches)
       .filter((m) => m.status === 'LIVE').length,
 );
+
+// Monday-based week id for an instant, in the given tz: the day-number of that
+// week's Monday. Two instants in the same Mon–Sun week share the id, so the
+// "Seus jogos" set naturally rolls over on Monday.
+function weekId(iso: string | number, tz: string): number {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' })
+      .formatToParts(new Date(iso))
+      .map((p) => [p.type, p.value]),
+  );
+  const y = Number(parts.year);
+  const m = Number(parts.month);
+  const d = Number(parts.day);
+  const dayNum = Math.floor(Date.UTC(y, m - 1, d) / 86_400_000); // days since epoch (local wall date)
+  const mondayBased = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7; // 0=Mon..6=Sun
+  return dayNum - mondayBased;
+}
+// Followed upcoming matches trimmed to the current week (seg–dom) in the user tz.
+const myMatchesWeek = computed<Match[]>(() => {
+  const list = myMatches.value ?? [];
+  if (!list.length) return [];
+  const tz = myTz.value;
+  const thisWeek = weekId(now.value, tz);
+  return list.filter((m) => weekId(m.kickoffAt, tz) === thisWeek);
+});
 const desc =
   'Palpite nos 104 jogos da Copa 2026, crie bolões privados com os amigos e acompanhe o ranking mudar ao vivo a cada gol. Placares automáticos, classificação completa e pontuação por proximidade. Grátis.';
 useSeoMeta({
@@ -216,6 +251,17 @@ const ranking = [
         :total="standingTotal"
         :cta-to="`/futebol/torneios/${primarySeason.id}`"
       />
+    </section>
+
+    <!-- SEUS JOGOS: próximos da semana (seg–dom) que o usuário segue (partida ou time) -->
+    <section v-if="auth.isAuthenticated && myMatchesWeek.length" class="hubstrip mymatches">
+      <div class="hs-head">
+        <h2 class="font-display"><AppIcon name="bell" :size="18" :stroke="2.2" class="mm-ic" />Seus jogos</h2>
+        <NuxtLink to="/meus-times" class="hs-all">Meus times <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
+      </div>
+      <div class="hs-grid">
+        <MatchList :matches="myMatchesWeek" :predictions="predMap" show-season @saved="onPredSaved" />
+      </div>
     </section>
 
     <!-- PORTAL: torneios em destaque → cada um abre o hub próprio -->
@@ -563,6 +609,12 @@ const ranking = [
 /* hub strip — real matches on top of the public landing */
 .hubstrip {
   margin: 14px 0 10px;
+}
+.mymatches {
+  margin: 6px 0 18px;
+}
+.mm-ic {
+  color: var(--gold);
 }
 .hs-head {
   display: flex;
