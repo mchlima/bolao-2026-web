@@ -198,7 +198,7 @@ onMounted(load);
         <label>Mensagem</label>
         <textarea v-model="notifyForm.body" class="input nt-area" rows="3" maxlength="500" placeholder="Texto da notificação…" />
         <label>Link (opcional)</label>
-        <input v-model="notifyForm.url" class="input" placeholder="/futebol/jogos  ·  abre ao tocar na notificação" />
+        <input v-model="notifyForm.url" class="input" placeholder="/futebol/agenda  ·  abre ao tocar na notificação" />
         <label>Envio</label>
         <div class="adm-chips">
           <button type="button" class="adm-chip" :class="{ on: !notifyForm.schedule }" @click="notifyForm.schedule = false">Agora</button>

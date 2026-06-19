@@ -52,7 +52,7 @@ function rowTo(r: PredRow): string | null {
   if (!m.homeTeam || !m.awayTeam) return null;
   if (props.poolId) return `/pools/${props.poolId}/matches/${m.id}`;
   if (m.seasonId) return `/futebol/torneios/${m.seasonId}/matches/${m.id}`;
-  return `/futebol/jogos/${m.id}`;
+  return `/futebol/agenda/${m.id}`;
 }
 
 async function saveFn(r: PredRow, home: number, away: number) {

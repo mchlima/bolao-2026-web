@@ -6,19 +6,19 @@ const notifications = useNotificationsStore();
 const sheetOpen = ref(false);
 
 const items = computed(() => {
-  // Portal nav for logged-out visitors: Início (portal) + Jogos (cross-tournament
+  // Portal nav for logged-out visitors: Início (portal) + Agenda (cross-tournament
   // agenda) + Torneios (→ each tournament's own hub) + login.
   if (!auth.isAuthenticated)
     return [
       { to: '/', label: 'Início', icon: 'home' },
-      { to: '/futebol/jogos', label: 'Jogos', icon: 'calendar' },
+      { to: '/futebol/agenda', label: 'Agenda', icon: 'calendar' },
       { to: '/futebol/torneios', label: 'Torneios', icon: 'trophy' },
       { to: '/login', label: 'Entrar', icon: 'login' },
     ];
   // Logged in: app nav + the avatar (account sheet) as the last item.
   return [
     { to: '/', label: 'Início', icon: 'home' },
-    { to: '/futebol/jogos', label: 'Jogos', icon: 'calendar' },
+    { to: '/futebol/agenda', label: 'Agenda', icon: 'calendar' },
     { to: '/futebol/torneios', label: 'Torneios', icon: 'trophy' },
     { to: '/pools', label: 'Bolões', icon: 'users' },
   ];

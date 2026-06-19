@@ -278,7 +278,7 @@ const ranking = [
         <span class="mm-rest-ic"><AppIcon name="shield" :size="20" :stroke="2.1" /></span>
         <div class="mm-rest-txt">
           <b>Seus times não têm jogos agendados</b>
-          <span>Assim que marcarem, eles aparecem aqui. Veja a <NuxtLink to="/futebol/jogos">agenda completa</NuxtLink> ou <NuxtLink to="/meus-times">ajuste seus times</NuxtLink>.</span>
+          <span>Assim que marcarem, eles aparecem aqui. Veja a <NuxtLink to="/futebol/agenda">agenda completa</NuxtLink> ou <NuxtLink to="/meus-times">ajuste seus times</NuxtLink>.</span>
         </div>
       </div>
     </section>
@@ -309,9 +309,9 @@ const ranking = [
       <div class="hs-head">
         <h2 class="font-display">
           Próximos jogos
-          <NuxtLink v-if="liveCount" to="/futebol/jogos?scope=live" class="hs-live"><span class="d" />{{ liveCount }} ao vivo</NuxtLink>
+          <NuxtLink v-if="liveCount" to="/futebol/agenda?scope=live" class="hs-live"><span class="d" />{{ liveCount }} ao vivo</NuxtLink>
         </h2>
-        <NuxtLink to="/futebol/jogos" class="hs-all">Agenda completa <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
+        <NuxtLink to="/futebol/agenda" class="hs-all">Agenda completa <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
       </div>
       <div class="hs-grid">
         <MatchList :matches="hubMatches" :predictions="predMap" show-season @saved="onPredSaved" />

@@ -270,7 +270,7 @@ const CH_LABEL: Record<string, string> = { inapp: 'In-app', push: 'Push' };
             <label>Mensagem</label>
             <textarea v-model="form.body" class="input nt-area" rows="3" maxlength="500" placeholder="Texto da notificação…" />
             <label>Link (opcional)</label>
-            <input v-model="form.url" class="input" placeholder="/futebol/jogos  ·  abre ao tocar" />
+            <input v-model="form.url" class="input" placeholder="/futebol/agenda  ·  abre ao tocar" />
             <label>Canais</label>
             <div class="chans">
               <button type="button" class="chan" :class="{ on: form.channels.includes('inapp') }" @click="toggleChannel('inapp')">

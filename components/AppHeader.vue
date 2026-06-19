@@ -28,7 +28,7 @@ const notifications = useNotificationsStore();
 
       <nav class="topnav">
         <NuxtLink to="/" class="nav-link">Início</NuxtLink>
-        <NuxtLink to="/futebol/jogos" class="nav-link">Jogos</NuxtLink>
+        <NuxtLink to="/futebol/agenda" class="nav-link">Agenda</NuxtLink>
         <NuxtLink to="/futebol/torneios" class="nav-link">Torneios</NuxtLink>
         <template v-if="auth.isAuthenticated">
           <NuxtLink to="/pools" class="nav-link">Bolões</NuxtLink>

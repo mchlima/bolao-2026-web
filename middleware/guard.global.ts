@@ -16,7 +16,14 @@ export default defineNuxtRouteMiddleware((to) => {
     });
   }
   if (to.path === '/matches' || to.path.startsWith('/matches/')) {
-    return navigateTo(to.fullPath.replace('/matches', '/futebol/jogos'), {
+    return navigateTo(to.fullPath.replace('/matches', '/futebol/agenda'), {
+      redirectCode: 301,
+    });
+  }
+  // The agenda moved from /futebol/jogos to /futebol/agenda — keep old links,
+  // bookmarks and already-sent notification deep-links working.
+  if (to.path === '/futebol/jogos' || to.path.startsWith('/futebol/jogos/')) {
+    return navigateTo(to.fullPath.replace('/futebol/jogos', '/futebol/agenda'), {
       redirectCode: 301,
     });
   }

@@ -42,7 +42,7 @@ function onRefresh() {
   refreshRanking();
 }
 
-// Dynamic SEO from the fetched match (covers /futebol/jogos/:id and the
+// Dynamic SEO from the fetched match (covers /futebol/agenda/:id and the
 // tournament-scoped match route, both of which render this component).
 const seoMatchup = computed(() => {
   const m = match.value;

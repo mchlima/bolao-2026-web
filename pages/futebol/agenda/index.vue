@@ -2,7 +2,7 @@
 import type { Competition, Match, Paginated, Prediction } from '~/types/api';
 
 useSeoMeta({
-  title: 'Jogos · Agenda — Cravei',
+  title: 'Agenda — Cravei',
   description:
     'A agenda de jogos dia a dia: navegue pelas datas e veja as partidas de cada dia, de todos os torneios, com placar e horário.',
   ogTitle: 'Agenda de jogos — Cravei',
@@ -158,7 +158,7 @@ function fmtDayLabel(date: string): string {
 
 <template>
   <div class="agenda">
-    <PageHeader title="Jogos" subtitle="Os jogos de cada dia, de todos os torneios." />
+    <PageHeader title="Agenda" subtitle="Os jogos de cada dia, de todos os torneios." />
 
     <div class="ag-comp">
       <button type="button" class="csel" :aria-expanded="compOpen" @click="compOpen = !compOpen">
