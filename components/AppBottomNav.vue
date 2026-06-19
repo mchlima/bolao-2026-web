@@ -2,6 +2,7 @@
 const auth = useAuthStore();
 const route = useRoute();
 const authLink = useAuthLink();
+const notifications = useNotificationsStore();
 const sheetOpen = ref(false);
 
 const items = computed(() => {
@@ -56,7 +57,12 @@ function active(to: string) {
       :style="{ color: sheetOpen ? 'var(--emerald)' : 'var(--muted)' }"
       @click="sheetOpen = true"
     >
-      <UserAvatar :name="auth.user?.name" :src="auth.user?.avatarUrl" :size="22" />
+      <span class="av-wrap">
+        <UserAvatar :name="auth.user?.name" :src="auth.user?.avatarUrl" :size="22" />
+        <span v-if="notifications.unread" class="av-badge">
+          {{ notifications.unread > 9 ? '9+' : notifications.unread }}
+        </span>
+      </span>
       <span>Conta</span>
     </button>
   </nav>
@@ -108,6 +114,30 @@ function active(to: string) {
 }
 .av-item :deep(svg) {
   display: none;
+}
+.av-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.av-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  box-sizing: border-box;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--scarlet, #e8362b);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-base);
+  pointer-events: none;
 }
 
 /* account bottom sheet */

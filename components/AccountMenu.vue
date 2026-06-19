@@ -5,6 +5,7 @@ const emit = defineEmits<{ close: [] }>();
 
 const auth = useAuthStore();
 const router = useRouter();
+const notifications = useNotificationsStore();
 
 function logout() {
   auth.logout();
@@ -24,6 +25,13 @@ function logout() {
     </NuxtLink>
     <div class="sep" />
     <NuxtLink to="/perfil" class="row" @click="emit('close')">Perfil</NuxtLink>
+    <NuxtLink to="/notificacoes" class="row rowflex" @click="emit('close')">
+      Notificações
+      <span v-if="notifications.unread" class="nbadge">
+        {{ notifications.unread > 9 ? '9+' : notifications.unread }}
+      </span>
+    </NuxtLink>
+    <NuxtLink to="/meus-times" class="row" @click="emit('close')">Meus times</NuxtLink>
     <NuxtLink to="/configuracoes" class="row" @click="emit('close')">
       Configurações
     </NuxtLink>
@@ -87,6 +95,23 @@ function logout() {
 }
 .row:hover {
   background: var(--bg-base);
+}
+.rowflex {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nbadge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--scarlet);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
 }
 .row.danger {
   color: var(--scarlet);

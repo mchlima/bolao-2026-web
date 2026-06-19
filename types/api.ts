@@ -276,6 +276,18 @@ export interface Paginated<T> {
   pagination: PaginationMeta;
 }
 
+// In-app notification (GET /notifications). v1 type: MATCH_REMINDER.
+export interface AppNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  matchId: string | null;
+  url: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
 export interface RankingEntry {
   rank: number;
   user: { id: string; name: string; avatarUrl: string | null };

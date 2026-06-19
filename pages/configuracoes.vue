@@ -16,6 +16,8 @@ const themes = [
 
 const savingTz = ref(false);
 
+const push = usePush();
+
 async function onTimezone(tz: string) {
   if (tz === auth.user?.timezone) return;
   savingTz.value = true;
@@ -74,6 +76,33 @@ async function onTimezone(tz: string) {
           </template>
         </ClientOnly>
         <span v-if="savingTz" class="saving">Salvando…</span>
+      </div>
+
+      <div class="sep" />
+
+      <div class="field">
+        <span class="field-lbl">Notificações no aparelho</span>
+        <p class="hint">
+          Receba os lembretes dos seus times mesmo com o app fechado (push).
+        </p>
+        <ClientOnly>
+          <p v-if="!push.supported.value" class="hint">
+            Seu navegador não suporta notificações push.
+          </p>
+          <p v-else-if="push.permission.value === 'denied'" class="hint">
+            As notificações estão bloqueadas. Libere nas configurações do navegador para ativar.
+          </p>
+          <button
+            v-else
+            class="pushbtn"
+            :class="{ on: push.subscribed.value }"
+            :disabled="push.busy.value"
+            @click="push.subscribed.value ? push.disable() : push.enable()"
+          >
+            {{ push.busy.value ? '…' : push.subscribed.value ? 'Desativar push' : 'Ativar push' }}
+          </button>
+          <template #fallback><div class="ph" /></template>
+        </ClientOnly>
       </div>
     </div>
   </div>
@@ -150,5 +179,25 @@ async function onTimezone(tz: string) {
 .saving {
   font-size: 12px;
   color: var(--muted);
+}
+.pushbtn {
+  align-self: flex-start;
+  padding: 9px 16px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--grad-pitch);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pushbtn.on {
+  background: var(--bg-base);
+  color: var(--scarlet);
+  border-color: color-mix(in srgb, var(--scarlet) 35%, var(--border));
+}
+.pushbtn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 </style>

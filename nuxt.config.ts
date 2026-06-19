@@ -10,6 +10,14 @@ export default defineNuxtConfig({
   // the network (no SPA fallback), SW disabled in dev so it never serves stale.
   pwa: {
     registerType: 'autoUpdate',
+    // Custom service worker (injectManifest) so we can handle Web Push while
+    // keeping precache + auto-update. SW source: service-worker/sw.ts.
+    strategies: 'injectManifest',
+    srcDir: 'service-worker',
+    filename: 'sw.ts',
+    injectManifest: {
+      globPatterns: ['**/*.{js,css,svg,png,ico,woff2}'],
+    },
     manifest: {
       name: 'Cravei',
       short_name: 'Cravei',
@@ -19,17 +27,13 @@ export default defineNuxtConfig({
       background_color: '#0A0E14',
       display: 'standalone',
       orientation: 'portrait',
+      id: '/',
       start_url: '/',
       icons: [
         { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
         { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
         { src: '/maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
       ],
-    },
-    workbox: {
-      navigateFallback: undefined,
-      globPatterns: ['**/*.{js,css,svg,png,ico,woff2}'],
-      cleanupOutdatedCaches: true,
     },
     client: {
       // Track the install prompt ourselves ($pwa.showInstallPrompt / install()).
@@ -42,6 +46,8 @@ export default defineNuxtConfig({
       periodicSyncForUpdates: 1800,
     },
     devOptions: {
+      // SW disabled in dev so it never serves stale (prod build runs it). To test
+      // Web Push locally, flip to: { enabled: true, type: 'module', suppressWarnings: true }.
       enabled: false,
     },
   },
@@ -65,6 +71,11 @@ export default defineNuxtConfig({
       // link unfurls (WhatsApp/Twitter — the main invite channel) resolve the
       // image. Override in prod via NUXT_PUBLIC_SITE_URL.
       siteUrl: 'https://cravei.app',
+      // Web Push VAPID public key (safe to expose). The API holds the matching
+      // VAPID_PRIVATE_KEY in its env. Override here via NUXT_PUBLIC_VAPID_PUBLIC_KEY
+      // if prod ever uses a different pair.
+      vapidPublicKey:
+        'BM5G2yXLusVKolVbgP6P42CcetINMAUBKb4EiERuxWjoLpyOKtJX4WthuPImMsSx2w95g_S0jiOkl5z2YUGKXVg',
     },
   },
 

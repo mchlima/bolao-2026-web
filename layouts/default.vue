@@ -8,6 +8,7 @@
     <PullToRefresh />
     <ToastHost />
     <ConfirmDialog />
+    <NotificationsBridge />
   </div>
 </template>
 
