@@ -38,12 +38,6 @@ const notifications = useNotificationsStore();
 
       <div class="actions">
         <template v-if="auth.isAuthenticated">
-          <NuxtLink to="/notificacoes" class="bell" aria-label="Notificações">
-            <AppIcon name="bell" :size="20" :stroke="2" />
-            <span v-if="notifications.unread" class="bell-badge">
-              {{ notifications.unread > 9 ? '9+' : notifications.unread }}
-            </span>
-          </NuxtLink>
           <div class="menu">
             <button class="avatar" @click="menuOpen = !menuOpen" aria-label="Conta">
               <UserAvatar :name="auth.user?.name" :src="auth.user?.avatarUrl" :size="38" />
@@ -134,39 +128,6 @@ const notifications = useNotificationsStore();
   display: flex;
   align-items: center;
   gap: 9px;
-}
-.bell {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--muted);
-  flex: none;
-  transition: color 0.15s, border-color 0.15s;
-}
-.bell:hover {
-  color: var(--gold);
-  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
-}
-.bell-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
-  border-radius: 9px;
-  background: var(--scarlet, #e8362b);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 17px;
-  text-align: center;
-  border: 2px solid var(--bg-surface);
 }
 .tgl {
   display: grid;
