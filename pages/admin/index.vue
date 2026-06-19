@@ -34,11 +34,66 @@ const metrics = computed<Metric[]>(() => {
     { value: d.stadiums, label: 'Estádios', icon: 'stadium', color: 'var(--azure)', to: '/admin/stadiums' },
   ];
 });
+
+// Live presence (quem está conectado no SSE agora). Polled — presence isn't
+// an emitted event. The endpoint identifies whoever it can; the rest only
+// counts toward the total.
+interface Online {
+  total: number;
+  users: { id: string; name: string; avatarUrl: string | null; connections: number; since: string }[];
+}
+const online = ref<Online | null>(null);
+let onlineTimer: ReturnType<typeof setInterval> | undefined;
+async function loadOnline(): Promise<void> {
+  try {
+    online.value = await useApi()<Online>('/admin/dashboard/online');
+  } catch {
+    /* transient: keep the last snapshot */
+  }
+}
+const onlineNamedConns = computed(() =>
+  (online.value?.users ?? []).reduce((sum, u) => sum + u.connections, 0),
+);
+const onlineOthers = computed(() => Math.max(0, (online.value?.total ?? 0) - onlineNamedConns.value));
+onMounted(() => {
+  loadOnline();
+  onlineTimer = setInterval(loadOnline, 10000);
+});
+onBeforeUnmount(() => {
+  if (onlineTimer) clearInterval(onlineTimer);
+});
 </script>
 
 <template>
   <div>
     <AdminPageHeader title="Dashboard" subtitle="Visão geral do torneio e atalhos rápidos." />
+
+    <div class="card online">
+      <div class="on-head">
+        <span class="on-dot" />
+        <span class="font-numeric on-num">{{ online?.total ?? 0 }}</span>
+        <span class="on-lbl">online agora</span>
+      </div>
+      <div v-if="online?.users.length" class="on-people">
+        <span
+          v-for="u in online.users"
+          :key="u.id"
+          class="on-person"
+          :title="u.connections > 1 ? `${u.name} · ${u.connections} abas` : u.name"
+        >
+          <UserAvatar :name="u.name" :src="u.avatarUrl" :size="26" />
+          <span class="on-name">{{ u.name }}</span>
+          <span v-if="u.connections > 1" class="on-tabs">{{ u.connections }}</span>
+        </span>
+        <span v-if="onlineOthers" class="on-others">+{{ onlineOthers }} não identificados</span>
+      </div>
+      <div v-else class="on-empty">
+        <template v-if="online && online.total">
+          {{ online.total }} {{ online.total === 1 ? 'conexão anônima' : 'conexões anônimas' }} (deslogados)
+        </template>
+        <template v-else>Ninguém online no momento.</template>
+      </div>
+    </div>
 
     <div v-if="!data" class="metrics">
       <div v-for="i in 6" :key="i" class="card metric sk"><div class="skeleton" style="height: 42px; width: 42px; border-radius: 12px" /><div class="skeleton" style="height: 40px; width: 70px; margin-top: 16px" /><div class="skeleton" style="height: 12px; width: 90px; margin-top: 8px" /></div>
@@ -75,6 +130,88 @@ const metrics = computed<Metric[]>(() => {
 </template>
 
 <style scoped>
+.online {
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.on-head {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+.on-dot {
+  align-self: center;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--emerald) 70%, transparent);
+  animation: on-pulse 2s infinite;
+}
+@keyframes on-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--emerald) 55%, transparent); }
+  70% { box-shadow: 0 0 0 8px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.on-num {
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 800;
+}
+.on-lbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.on-people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.on-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px 4px 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-base);
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 100%;
+}
+.on-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.on-tabs {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 6px;
+}
+.on-others {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px dashed var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.on-empty {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
 .metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
