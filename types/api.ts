@@ -22,6 +22,8 @@ export interface User {
   avatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
+  /** admin list only: user has ≥1 web-push subscription (notifications enabled) */
+  pushEnabled?: boolean;
 }
 
 export interface AuthResponse {

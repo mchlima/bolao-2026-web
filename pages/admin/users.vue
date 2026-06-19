@@ -75,6 +75,50 @@ async function resetPassword(u: User) {
   } catch (e) { err(e); }
 }
 
+// ── enviar notificação personalizada (agora ou agendada) ──
+const notifyFor = ref<User | null>(null);
+const notifyForm = reactive({ title: '', body: '', url: '', schedule: false, sendAt: '' });
+const sendingNotif = ref(false);
+
+// datetime-local default = agora + 1h, no horário LOCAL do navegador do admin.
+function defaultSendAt(): string {
+  const d = new Date(Date.now() + 60 * 60 * 1000);
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function openNotify(u: User) {
+  Object.assign(notifyForm, { title: '', body: '', url: '', schedule: false, sendAt: defaultSendAt() });
+  notifyFor.value = u;
+}
+function fmtWhen(iso: string): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: tz.value,
+  }).format(new Date(iso));
+}
+async function sendNotify() {
+  if (!notifyFor.value) return;
+  if (!notifyForm.title.trim() || !notifyForm.body.trim()) {
+    return ui.toast('error', 'Título e mensagem são obrigatórios.');
+  }
+  let sendAt: string | undefined;
+  if (notifyForm.schedule) {
+    const when = new Date(notifyForm.sendAt);
+    if (!notifyForm.sendAt || Number.isNaN(when.getTime())) return ui.toast('error', 'Escolha uma data e hora válidas.');
+    if (when.getTime() <= Date.now()) return ui.toast('error', 'O agendamento precisa ser no futuro.');
+    sendAt = when.toISOString();
+  }
+  sendingNotif.value = true;
+  try {
+    const res = await useApi()<{ sendAt: string; immediate: boolean }>(
+      `/admin/users/${notifyFor.value.id}/notifications`,
+      { method: 'POST', body: { title: notifyForm.title.trim(), body: notifyForm.body.trim(), url: notifyForm.url.trim() || undefined, sendAt } },
+    );
+    ui.toast('success', res.immediate ? 'Notificação será enviada em até 1 minuto.' : `Notificação agendada para ${fmtWhen(res.sendAt)}.`);
+    notifyFor.value = null;
+  } catch (e) { err(e); }
+  finally { sendingNotif.value = false; }
+}
+
 onMounted(load);
 </script>
 
@@ -111,6 +155,7 @@ onMounted(load);
         </template>
         <template #col-actions="{ row }">
           <div class="acts">
+            <IconButton v-if="row.pushEnabled" icon="bell" label="Enviar notificação" tone="emerald" :size="30" @click="openNotify(row)" />
             <IconButton icon="star" :label="row.role === 'ADMIN' ? 'Remover admin' : 'Promover a admin'" tone="gold" :active="row.role === 'ADMIN'" :size="30" @click="toggleRole(row)" />
             <IconButton icon="refresh" label="Gerar nova senha" tone="azure" :size="30" @click="resetPassword(row)" />
             <IconButton icon="power" :label="row.isActive ? 'Desativar' : 'Reativar'" :tone="row.isActive ? 'danger' : 'emerald'" :size="30" @click="toggleActive(row)" />
@@ -120,6 +165,32 @@ onMounted(load);
 
       <AdminPager v-if="data" v-model="page" :pagination="data.pagination" />
     </div>
+
+    <AppModal v-if="notifyFor" :title="`Notificar ${notifyFor.name}`" @close="notifyFor = null">
+      <div class="adm-form nt-form">
+        <label>Título</label>
+        <input v-model="notifyForm.title" class="input" maxlength="120" placeholder="Ex.: Não esqueça o seu palpite!" />
+        <label>Mensagem</label>
+        <textarea v-model="notifyForm.body" class="input nt-area" rows="3" maxlength="500" placeholder="Texto da notificação…" />
+        <label>Link (opcional)</label>
+        <input v-model="notifyForm.url" class="input" placeholder="/futebol/jogos  ·  abre ao tocar na notificação" />
+        <label>Envio</label>
+        <div class="adm-chips">
+          <button type="button" class="adm-chip" :class="{ on: !notifyForm.schedule }" @click="notifyForm.schedule = false">Agora</button>
+          <button type="button" class="adm-chip" :class="{ on: notifyForm.schedule }" @click="notifyForm.schedule = true">Agendar</button>
+        </div>
+        <template v-if="notifyForm.schedule">
+          <label>Data e hora</label>
+          <input v-model="notifyForm.sendAt" type="datetime-local" class="input" />
+          <p class="nt-hint">No seu horário local. Despachada no minuto agendado.</p>
+        </template>
+        <p v-else class="nt-hint">Enviada em até 1 minuto — o robô despacha a cada minuto.</p>
+      </div>
+      <template #footer>
+        <button class="btn" @click="notifyFor = null">Cancelar</button>
+        <button class="btn btn-primary" :disabled="sendingNotif" @click="sendNotify">{{ notifyForm.schedule ? 'Agendar' : 'Enviar agora' }}</button>
+      </template>
+    </AppModal>
 
     <AppModal v-if="tempPassword" title="Senha temporária" @close="tempPassword = null">
       <p class="tp-msg">Senha temporária gerada para <strong>{{ tempPassword.name }}</strong>. Anote e repasse — ela não será exibida novamente.</p>
@@ -143,6 +214,10 @@ onMounted(load);
 .since { display: flex; flex-direction: column; gap: 2px; font-size: 12px; font-weight: 600; color: var(--text); }
 .tz { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acts { display: flex; gap: 5px; justify-content: flex-end; }
+.nt-form { display: flex; flex-direction: column; gap: 6px; }
+.nt-form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 6px; }
+.nt-area { resize: vertical; min-height: 70px; font: inherit; }
+.nt-hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
 .tp-msg { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
 .tp-box { font-size: 28px; letter-spacing: 0.1em; text-align: center; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
 </style>
