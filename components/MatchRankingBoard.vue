@@ -129,6 +129,11 @@ const playing = computed(
   () => match.value.status === 'LIVE' || match.value.status === 'FINISHED',
 );
 const isLive = computed(() => match.value.status === 'LIVE');
+// Reminders only make sense before kickoff, so the header bell shows only for
+// upcoming matches (scheduled / postponed) — not LIVE, finished or cancelled.
+const canNotify = computed(
+  () => match.value.status === 'SCHEDULED' || match.value.status === 'POSTPONED',
+);
 
 // Countdown to kickoff, shown between the hero and the tabs while the match is
 // still SCHEDULED. `now` ticks every second on the client (the value is
@@ -276,6 +281,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </template>
         <div v-if="!hideBack" class="rhead-top">
           <button class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
+        </div>
+        <div v-if="canNotify" class="rhead-actions">
+          <MatchNotifyBell :match="match" :size="17" pill />
         </div>
         <div class="result">
           <div class="side" :class="{ win: homeWins, lose: awayWins }">
@@ -567,6 +575,12 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   z-index: 2;
   padding: 16px 20px 20px;
   background-image: linear-gradient(135deg, rgba(15, 179, 107, 0.16), rgba(30, 127, 240, 0.14));
+}
+.rhead-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
 }
 .detail.live .result-head {
   background: linear-gradient(135deg, rgba(232, 54, 43, 0.14), rgba(224, 33, 138, 0.1));

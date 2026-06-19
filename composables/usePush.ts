@@ -11,6 +11,15 @@ function urlBase64ToUint8Array(base64: string): Uint8Array<ArrayBuffer> {
   return out;
 }
 
+function isPushSupported(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window
+  );
+}
+
 export function usePush() {
   const config = useRuntimeConfig();
   const ui = useUiStore();
@@ -32,19 +41,18 @@ export function usePush() {
   }
 
   onMounted(() => {
-    supported.value =
-      'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    supported.value = isPushSupported();
     void sync();
   });
 
-  async function enable(): Promise<void> {
-    if (!supported.value || busy.value) return;
+  async function enable({ silent = false }: { silent?: boolean } = {}): Promise<void> {
+    if (!isPushSupported() || busy.value) return;
     busy.value = true;
     try {
       const perm = await Notification.requestPermission();
       permission.value = perm;
       if (perm !== 'granted') {
-        ui.toast('error', 'Permissão de notificações negada.');
+        if (!silent) ui.toast('error', 'Permissão de notificações negada.');
         return;
       }
       const reg = await navigator.serviceWorker.ready;
@@ -60,12 +68,23 @@ export function usePush() {
         body: { endpoint: json.endpoint, keys: { p256dh: json.keys?.p256dh, auth: json.keys?.auth } },
       });
       subscribed.value = true;
-      ui.toast('success', 'Notificações no aparelho ativadas.');
+      if (!silent) ui.toast('success', 'Notificações no aparelho ativadas.');
     } catch {
-      ui.toast('error', 'Não foi possível ativar as notificações.');
+      if (!silent) ui.toast('error', 'Não foi possível ativar as notificações.');
     } finally {
       busy.value = false;
     }
+  }
+
+  /**
+   * Fire-and-forget on app open: prompts for permission when still undecided and
+   * (re)registers the subscription when already granted. No-op (no toast, no
+   * prompt) when unsupported or already denied — so we never nag a user who said
+   * no. Works the same in the browser and the installed PWA.
+   */
+  async function autoEnable(): Promise<void> {
+    if (!isPushSupported() || Notification.permission === 'denied') return;
+    await enable({ silent: true });
   }
 
   async function disable(): Promise<void> {
@@ -89,5 +108,5 @@ export function usePush() {
     }
   }
 
-  return { supported, permission, subscribed, busy, enable, disable };
+  return { supported, permission, subscribed, busy, enable, disable, autoEnable };
 }

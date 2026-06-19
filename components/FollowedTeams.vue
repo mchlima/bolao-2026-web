@@ -5,6 +5,7 @@ import type { Paginated, Team } from '~/types/api';
 // Search hits GET /teams; the followed set is read/written via /me/teams.
 const api = useApi();
 const ui = useUiStore();
+const follows = useFollowsStore();
 
 const followed = ref<Team[]>([]);
 const loading = ref(true);
@@ -60,6 +61,7 @@ async function follow(team: Team) {
   try {
     await api(`/me/teams/${team.id}`, { method: 'PUT' });
     followed.value = [...followed.value, team].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+    follows.reset(); // match bells re-read team-follow state on next load
     search.value = '';
     results.value = [];
     open.value = false;
@@ -76,6 +78,7 @@ async function unfollow(team: Team) {
   try {
     await api(`/me/teams/${team.id}`, { method: 'DELETE' });
     followed.value = followed.value.filter((t) => t.id !== team.id);
+    follows.reset(); // match bells re-read team-follow state on next load
   } catch {
     ui.toast('error', 'Não foi possível remover o time.');
   } finally {

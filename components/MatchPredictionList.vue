@@ -222,7 +222,10 @@ const COLS: AdminColumn[] = [
           <span class="dot">·</span>
           <span class="hh">{{ row.match.status === 'POSTPONED' ? 'a definir' : fmtTime(row.match.kickoffAt) }}</span>
         </span>
-        <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
+        <span class="when-r">
+          <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
+          <MatchNotifyBell :match="row.match" :size="16" />
+        </span>
       </div>
       <div class="teams">
         <span class="tline">
@@ -284,7 +287,10 @@ const COLS: AdminColumn[] = [
       />
       <div class="mc-head">
         <span class="mc-when">{{ fmtDate(row.match.kickoffAt) }} · {{ row.match.status === 'POSTPONED' ? 'a definir' : fmtTime(row.match.kickoffAt) }}</span>
-        <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
+        <span class="mc-head-r">
+          <StatusPill :label="STATUS_LABEL[row.match.status]" :tone="STATUS_TONE[row.match.status]" :live="row.match.status === 'LIVE'" />
+          <MatchNotifyBell :match="row.match" :size="18" />
+        </span>
       </div>
       <!-- time (esquerda) + palpite (direita): uma linha por time, pra que cada
            placar do palpite fique alinhado com o seu time. -->
@@ -352,6 +358,7 @@ const COLS: AdminColumn[] = [
 .tsc.none { color: var(--muted); }
 /* date+time (left) + status chip (right) above the teams, within the Partida column */
 .when { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.when-r { display: inline-flex; align-items: center; gap: 4px; }
 .dt { display: inline-flex; align-items: baseline; gap: 5px; min-width: 0; }
 .dot { color: var(--muted); }
 /* breathing room comes from each cell's right padding, not a grid gap */
@@ -458,6 +465,7 @@ const COLS: AdminColumn[] = [
   margin-bottom: 12px;
 }
 .mc-when { font-size: 12.5px; font-weight: 700; }
+.mc-head-r { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 4px; }
 /* season/fase à esquerda; pontos (cima) + tipo de acerto (baixo) à direita */
 .mc-meta { margin-top: 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .mc-meta-info { min-width: 0; }
