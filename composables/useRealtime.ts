@@ -51,7 +51,11 @@ function openStream(): void {
   roomsKey = list.join(',');
   if (!list.length) return;
   lastBeat = Date.now();
-  es = new EventSource(`${base}/events?rooms=${encodeURIComponent(roomsKey)}`);
+  // withCredentials sends the `bolao-token` cookie so the server can identify
+  // the user for presence (logged-out clients just connect anonymously).
+  es = new EventSource(`${base}/events?rooms=${encodeURIComponent(roomsKey)}`, {
+    withCredentials: true,
+  });
   let opened = false;
   es.onopen = () => {
     lastBeat = Date.now();

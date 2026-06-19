@@ -2,10 +2,7 @@ import { defineStore } from 'pinia';
 import type { AuthResponse, User } from '~/types/api';
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = useCookie<string | null>('bolao-token', {
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-  });
+  const token = useAuthToken();
   const user = ref<User | null>(null);
 
   const isAuthenticated = computed(() => !!token.value);

@@ -5,7 +5,7 @@
  */
 export function useApi() {
   const { public: { apiBase } } = useRuntimeConfig()
-  const token = useCookie<string | null>('bolao-token', { sameSite: 'lax' })
+  const token = useAuthToken()
 
   return $fetch.create({
     baseURL: apiBase,
