@@ -4,6 +4,7 @@ import type {
   PoolJoinPreview,
   PoolMatchPredictionsView,
   PoolMemberRole,
+  PoolRunWithChampion,
   PoolSummary,
   PoolVisibility,
   RankingResponse,
@@ -21,6 +22,7 @@ export function usePools() {
       inviteDescription?: string;
       seasonId: string;
       visibility?: PoolVisibility;
+      start?: boolean;
     }) => api<PoolDetail>('/pools', { method: 'POST', body }),
     update: (
       id: string,
@@ -66,7 +68,22 @@ export function usePools() {
     removeMember: (id: string, userId: string) =>
       api(`/pools/${id}/members/${userId}`, { method: 'DELETE' }),
 
-    ranking: (id: string) => api<RankingResponse>(`/pools/${id}/ranking`),
+    // ── Temporadas (runs) ──
+    listRuns: (id: string) =>
+      api<PoolRunWithChampion[]>(`/pools/${id}/runs`),
+    createRun: (
+      id: string,
+      body: { seasonId: string; label?: string; start?: boolean },
+    ) => api<PoolDetail>(`/pools/${id}/runs`, { method: 'POST', body }),
+    startRun: (id: string, runId: string) =>
+      api<PoolDetail>(`/pools/${id}/runs/${runId}/start`, { method: 'POST' }),
+    endRun: (id: string, runId: string) =>
+      api<PoolDetail>(`/pools/${id}/runs/${runId}/end`, { method: 'POST' }),
+
+    ranking: (id: string, runId?: string) =>
+      api<RankingResponse>(
+        `/pools/${id}/ranking${runId ? `?runId=${runId}` : ''}`,
+      ),
     matchRanking: (id: string, matchId: string) =>
       api<RankingResponse>(`/pools/${id}/matches/${matchId}/ranking`),
     matchPredictions: (id: string, matchId: string) =>

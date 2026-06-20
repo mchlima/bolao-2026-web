@@ -415,6 +415,27 @@ export interface PoolTournamentSummary {
   status: TournamentStatus;
 }
 
+export type PoolRunStatus = 'DRAFT' | 'ACTIVE' | 'ENDED';
+
+// A pool's "temporada": the season it disputes within a time window.
+export interface PoolRunView {
+  id: string;
+  label: string | null;
+  status: PoolRunStatus;
+  startAt: string | null;
+  endAt: string | null;
+  order: number;
+}
+
+export interface PoolRunWithChampion extends PoolRunView {
+  tournament: PoolTournamentSummary;
+  champion: {
+    user: { id: string; name: string; avatarUrl: string | null };
+    points: number;
+  } | null;
+  totalParticipants: number;
+}
+
 export interface PoolMemberView {
   user: { id: string; name: string; avatarUrl: string | null };
   role: PoolMemberRole;
@@ -435,7 +456,8 @@ export interface PoolSummary {
   description: string | null; // internal (members)
   inviteDescription: string | null; // shown on the invite page
   visibility: PoolVisibility;
-  tournament: PoolTournamentSummary;
+  tournament: PoolTournamentSummary; // the current temporada's season
+  currentRun: PoolRunView | null; // the open (or latest) temporada
   myRole: PoolMemberRole;
   memberCount: number;
   createdAt: string;

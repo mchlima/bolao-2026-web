@@ -24,6 +24,12 @@ useRealtime(
 const me = computed(() => ranking.value?.currentUser ?? null);
 const total = computed(() => ranking.value?.totalParticipants ?? 0);
 
+// Refresh both the pool (current temporada state) and the ranking after a
+// temporada is started/ended/created.
+async function onRunChanged() {
+  await Promise.all([refreshPoolData(id), refresh()]);
+}
+
 // ── Edit / leave / delete (moved out of the header) ──
 const editOpen = ref(false);
 const editName = ref('');
@@ -90,6 +96,15 @@ async function leavePool() {
 
 <template>
   <section v-if="pool" class="ov">
+    <!-- temporada status + owner controls (start / end / new season) -->
+    <PoolRunControls
+      :pool-id="id"
+      :run="pool.currentRun"
+      :can-manage="canManage"
+      class="ov-run"
+      @changed="onRunChanged"
+    />
+
     <!-- member standing (shared component) -->
     <StandingHero
       :me="me"
@@ -163,6 +178,10 @@ async function leavePool() {
 <style scoped>
 .ov {
   padding-top: 2px;
+}
+.ov-run {
+  display: block;
+  margin-bottom: 14px;
 }
 .ov-podium {
   display: block;

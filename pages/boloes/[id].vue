@@ -17,6 +17,7 @@ const canManage = computed(
 const section = computed<string>(() => {
   const p = route.path;
   if (p.endsWith('/ranking')) return 'ranking';
+  if (p.endsWith('/temporadas')) return 'temporadas';
   if (p.endsWith('/membros')) return 'membros';
   if (p.endsWith('/convites')) return 'convites';
   if (p.includes(`/boloes/${id}/jogos`)) return 'jogos';
@@ -34,6 +35,7 @@ const tabs = computed(() => {
     { key: 'overview', label: 'Resumo', to: `/boloes/${id}` },
     { key: 'ranking', label: 'Ranking', to: `/boloes/${id}/ranking` },
     { key: 'jogos', label: 'Resultados', to: `/boloes/${id}/jogos` },
+    { key: 'temporadas', label: 'Temporadas', to: `/boloes/${id}/temporadas` },
     { key: 'membros', label: 'Membros', to: `/boloes/${id}/membros` },
   ];
   if (canManage.value) t.push({ key: 'convites', label: 'Convites', to: `/boloes/${id}/convites` });
