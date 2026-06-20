@@ -3,7 +3,7 @@ const auth = useAuthStore();
 const route = useRoute();
 // On the auth screens the page already offers Entrar/Criar conta, so the header
 // CTA is redundant noise — hide it there.
-const onAuthPage = computed(() => route.path === '/login' || route.path === '/register');
+const onAuthPage = computed(() => route.path === '/entrar' || route.path === '/cadastro');
 const authLink = useAuthLink();
 const colorMode = useColorMode();
 const toggleTheme = () => {
@@ -31,9 +31,9 @@ const notifications = useNotificationsStore();
         <NuxtLink to="/futebol/agenda" class="nav-link">Agenda</NuxtLink>
         <NuxtLink to="/futebol/torneios" class="nav-link">Torneios</NuxtLink>
         <template v-if="auth.isAuthenticated">
-          <NuxtLink to="/pools" class="nav-link">Bolões</NuxtLink>
+          <NuxtLink to="/boloes" class="nav-link">Bolões</NuxtLink>
         </template>
-        <NuxtLink to="/howto" class="nav-link">Como funciona</NuxtLink>
+        <NuxtLink to="/como-funciona" class="nav-link">Como funciona</NuxtLink>
       </nav>
 
       <div class="actions">
@@ -59,8 +59,8 @@ const notifications = useNotificationsStore();
             </ClientOnly>
           </button>
           <div class="auth-cta">
-            <NuxtLink :to="authLink('/register')" class="btn btn-gold">Criar conta</NuxtLink>
-            <NuxtLink :to="authLink('/login')" class="btn">Entrar</NuxtLink>
+            <NuxtLink :to="authLink('/cadastro')" class="btn btn-gold">Criar conta</NuxtLink>
+            <NuxtLink :to="authLink('/entrar')" class="btn">Entrar</NuxtLink>
           </div>
         </template>
       </div>

@@ -336,8 +336,8 @@ const ranking = [
             classificação completa e pontuação que premia a precisão.
           </p>
           <div class="cta">
-            <NuxtLink to="/register" class="btn btn-gold big">Criar conta grátis</NuxtLink>
-            <NuxtLink to="/login" class="btn big">Já tenho conta</NuxtLink>
+            <NuxtLink to="/cadastro" class="btn btn-gold big">Criar conta grátis</NuxtLink>
+            <NuxtLink to="/entrar" class="btn big">Já tenho conta</NuxtLink>
           </div>
           <p class="trust">
             <span class="dot-ok" /> Grátis · sem app pra instalar · pronto em 1 minuto
@@ -448,7 +448,7 @@ const ranking = [
           <li>Ranking só entre os seus amigos</li>
           <li>Palpites à mostra: dá pra zoar quem furou</li>
         </ul>
-        <NuxtLink to="/register" class="btn btn-primary big">Criar meu bolão</NuxtLink>
+        <NuxtLink to="/cadastro" class="btn btn-primary big">Criar meu bolão</NuxtLink>
       </div>
       <div class="split-art" aria-hidden="true">
         <div class="card pool">
@@ -495,8 +495,8 @@ const ranking = [
       <h2 class="font-display">Bora cravar esse placar?</h2>
       <p>Crie sua conta, monte o bolão e chame a turma. Leva 1 minuto.</p>
       <div class="cta">
-        <NuxtLink to="/register" class="btn btn-gold big">Criar conta grátis</NuxtLink>
-        <NuxtLink to="/login" class="btn big">Entrar</NuxtLink>
+        <NuxtLink to="/cadastro" class="btn btn-gold big">Criar conta grátis</NuxtLink>
+        <NuxtLink to="/entrar" class="btn big">Entrar</NuxtLink>
       </div>
     </section>
 

@@ -43,7 +43,7 @@ const slides = computed<Slide[]>(() => {
         me: p.me,
         total: p.total,
         ctaTo,
-        linkTo: `/pools/${p.poolId}`,
+        linkTo: `/boloes/${p.poolId}`,
       });
   }
   return out;

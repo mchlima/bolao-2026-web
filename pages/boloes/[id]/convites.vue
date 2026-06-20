@@ -15,7 +15,7 @@ const canManage = computed(
 );
 // Members without manage rights don't get this tab — bounce them to the ranking.
 if (pool.value && !canManage.value) {
-  await navigateTo(`/pools/${id}/ranking`, { replace: true });
+  await navigateTo(`/boloes/${id}/ranking`, { replace: true });
 }
 
 const newInvite = ref('');
@@ -43,7 +43,7 @@ async function toggleInvite(inv: PoolInviteView) {
   }
 }
 function inviteUrl(inv: PoolInviteView): string {
-  return `${origin}/pools/join/${inv.code}`;
+  return `${origin}/boloes/convite/${inv.code}`;
 }
 async function copyInvite(inv: PoolInviteView) {
   try {

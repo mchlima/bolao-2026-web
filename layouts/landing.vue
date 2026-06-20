@@ -27,8 +27,8 @@ const toggleTheme = () => {
               <template #fallback><span style="width:18px;height:18px;display:block" /></template>
             </ClientOnly>
           </button>
-          <NuxtLink to="/login" class="btn">Entrar</NuxtLink>
-          <NuxtLink to="/register" class="btn btn-gold">Criar conta</NuxtLink>
+          <NuxtLink to="/entrar" class="btn">Entrar</NuxtLink>
+          <NuxtLink to="/cadastro" class="btn btn-gold">Criar conta</NuxtLink>
         </div>
       </div>
     </header>

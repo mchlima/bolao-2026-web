@@ -17,13 +17,13 @@ const canManage = computed(
 const section = computed<string>(() => {
   const p = route.path;
   if (p.endsWith('/ranking')) return 'ranking';
-  if (p.endsWith('/members')) return 'members';
-  if (p.endsWith('/invites')) return 'invites';
-  if (p.includes(`/pools/${id}/matches`)) return 'matches';
+  if (p.endsWith('/membros')) return 'membros';
+  if (p.endsWith('/convites')) return 'convites';
+  if (p.includes(`/boloes/${id}/jogos`)) return 'jogos';
   return 'overview';
 });
 // Tabs are peers now (Resumo included), so back just leaves the pool.
-const backTo = '/pools';
+const backTo = '/boloes';
 
 // The match-detail route renders the full-bleed board, so it opts out of the
 // standardized page gutter (mirrors the tournament shell).
@@ -31,12 +31,12 @@ const isMatchDetail = computed(() => !!route.params.matchId);
 
 const tabs = computed(() => {
   const t = [
-    { key: 'overview', label: 'Resumo', to: `/pools/${id}` },
-    { key: 'ranking', label: 'Ranking', to: `/pools/${id}/ranking` },
-    { key: 'matches', label: 'Resultados', to: `/pools/${id}/matches` },
-    { key: 'members', label: 'Membros', to: `/pools/${id}/members` },
+    { key: 'overview', label: 'Resumo', to: `/boloes/${id}` },
+    { key: 'ranking', label: 'Ranking', to: `/boloes/${id}/ranking` },
+    { key: 'jogos', label: 'Resultados', to: `/boloes/${id}/jogos` },
+    { key: 'membros', label: 'Membros', to: `/boloes/${id}/membros` },
   ];
-  if (canManage.value) t.push({ key: 'invites', label: 'Convites', to: `/pools/${id}/invites` });
+  if (canManage.value) t.push({ key: 'convites', label: 'Convites', to: `/boloes/${id}/convites` });
   return t;
 });
 
@@ -63,7 +63,7 @@ const unavailable = computed(() => {
       <div class="ic"><AppIcon name="search" :size="28" :stroke="1.8" /></div>
       <h1 class="font-display u-title">{{ unavailable.title }}</h1>
       <p class="muted u-msg">{{ unavailable.msg }}</p>
-      <NuxtLink to="/pools" class="btn btn-gold">Ver meus bolões</NuxtLink>
+      <NuxtLink to="/boloes" class="btn btn-gold">Ver meus bolões</NuxtLink>
     </div>
 
     <template v-else>

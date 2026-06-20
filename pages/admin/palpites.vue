@@ -182,7 +182,7 @@ onMounted(async () => {
           :rows="filteredRows"
           :loading="loading"
           :season-name="seasonName"
-          :row-to="(r) => `/futebol/torneios/${seasonId}/matches/${r.match.id}`"
+          :row-to="(r) => `/futebol/torneios/${seasonId}/jogos/${r.match.id}`"
           :save-fn="adminSave"
           saved-message="Palpite lançado"
         />

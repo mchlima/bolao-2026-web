@@ -36,7 +36,7 @@ const title = computed(() => {
 
 async function onClick(): Promise<void> {
   if (!auth.isAuthenticated) {
-    navigateTo(authLink('/login'));
+    navigateTo(authLink('/entrar'));
     return;
   }
   if (byTeam.value) {

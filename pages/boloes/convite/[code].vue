@@ -19,7 +19,7 @@ async function confirmJoin() {
   try {
     const pool = await pools.join(code);
     ui.toast('success', 'Você entrou no bolão!');
-    await router.push(`/pools/${pool.id}`);
+    await router.push(`/boloes/${pool.id}`);
   } catch (e) {
     ui.toast('error', apiError(e));
   } finally {
@@ -37,7 +37,7 @@ async function confirmJoin() {
         <div class="ic bad"><AppIcon name="close" :size="30" :stroke="2.4" /></div>
         <h1 class="font-display title">Convite inválido</h1>
         <p class="muted">Este link de convite não existe mais ou foi revogado.</p>
-        <NuxtLink to="/pools" class="btn">Ver meus bolões</NuxtLink>
+        <NuxtLink to="/boloes" class="btn">Ver meus bolões</NuxtLink>
       </template>
 
       <template v-else>
@@ -53,14 +53,14 @@ async function confirmJoin() {
         <button
           v-if="data.alreadyMember"
           class="btn btn-gold"
-          @click="router.push(`/pools/${data.id}`)"
+          @click="router.push(`/boloes/${data.id}`)"
         >
           Você já participa — abrir bolão
         </button>
         <button v-else class="btn btn-gold" :disabled="joining" @click="confirmJoin">
           {{ joining ? 'Entrando…' : 'Entrar no bolão' }}
         </button>
-        <NuxtLink to="/pools" class="muted link">Voltar</NuxtLink>
+        <NuxtLink to="/boloes" class="muted link">Voltar</NuxtLink>
       </template>
     </div>
   </div>

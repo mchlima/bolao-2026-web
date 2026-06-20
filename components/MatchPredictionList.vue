@@ -41,7 +41,7 @@ const props = withDefaults(
     showSeason: true,
     editable: () => true,
     loginPrompt: () => false,
-    loginTo: '/login',
+    loginTo: '/entrar',
     rowTo: () => null,
     savedMessage: 'Palpite salvo ✓',
   },

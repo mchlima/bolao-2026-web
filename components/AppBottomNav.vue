@@ -13,14 +13,14 @@ const items = computed(() => {
       { to: '/', label: 'Início', icon: 'home' },
       { to: '/futebol/agenda', label: 'Agenda', icon: 'calendar' },
       { to: '/futebol/torneios', label: 'Torneios', icon: 'trophy' },
-      { to: '/login', label: 'Entrar', icon: 'login' },
+      { to: '/entrar', label: 'Entrar', icon: 'login' },
     ];
   // Logged in: app nav + the avatar (account sheet) as the last item.
   return [
     { to: '/', label: 'Início', icon: 'home' },
     { to: '/futebol/agenda', label: 'Agenda', icon: 'calendar' },
     { to: '/futebol/torneios', label: 'Torneios', icon: 'trophy' },
-    { to: '/pools', label: 'Bolões', icon: 'users' },
+    { to: '/boloes', label: 'Bolões', icon: 'users' },
   ];
 });
 
@@ -42,7 +42,7 @@ function active(to: string) {
     <NuxtLink
       v-for="it in items"
       :key="it.to"
-      :to="it.to === '/login' ? authLink('/login') : it.to"
+      :to="it.to === '/entrar' ? authLink('/entrar') : it.to"
       class="item"
       :style="{ color: active(it.to) ? 'var(--emerald)' : 'var(--muted)' }"
     >

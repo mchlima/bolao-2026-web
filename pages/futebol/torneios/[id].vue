@@ -27,11 +27,12 @@ useSeoMeta({
     current.value ? `Jogos, tabela e ranking de ${current.value.name}.` : 'Jogos, tabela e ranking do torneio.',
 });
 
-// Active section from the route. The base path (which redirects to /jogos) and
-// /jogos both resolve to 'jogos', so the Jogos tag stays lit through the redirect.
+// Active section from the route. The base path and /jogos both resolve to 'jogos',
+// so the Jogos tag stays lit on the listing. A match detail (/jogos/<matchId>)
+// resolves to 'match' (the shell header is hidden there).
 const section = computed<string>(() => {
   const p = route.path;
-  if (p.includes('/matches/')) return 'match';
+  if (/\/jogos\/[^/]+/.test(p)) return 'match';
   if (p.endsWith('/classificacao')) return 'classificacao';
   if (p.endsWith('/ranking')) return 'ranking';
   return 'jogos';

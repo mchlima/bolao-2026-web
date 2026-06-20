@@ -12,6 +12,6 @@ const matchId = route.params.matchId as string;
   <PoolMatchView
     :pool-id="poolId"
     :match-id="matchId"
-    @back="navigateTo(`/pools/${poolId}/matches`)"
+    @back="navigateTo(`/boloes/${poolId}/jogos`)"
   />
 </template>

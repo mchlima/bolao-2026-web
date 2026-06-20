@@ -358,8 +358,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <li><AppIcon name="star" :size="16" class="jf-ic" /> Pontuação que premia quem crava o placar</li>
           </ul>
           <div class="join-cta">
-            <NuxtLink :to="authLink('/register')" class="btn btn-gold btn-block">Criar conta grátis</NuxtLink>
-            <NuxtLink :to="authLink('/login')" class="btn btn-block">Já tenho conta</NuxtLink>
+            <NuxtLink :to="authLink('/cadastro')" class="btn btn-gold btn-block">Criar conta grátis</NuxtLink>
+            <NuxtLink :to="authLink('/entrar')" class="btn btn-block">Já tenho conta</NuxtLink>
           </div>
           <p class="join-trust">Grátis · sem instalar nada · pronto em 1 minuto</p>
         </div>

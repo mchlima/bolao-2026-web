@@ -65,7 +65,7 @@ async function delPool() {
   try {
     await pools.remove(id);
     ui.toast('success', 'Bolão excluído.');
-    await router.push('/pools');
+    await router.push('/boloes');
   } catch (e) {
     ui.toast('error', poolError(e));
   }
@@ -81,7 +81,7 @@ async function leavePool() {
   try {
     await pools.leave(id);
     ui.toast('success', 'Você saiu do bolão.');
-    await router.push('/pools');
+    await router.push('/boloes');
   } catch (e) {
     ui.toast('error', poolError(e));
   }

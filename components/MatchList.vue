@@ -45,13 +45,13 @@ function matchOpen(m: Match): boolean {
 }
 const editable = (r: PredRow) => matchOpen(r.match) && auth.isAuthenticated;
 const loginPrompt = (r: PredRow) => matchOpen(r.match) && !auth.isAuthenticated;
-const loginTo = computed(() => authLink('/login'));
+const loginTo = computed(() => authLink('/entrar'));
 
 function rowTo(r: PredRow): string | null {
   const m = r.match;
   if (!m.homeTeam || !m.awayTeam) return null;
-  if (props.poolId) return `/pools/${props.poolId}/matches/${m.id}`;
-  if (m.seasonId) return `/futebol/torneios/${m.seasonId}/matches/${m.id}`;
+  if (props.poolId) return `/boloes/${props.poolId}/jogos/${m.id}`;
+  if (m.seasonId) return `/futebol/torneios/${m.seasonId}/jogos/${m.id}`;
   return `/futebol/agenda/${m.id}`;
 }
 

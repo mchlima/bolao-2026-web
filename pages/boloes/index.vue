@@ -70,7 +70,7 @@ async function submitCreate() {
     form.name = '';
     form.description = '';
     form.inviteDescription = '';
-    await router.push(`/pools/${pool.id}`);
+    await router.push(`/boloes/${pool.id}`);
   } catch (e) {
     ui.toast('error', apiError(e));
   } finally {
@@ -105,7 +105,7 @@ async function submitCreate() {
       <NuxtLink
         v-for="(p, i) in (data as PoolSummary[])"
         :key="p.id"
-        :to="`/pools/${p.id}`"
+        :to="`/boloes/${p.id}`"
         class="card"
       >
         <div class="c-top">

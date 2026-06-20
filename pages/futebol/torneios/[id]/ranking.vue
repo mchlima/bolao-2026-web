@@ -27,8 +27,8 @@ useRealtime(() => (auth.token ? [`tournament:${id}`] : []), () => refresh());
       <h3 class="font-display">Entre para ver o ranking</h3>
       <p class="muted">O ranking do bolão mostra a pontuação dos participantes — disponível para quem tem conta. Entre ou cadastre-se para acompanhar.</p>
       <div class="gate-actions">
-        <NuxtLink :to="authLink('/login')" class="btn btn-gold">Entrar</NuxtLink>
-        <NuxtLink :to="authLink('/register')" class="btn">Criar conta</NuxtLink>
+        <NuxtLink :to="authLink('/entrar')" class="btn btn-gold">Entrar</NuxtLink>
+        <NuxtLink :to="authLink('/cadastro')" class="btn">Criar conta</NuxtLink>
       </div>
     </div>
     <SkeletonList v-else-if="pending && !data" variant="row" :count="8" />

@@ -1,13 +1,15 @@
 <script setup lang="ts">
-useSeoMeta({ title: 'Entrar — Cravei', robots: 'noindex' });
+useSeoMeta({ title: 'Criar conta — Cravei', robots: 'noindex' });
 
 const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const ui = useUiStore();
 
+const name = ref('');
 const email = ref('');
 const password = ref('');
+const password2 = ref('');
 const loading = ref(false);
 
 // Only allow internal (relative) redirects — never an external URL.
@@ -16,16 +18,25 @@ const redirect = computed(() => {
   return r && r.startsWith('/') ? r : '/';
 });
 
+const matchState = computed(() => {
+  if (!password2.value) return null;
+  return password.value === password2.value;
+});
+
 async function submit() {
+  if (matchState.value === false) {
+    ui.toast('error', 'As senhas não coincidem.');
+    return;
+  }
   loading.value = true;
   try {
-    await auth.login(email.value, password.value);
-    ui.toast('success', 'Bem-vindo de volta!');
+    await auth.register(name.value, email.value, password.value);
+    ui.toast('success', 'Conta criada! Boa sorte nos palpites.');
     router.push(redirect.value);
   } catch (e) {
     ui.toast(
       'error',
-      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível entrar.',
+      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível cadastrar.',
     );
   } finally {
     loading.value = false;
@@ -36,12 +47,12 @@ async function onGoogle(idToken: string) {
   loading.value = true;
   try {
     await auth.loginWithGoogle(idToken);
-    ui.toast('success', 'Bem-vindo!');
+    ui.toast('success', 'Conta criada! Boa sorte nos palpites.');
     router.push(redirect.value);
   } catch (e) {
     ui.toast(
       'error',
-      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível entrar com o Google.',
+      (e as { data?: { message?: string } })?.data?.message ?? 'Não foi possível cadastrar com o Google.',
     );
   } finally {
     loading.value = false;
@@ -57,25 +68,31 @@ async function onGoogle(idToken: string) {
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0A0E14" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v3a6 6 0 0 1-12 0Z"/><path d="M6 5H3v1a3 3 0 0 0 3 3M18 5h3v1a3 3 0 0 1-3 3M9 19h6M12 13v6"/></svg>
         </span>
         <h1 class="font-display">Cravei</h1>
-        <p class="tag">Entre na disputa da Copa 2026</p>
+        <p class="tag">Crie sua conta para palpitar</p>
       </div>
 
       <div class="card box">
         <div class="tabs">
-          <span class="tab on">Entrar</span>
-          <NuxtLink :to="{ path: '/register', query: route.query }" class="tab">Criar conta</NuxtLink>
+          <NuxtLink :to="{ path: '/entrar', query: route.query }" class="tab">Entrar</NuxtLink>
+          <span class="tab on">Criar conta</span>
         </div>
         <form @submit.prevent="submit">
+          <label>Nome</label>
+          <input v-model="name" type="text" class="input" placeholder="Seu nome" autocomplete="name" required />
           <label>E-mail</label>
           <input v-model="email" type="email" class="input" placeholder="voce@email.com" autocomplete="email" required />
-          <label>Senha</label>
-          <input v-model="password" type="password" class="input" placeholder="••••••••" autocomplete="current-password" required />
+          <label>Senha (mín. 8)</label>
+          <input v-model="password" type="password" class="input" placeholder="••••••••" autocomplete="new-password" minlength="8" required />
+          <label>Confirmar senha</label>
+          <input v-model="password2" type="password" class="input" placeholder="••••••••" autocomplete="new-password" required />
+          <p v-if="matchState === false" class="err">As senhas não coincidem</p>
+          <p v-else-if="matchState === true" class="ok"><AppIcon name="check" :size="13" :stroke="2.6" />Senhas conferem</p>
           <button class="btn btn-primary btn-block submit" :disabled="loading" type="submit">
-            {{ loading ? 'Entrando…' : 'Entrar' }}
+            {{ loading ? 'Cadastrando…' : 'Criar conta' }}
           </button>
         </form>
         <div class="sep"><span>ou</span></div>
-        <GoogleSignInButton text="continue_with" @credential="onGoogle" @error="ui.toast('error', 'Falha no login com o Google.')" />
+        <GoogleSignInButton text="signup_with" @credential="onGoogle" @error="ui.toast('error', 'Falha no cadastro com o Google.')" />
       </div>
     </div>
   </div>
@@ -159,6 +176,21 @@ label {
   margin-top: 1rem;
   padding: 14px;
   font-size: 16px;
+}
+.err {
+  color: var(--scarlet);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0.5rem 0 0;
+}
+.ok {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--emerald);
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0.5rem 0 0;
 }
 .sep {
   display: flex;
