@@ -40,7 +40,8 @@ const metrics = computed<Metric[]>(() => {
 // counts toward the total.
 interface Online {
   total: number;
-  users: { id: string; name: string; avatarUrl: string | null; connections: number; since: string }[];
+  others: number;
+  users: { id: string; name: string; avatarUrl: string | null; devices: number; since: string }[];
 }
 const online = ref<Online | null>(null);
 let onlineTimer: ReturnType<typeof setInterval> | undefined;
@@ -51,10 +52,7 @@ async function loadOnline(): Promise<void> {
     /* transient: keep the last snapshot */
   }
 }
-const onlineNamedConns = computed(() =>
-  (online.value?.users ?? []).reduce((sum, u) => sum + u.connections, 0),
-);
-const onlineOthers = computed(() => Math.max(0, (online.value?.total ?? 0) - onlineNamedConns.value));
+const onlineOthers = computed(() => online.value?.others ?? 0);
 onMounted(() => {
   loadOnline();
   onlineTimer = setInterval(loadOnline, 10000);
@@ -72,18 +70,18 @@ onBeforeUnmount(() => {
       <div class="on-head">
         <span class="on-dot" />
         <span class="font-numeric on-num">{{ online?.total ?? 0 }}</span>
-        <span class="on-lbl">{{ (online?.total ?? 0) === 1 ? 'dispositivo online' : 'dispositivos online' }}</span>
+        <span class="on-lbl">{{ (online?.total ?? 0) === 1 ? 'pessoa online' : 'pessoas online' }}</span>
       </div>
       <div v-if="online?.users.length" class="on-people">
         <span
           v-for="u in online.users"
           :key="u.id"
           class="on-person"
-          :title="u.connections > 1 ? `${u.name} · ${u.connections} dispositivos` : u.name"
+          :title="u.devices > 1 ? `${u.name} · ${u.devices} dispositivos` : u.name"
         >
           <UserAvatar :name="u.name" :src="u.avatarUrl" :size="26" />
           <span class="on-name">{{ u.name }}</span>
-          <span v-if="u.connections > 1" class="on-tabs">{{ u.connections }}</span>
+          <span v-if="u.devices > 1" class="on-tabs">{{ u.devices }}</span>
         </span>
         <span v-if="onlineOthers" class="on-others">+{{ onlineOthers }} não identificados</span>
       </div>

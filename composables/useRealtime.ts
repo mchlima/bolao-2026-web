@@ -116,6 +116,29 @@ function closeStream(): void {
   es = null;
 }
 
+// Stable per-browser id, persisted and shared across tabs. The server counts
+// presence by (user, device), so even while several tabs each briefly hold a
+// stream during leader election — or in the no-Web-Locks fallback (one stream
+// per tab) — they collapse to a single device instead of inflating the count.
+// Falls back to a per-session id if storage/crypto is unavailable (private mode).
+let deviceId = '';
+function getDeviceId(): string {
+  if (deviceId) return deviceId;
+  const fresh = (): string =>
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `d-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  try {
+    const saved = localStorage.getItem('bolao-device-id');
+    if (saved) return (deviceId = saved);
+    const id = fresh();
+    localStorage.setItem('bolao-device-id', id);
+    return (deviceId = id);
+  } catch {
+    return (deviceId ||= fresh());
+  }
+}
+
 function openStream(): void {
   closeStream();
   if (mode === 'follower') {
@@ -128,9 +151,10 @@ function openStream(): void {
   lastBeat = Date.now();
   // withCredentials sends the `bolao-token` cookie so the server can identify
   // the user for presence (logged-out clients just connect anonymously).
-  es = new EventSource(`${base}/events?rooms=${encodeURIComponent(roomsKey)}`, {
-    withCredentials: true,
-  });
+  es = new EventSource(
+    `${base}/events?rooms=${encodeURIComponent(roomsKey)}&did=${encodeURIComponent(getDeviceId())}`,
+    { withCredentials: true },
+  );
   let opened = false;
   es.onopen = () => {
     lastBeat = Date.now();
