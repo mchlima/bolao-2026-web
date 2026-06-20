@@ -232,6 +232,7 @@ async function leavePool() {
   align-items: center;
   gap: 12px;
   margin-top: 12px;
+  margin-bottom: 16px;
   padding: 13px 15px;
   border-radius: 14px;
   border: 1px solid var(--border);
