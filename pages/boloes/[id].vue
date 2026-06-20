@@ -20,6 +20,7 @@ const section = computed<string>(() => {
   if (p.endsWith('/temporadas')) return 'temporadas';
   if (p.endsWith('/membros')) return 'membros';
   if (p.endsWith('/convites')) return 'convites';
+  if (p.endsWith('/configuracoes')) return 'config';
   if (p.includes(`/boloes/${id}/jogos`)) return 'jogos';
   return 'overview';
 });
@@ -38,7 +39,10 @@ const tabs = computed(() => {
     { key: 'temporadas', label: 'Temporadas', to: `/boloes/${id}/temporadas` },
     { key: 'membros', label: 'Membros', to: `/boloes/${id}/membros` },
   ];
-  if (canManage.value) t.push({ key: 'convites', label: 'Convites', to: `/boloes/${id}/convites` });
+  if (canManage.value) {
+    t.push({ key: 'convites', label: 'Convites', to: `/boloes/${id}/convites` });
+    t.push({ key: 'config', label: 'Configurações', to: `/boloes/${id}/configuracoes` });
+  }
   return t;
 });
 
