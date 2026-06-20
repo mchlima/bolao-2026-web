@@ -55,6 +55,7 @@ const form = reactive({
   startDate: '',
   endDate: '',
   logoUrl: '',
+  location: '',
 });
 const saving = ref(false);
 
@@ -63,6 +64,7 @@ function openNew() {
   Object.assign(form, {
     competitionId: competitions.value[0]?.id ?? '', name: '', seasonLabel: '',
     format: 'GROUPS_KNOCKOUT', status: 'DRAFT', startDate: '', endDate: '', logoUrl: '',
+    location: '',
   });
   modalOpen.value = true;
 }
@@ -77,6 +79,7 @@ function openEdit(t: Tournament) {
     startDate: t.startDate?.slice(0, 10) ?? '',
     endDate: t.endDate?.slice(0, 10) ?? '',
     logoUrl: t.logoUrl ?? '',
+    location: t.location ?? '',
   });
   modalOpen.value = true;
 }
@@ -92,6 +95,7 @@ async function submit() {
     format: form.format,
     status: form.status,
     logoUrl: form.logoUrl || undefined,
+    location: form.location || undefined,
     startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
     endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
   };
@@ -198,6 +202,12 @@ onMounted(() => {
           <div><label>Início</label><input v-model="form.startDate" type="date" class="input" /></div>
           <div><label>Fim</label><input v-model="form.endDate" type="date" class="input" /></div>
         </div>
+        <label>Sede</label>
+        <input
+          v-model="form.location"
+          class="input"
+          placeholder="Ex.: Estados Unidos, Canadá e México"
+        />
         <label>Logo</label>
         <ImageUploadField v-model="form.logoUrl" prefix="tournaments" />
       </div>

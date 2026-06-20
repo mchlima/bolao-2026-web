@@ -88,16 +88,29 @@ const matchJsonLd = computed(() => {
     POSTPONED: 'EventPostponed',
     CANCELLED: 'EventCancelled',
   };
+  const teams = [
+    { '@type': 'SportsTeam', name: home, ...(m.homeTeam?.logoUrl ? { logo: m.homeTeam.logoUrl } : {}) },
+    { '@type': 'SportsTeam', name: away, ...(m.awayTeam?.logoUrl ? { logo: m.awayTeam.logoUrl } : {}) },
+  ];
+  const images = [m.homeTeam?.logoUrl, m.awayTeam?.logoUrl, m.stadium?.photoUrl].filter(
+    (u): u is string => !!u,
+  );
+  // Football matches run ~2h; gives schema.org a valid endDate (recommended field).
+  const endDate = new Date(new Date(m.kickoffAt).getTime() + 2 * 60 * 60 * 1000).toISOString();
   const event: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'SportsEvent',
     name: `${home} x ${away}`,
     sport: 'Soccer',
     startDate: m.kickoffAt,
+    endDate,
     eventStatus: `https://schema.org/${statusMap[m.status] ?? 'EventScheduled'}`,
     url: canonicalUrl.value,
-    homeTeam: { '@type': 'SportsTeam', name: home, ...(m.homeTeam?.logoUrl ? { logo: m.homeTeam.logoUrl } : {}) },
-    awayTeam: { '@type': 'SportsTeam', name: away, ...(m.awayTeam?.logoUrl ? { logo: m.awayTeam.logoUrl } : {}) },
+    description: `Palpite em ${home} x ${away}: placar ao vivo, escalações, estatísticas e ranking do bolão no Cravei.`,
+    homeTeam: teams[0],
+    awayTeam: teams[1],
+    performer: teams,
+    ...(images.length ? { image: images } : {}),
   };
   if (m.stadium) {
     event.location = {
@@ -106,7 +119,23 @@ const matchJsonLd = computed(() => {
       address: [m.stadium.city, m.stadium.country].filter(Boolean).join(', '),
     };
   }
-  if (m.season?.name) event.superEvent = { '@type': 'SportsEvent', name: m.season.name };
+  // Tournament context as a valid nested SportsEvent (superEvent): the season's
+  // name + dates + host location (season.location, falling back to the competition
+  // country). Only emitted when we have the dates, so it never produces an
+  // incomplete event.
+  const s = m.season;
+  if (s?.name && s.startDate) {
+    const host = s.location ?? s.competition?.country ?? null;
+    const superEvent: Record<string, unknown> = {
+      '@type': 'SportsEvent',
+      name: s.name,
+      startDate: s.startDate,
+      ...(s.endDate ? { endDate: s.endDate } : {}),
+      ...(m.seasonId ? { url: `${siteUrl}/futebol/torneios/${m.seasonId}` } : {}),
+    };
+    if (host) superEvent.location = { '@type': 'Place', name: host };
+    event.superEvent = superEvent;
+  }
   const crumbs: Record<string, unknown>[] = [
     { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
   ];

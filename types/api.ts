@@ -159,6 +159,7 @@ export interface Tournament {
   name: string;
   seasonLabel?: string | null;
   logoUrl: string | null;
+  location?: string | null;
   startDate: string | null;
   endDate: string | null;
   status: TournamentStatus;
@@ -274,7 +275,15 @@ export interface BracketStage {
 export interface Match {
   id: string;
   seasonId: string;
-  season?: { id: string; name: string; status: TournamentStatus } | null;
+  season?: {
+    id: string;
+    name: string;
+    status: TournamentStatus;
+    startDate?: string | null;
+    endDate?: string | null;
+    location?: string | null;
+    competition?: { country: string | null } | null;
+  } | null;
   homeTeam: Team | null;
   awayTeam: Team | null;
   homeSourceLabel: string | null;
