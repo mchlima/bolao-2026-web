@@ -9,6 +9,11 @@ const id = route.params.id as string;
 // Tournament name for the header/share — reuse the shell's cached list (no extra fetch).
 const { data: tournaments } = useNuxtData<Tournament[]>('tournaments-list');
 const tname = computed(() => tournaments.value?.find((t) => t.id === id)?.name ?? 'Torneio');
+useSeoMeta({
+  title: () => `Ranking do bolão · ${tname.value} — Cravei`,
+  description: () =>
+    `Ranking do bolão de ${tname.value}: a classificação dos palpiteiros, com pódio e pontuação atualizada ao vivo.`,
+});
 
 // The ranking is members-only (the API requires auth). Skip the request entirely
 // when logged out and show a login gate instead.

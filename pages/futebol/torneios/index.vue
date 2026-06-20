@@ -16,13 +16,17 @@ function tBadge(name: string): string {
   return (words[0]?.[0] ?? '') + (words[1]?.[0] ?? '');
 }
 
+const seoTitle = 'Torneios e campeonatos para palpitar — Cravei';
+const seoDesc =
+  'Todos os torneios disponíveis no Cravei, da Copa do Mundo 2026 aos campeonatos: classificação, fases, rodadas e ranking do bolão de cada um. Palpite e acompanhe ao vivo.';
 useSeoMeta({
-  title: 'Torneios — Cravei',
-  description:
-    'Os torneios disponíveis para palpitar e acompanhar: classificação, fases, rodadas e ranking de cada um.',
-  ogTitle: 'Torneios — Cravei',
-  ogDescription:
-    'Escolha um torneio para palpitar e acompanhar a classificação, as fases e o ranking.',
+  title: seoTitle,
+  description: seoDesc,
+  ogTitle: seoTitle,
+  ogDescription: seoDesc,
+  ogUrl: `${useRuntimeConfig().public.siteUrl}/futebol/torneios`,
+  twitterTitle: seoTitle,
+  twitterDescription: seoDesc,
 });
 
 const { data, pending } = await useAsyncData('tournaments', async () => {

@@ -1,8 +1,19 @@
 <script setup lang="ts">
-import type { BracketStage, StageStandings } from '~/types/api';
+import type { BracketStage, StageStandings, Tournament } from '~/types/api';
 
 const route = useRoute();
 const id = route.params.id as string;
+
+// Tournament name for a tab-specific title — reuse the shell's cached list.
+const { data: seoTournaments } = useNuxtData<Tournament[]>('tournaments-list');
+const seoName = computed(() => seoTournaments.value?.find((t) => t.id === id)?.name ?? null);
+useSeoMeta({
+  title: () => (seoName.value ? `Classificação · ${seoName.value} — Cravei` : 'Classificação do torneio — Cravei'),
+  description: () =>
+    seoName.value
+      ? `Tabela de classificação de ${seoName.value}: pontos, jogos, saldo de gols e a disputa por vaga — atualizada ao vivo.`
+      : 'Tabela de classificação do torneio, atualizada ao vivo.',
+});
 
 const { data, pending, error, refresh } = await useAsyncData(
   `phases-${id}`,

@@ -44,6 +44,7 @@ function onRefresh() {
 
 // Dynamic SEO from the fetched match (covers /futebol/agenda/:id and the
 // tournament-scoped match route, both of which render this component).
+const siteUrl = String(useRuntimeConfig().public.siteUrl);
 const seoMatchup = computed(() => {
   const m = match.value;
   if (!m) return null;
@@ -51,17 +52,84 @@ const seoMatchup = computed(() => {
   const away = m.awayTeam?.name ?? m.awaySourceLabel ?? 'A definir';
   return `${home} x ${away}`;
 });
+// The same match is reachable from /futebol/agenda/:id and the tournament-scoped
+// route → one canonical (tournament-scoped when it has a season) so search engines
+// don't see duplicate content.
+const canonicalUrl = computed(() => {
+  const m = match.value;
+  if (!m) return siteUrl;
+  return m.seasonId
+    ? `${siteUrl}/futebol/torneios/${m.seasonId}/jogos/${m.id}`
+    : `${siteUrl}/futebol/agenda/${m.id}`;
+});
+const seoTitle = computed(() => (seoMatchup.value ? `${seoMatchup.value} — Cravei` : 'Partida — Cravei'));
+const seoDesc = computed(() =>
+  seoMatchup.value
+    ? `Palpite em ${seoMatchup.value}, veja o placar ao vivo, escalações, estatísticas e o ranking do bolão.`
+    : 'Palpites, placar ao vivo e ranking da partida.',
+);
 useSeoMeta({
-  title: () => (seoMatchup.value ? `${seoMatchup.value} — Cravei` : 'Partida — Cravei'),
-  description: () =>
-    seoMatchup.value
-      ? `Palpites, placar ao vivo e ranking da partida ${seoMatchup.value}.`
-      : 'Palpites, placar ao vivo e ranking da partida.',
-  ogTitle: () => (seoMatchup.value ? `${seoMatchup.value} — Cravei` : 'Partida — Cravei'),
-  ogDescription: () =>
-    seoMatchup.value
-      ? `Placar ao vivo e ranking dos palpites de ${seoMatchup.value}.`
-      : 'Placar ao vivo e ranking dos palpites.',
+  title: () => seoTitle.value,
+  description: () => seoDesc.value,
+  ogTitle: () => seoTitle.value,
+  ogDescription: () => seoDesc.value,
+  ogUrl: () => canonicalUrl.value,
+  twitterTitle: () => seoTitle.value,
+  twitterDescription: () => seoDesc.value,
+});
+// Structured data: SportsEvent (rich event result — teams, kickoff, venue) +
+// BreadcrumbList (Início › Torneio › Jogo).
+const matchJsonLd = computed(() => {
+  const m = match.value;
+  if (!m) return '';
+  const home = m.homeTeam?.name ?? m.homeSourceLabel ?? 'A definir';
+  const away = m.awayTeam?.name ?? m.awaySourceLabel ?? 'A definir';
+  const statusMap: Record<string, string> = {
+    POSTPONED: 'EventPostponed',
+    CANCELLED: 'EventCancelled',
+  };
+  const event: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'SportsEvent',
+    name: `${home} x ${away}`,
+    sport: 'Soccer',
+    startDate: m.kickoffAt,
+    eventStatus: `https://schema.org/${statusMap[m.status] ?? 'EventScheduled'}`,
+    url: canonicalUrl.value,
+    homeTeam: { '@type': 'SportsTeam', name: home, ...(m.homeTeam?.logoUrl ? { logo: m.homeTeam.logoUrl } : {}) },
+    awayTeam: { '@type': 'SportsTeam', name: away, ...(m.awayTeam?.logoUrl ? { logo: m.awayTeam.logoUrl } : {}) },
+  };
+  if (m.stadium) {
+    event.location = {
+      '@type': 'Place',
+      name: m.stadium.name,
+      address: [m.stadium.city, m.stadium.country].filter(Boolean).join(', '),
+    };
+  }
+  if (m.season?.name) event.superEvent = { '@type': 'SportsEvent', name: m.season.name };
+  const crumbs: Record<string, unknown>[] = [
+    { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
+  ];
+  if (m.seasonId && m.season?.name) {
+    crumbs.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: m.season.name,
+      item: `${siteUrl}/futebol/torneios/${m.seasonId}`,
+    });
+  }
+  crumbs.push({
+    '@type': 'ListItem',
+    position: crumbs.length + 1,
+    name: `${home} x ${away}`,
+    item: canonicalUrl.value,
+  });
+  return JSON.stringify([event, { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: crumbs }]);
+});
+useHead({
+  link: [{ rel: 'canonical', key: 'canonical', href: () => canonicalUrl.value }],
+  // Keyed 'ld-graph' to replace the tournament shell's breadcrumb on match routes.
+  script: [{ key: 'ld-graph', type: 'application/ld+json', innerHTML: () => matchJsonLd.value }],
 });
 </script>
 

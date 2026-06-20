@@ -5,9 +5,13 @@ import type { Match } from '~/types/api';
 // match OR follows one of its teams. Clicking toggles the explicit opt-in;
 // when it's active only because of a followed team, we explain instead of
 // silently doing nothing (you manage team follows in "Meus times").
+//
+// Only shown for SCHEDULED matches: the reminders are 1d/1h/kickoff, so a
+// reminder is meaningless once the match is LIVE, FINISHED, POSTPONED or
+// CANCELLED — the bell is hidden in those states.
 const props = withDefaults(
   defineProps<{
-    match: Pick<Match, 'id' | 'homeTeam' | 'awayTeam'>;
+    match: Pick<Match, 'id' | 'homeTeam' | 'awayTeam' | 'status'>;
     size?: number;
     /** round translucent pill style for the match hero (vs the bare list icon) */
     pill?: boolean;
@@ -24,6 +28,8 @@ onMounted(() => {
   if (auth.isAuthenticated) void follows.ensureLoaded();
 });
 
+// A reminder only makes sense before kickoff — gate the whole control on it.
+const schedulable = computed(() => props.match.status === 'SCHEDULED');
 const active = computed(() => follows.isActive(props.match));
 const byTeam = computed(() => follows.activeByTeam(props.match));
 const busy = ref(false);
@@ -67,7 +73,7 @@ async function onClick(): Promise<void> {
 
 <template>
   <button
-    v-if="auth.isAuthenticated"
+    v-if="auth.isAuthenticated && schedulable"
     type="button"
     class="nbell"
     :class="{ on: active, pill }"

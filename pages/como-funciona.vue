@@ -3,13 +3,57 @@
 // dentro disso, quanto mais preciso o placar, mais pontos. Fonte da verdade:
 // ScoringService (api) + bolao-2026-docs/api/scoring.md. Rótulos/cores espelham
 // utils/format.ts e MatchCard.vue.
+const seoTitle = 'Como funciona o bolão — pontuação e regras — Cravei';
+const seoDesc =
+  'Entenda a pontuação do bolão da Copa do Mundo 2026: cravar o placar vale mais, mas acertar o vencedor ou o empate já pontua. Veja os níveis, o multiplicador do mata-mata e como o ranking é calculado.';
 useSeoMeta({
-  title: 'Como funciona — Cravei',
-  description:
-    'Entenda a pontuação do bolão: cravar o placar vale mais, mas acertar o vencedor ou o empate já pontua. Veja todos os níveis e como o ranking é calculado.',
-  ogTitle: 'Como funciona o Cravei',
-  ogDescription:
-    'A pontuação por proximidade: cravar o placar vale mais, mas acertar o vencedor já pontua.',
+  title: seoTitle,
+  description: seoDesc,
+  ogTitle: seoTitle,
+  ogDescription: seoDesc,
+  ogUrl: `${useRuntimeConfig().public.siteUrl}/como-funciona`,
+  twitterTitle: seoTitle,
+  twitterDescription: seoDesc,
+});
+// FAQPage structured data — Q&A mirror the visible "As regras" section (Google
+// requires the answers to be present on the page).
+const FAQ: [string, string][] = [
+  [
+    'Como funciona a pontuação do bolão?',
+    'Acertar o vencedor ou o empate já pontua. Quanto mais preciso o placar, mais vale: gols do vencedor, saldo de gols, gols do perdedor — até cravar o placar exato, que vale o máximo da partida.',
+  ],
+  [
+    'Quando posso palpitar?',
+    'Por padrão os palpites ficam abertos enquanto a partida está agendada e antes do horário do apito; depois fecham automaticamente. O organizador também pode abrir ou fechar os palpites de uma partida na mão, inclusive reabrir um jogo já ao vivo.',
+  ],
+  [
+    'Como funciona a pontuação ao vivo?',
+    'Enquanto a partida rola, o ranking dela mostra quanto cada um está ganhando até o momento, calculado pelo placar parcial. Os pontos mudam a cada gol e só viram definitivos quando o jogo é encerrado.',
+  ],
+  [
+    'Quais rankings existem?',
+    'Dois: o do torneio (a soma dos seus pontos em todas as partidas, com pódio) e o da partida (só aquele jogo). Em caso de empate, quem palpitou primeiro fica na frente.',
+  ],
+  [
+    'Os palpites ficam visíveis para todos?',
+    'Sim, os palpites são visíveis para todos. Dá pra ver o que cada amigo apostou em cada partida — e quem cravou. Partidas canceladas não geram pontos para ninguém.',
+  ],
+];
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: FAQ.map(([q, a]) => ({
+          '@type': 'Question',
+          name: q,
+          acceptedAnswer: { '@type': 'Answer', text: a },
+        })),
+      }),
+    },
+  ],
 });
 
 const tiers = [

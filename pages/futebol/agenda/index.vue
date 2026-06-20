@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import type { Competition, Match, Paginated, Prediction } from '~/types/api';
 
+const seoTitle = 'Agenda de jogos — Cravei';
+const seoDesc =
+  'A agenda de jogos da Copa do Mundo 2026 e dos campeonatos, dia a dia: horários, placar ao vivo e palpites de cada partida, de todos os torneios.';
 useSeoMeta({
-  title: 'Agenda — Cravei',
-  description:
-    'A agenda de jogos dia a dia: navegue pelas datas e veja as partidas de cada dia, de todos os torneios, com placar e horário.',
-  ogTitle: 'Agenda de jogos — Cravei',
-  ogDescription: 'Os jogos de cada dia, de todos os torneios, com placar e horário.',
+  title: seoTitle,
+  description: seoDesc,
+  ogTitle: seoTitle,
+  ogDescription: seoDesc,
+  ogUrl: `${useRuntimeConfig().public.siteUrl}/futebol/agenda`,
+  twitterTitle: seoTitle,
+  twitterDescription: seoDesc,
 });
 
 // The agenda groups matches by BRT calendar day server-side, so the day picker

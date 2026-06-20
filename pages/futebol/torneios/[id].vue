@@ -16,6 +16,8 @@ const { data: tournaments } = await useAsyncData('tournaments-list', () =>
 const current = computed(
   () => (tournaments.value ?? []).find((t) => t.id === id) ?? null,
 );
+const siteUrl = String(useRuntimeConfig().public.siteUrl);
+const hubUrl = `${siteUrl}/futebol/torneios/${id}`;
 useSeoMeta({
   title: () => (current.value ? `${current.value.name} — Cravei` : 'Torneio — Cravei'),
   description: () =>
@@ -25,6 +27,33 @@ useSeoMeta({
   ogTitle: () => (current.value ? `${current.value.name} — Cravei` : 'Torneio — Cravei'),
   ogDescription: () =>
     current.value ? `Jogos, tabela e ranking de ${current.value.name}.` : 'Jogos, tabela e ranking do torneio.',
+  ogUrl: hubUrl,
+  twitterTitle: () => (current.value ? `${current.value.name} — Cravei` : 'Torneio — Cravei'),
+  twitterDescription: () =>
+    current.value ? `Jogos, tabela e ranking de ${current.value.name}.` : 'Jogos, tabela e ranking do torneio.',
+});
+// Breadcrumb: Início › Torneios › Nome. Keyed 'ld-graph' so the match view
+// (rendered inside this shell) replaces it with its own SportsEvent + breadcrumb
+// — avoids two BreadcrumbLists on a match page.
+useHead({
+  script: [
+    {
+      key: 'ld-graph',
+      type: 'application/ld+json',
+      innerHTML: () =>
+        JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
+            { '@type': 'ListItem', position: 2, name: 'Torneios', item: `${siteUrl}/futebol/torneios` },
+            ...(current.value
+              ? [{ '@type': 'ListItem', position: 3, name: current.value.name, item: hubUrl }]
+              : []),
+          ],
+        }),
+    },
+  ],
 });
 
 // Active section from the route. The base path and /jogos both resolve to 'jogos',

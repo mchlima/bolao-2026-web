@@ -118,28 +118,65 @@ const liveCount = computed(
       .filter((m) => m.status === 'LIVE').length,
 );
 
+// SEO da home. Palavras-chave de busca (bolão da Copa do Mundo 2026, palpites,
+// ranking ao vivo, grátis) usando só termos descritivos — sem marcas registradas
+// (evitamos "FIFA" e emblemas/mascotes oficiais). Imagem/card OG herdados de
+// app.vue; aqui só sobrescrevemos título/descrição + canonical e keywords.
+const title = 'Cravei · Bolão da Copa do Mundo 2026 grátis com os amigos';
 const desc =
-  'Palpite nos 104 jogos da Copa 2026, crie bolões privados com os amigos e acompanhe o ranking mudar ao vivo a cada gol. Placares automáticos, classificação completa e pontuação por proximidade. Grátis.';
+  'Bolão da Copa do Mundo 2026 com os amigos: palpite nos 104 jogos, pontue pela precisão do placar e suba no ranking ao vivo a cada gol. Escalações, estatísticas e lembretes dos seus times. Grátis.';
 useSeoMeta({
-  title: 'Cravei · O bolão da Copa 2026 com a sua turma',
+  title,
   description: desc,
-  ogTitle: 'Cravei · O bolão da Copa 2026 com a sua turma',
+  ogTitle: title,
   ogDescription: desc,
+  twitterTitle: title,
+  twitterDescription: desc,
 });
-
-// Números reais do torneio semeado.
-const stats = [
-  { v: '104', l: 'partidas' },
-  { v: '48', l: 'seleções' },
-  { v: '12', l: 'grupos' },
-  { v: '16', l: 'sedes' },
-];
+const siteUrl = String(useRuntimeConfig().public.siteUrl);
+useHead({
+  meta: [
+    {
+      name: 'keywords',
+      content:
+        'bolão da copa do mundo 2026, bolão da copa, palpites copa do mundo, bolão online grátis, bolão entre amigos, ranking ao vivo, palpite de jogos, copa 2026, mundial 2026, bolão de seleções',
+    },
+  ],
+  // Structured data: brand identity for the SERP (knowledge panel / sitelinks).
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'Organization',
+            '@id': `${siteUrl}/#organization`,
+            name: 'Cravei',
+            url: siteUrl,
+            logo: `${siteUrl}/pwa-512x512.png`,
+            description:
+              'Plataforma de bolões da Copa do Mundo 2026 para jogar com os amigos.',
+          },
+          {
+            '@type': 'WebSite',
+            '@id': `${siteUrl}/#website`,
+            name: 'Cravei',
+            url: siteUrl,
+            inLanguage: 'pt-BR',
+            publisher: { '@id': `${siteUrl}/#organization` },
+          },
+        ],
+      }),
+    },
+  ],
+});
 
 const steps = [
   {
     n: '01',
     title: 'Crie ou entre num bolão',
-    text: 'Monte um grupo com a turma e convide por um link. Seu palpite vale em todos os bolões que você participa.',
+    text: 'Monte um grupo com a turma e convide por um link. O palpite é único: você crava uma vez e vale em todos os bolões que participa.',
     color: 'var(--emerald)',
   },
   {
@@ -151,7 +188,7 @@ const steps = [
   {
     n: '03',
     title: 'Suba no ranking ao vivo',
-    text: 'Acompanhe sua posição se mexer a cada gol, partida a partida, e dispute o topo com os amigos.',
+    text: 'O placar entra sozinho e sua pontuação muda a cada gol. Acompanhe o ranking virar, jogo a jogo, e dispute o topo com os amigos.',
     color: 'var(--azure)',
   },
 ];
@@ -170,40 +207,40 @@ const ladder = [
 
 const features = [
   {
-    title: 'Bolões privados',
-    text: 'Crie quantos bolões quiser e convide a galera por um link. Cada grupo tem o seu próprio ranking — só entre quem você conhece.',
+    title: 'Bolões privados e temporadas',
+    text: 'Crie quantos quiser e convide por um link — cada grupo tem o seu ranking, só entre quem você conhece. A cada temporada todo mundo recomeça do zero, com hall de campeões.',
     color: 'var(--emerald)',
     icon: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
   },
   {
-    title: 'Tudo no automático',
-    text: 'Os placares entram sozinhos, direto do feed oficial dos jogos. Ninguém precisa digitar resultado nem atualizar a página na mão.',
+    title: 'Placar no automático',
+    text: 'Os resultados entram sozinhos, direto do feed dos jogos. Ninguém precisa digitar placar nem atualizar a página na mão.',
     color: 'var(--azure)',
     icon: '<path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/>',
   },
   {
-    title: 'Ao vivo de verdade',
-    text: 'A cada gol, o placar e o seu ranking se mexem na tela na hora — sem recarregar. Sentiu o gol, sentiu a pontuação.',
+    title: 'Ranking ao vivo, com pódio',
+    text: 'A cada gol o placar e a sua pontuação se mexem na tela na hora. Um ranking do torneio inteiro e um de cada jogo — com os palpites à mostra pra todos.',
     color: 'var(--scarlet)',
     icon: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
   },
   {
+    title: 'Acompanhe cada partida',
+    text: 'Escalações, linha do tempo lance a lance e estatísticas completas de cada jogo — tudo dentro do app, sem precisar abrir outro site.',
+    color: 'var(--magenta)',
+    icon: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+  },
+  {
     title: 'Torneio completo',
-    text: 'Grupos, classificação, mata-mata e os 8 melhores terceiros. Até o desempate por fair play, contando os cartões automaticamente.',
+    text: 'Grupos, classificação, mata-mata e os 8 melhores terceiros — até o desempate por fair play, contando os cartões automaticamente.',
     color: 'var(--gold)',
     icon: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
   },
   {
-    title: 'Escudos e cores reais',
-    text: 'Mais de 1.500 times com escudo e cores oficiais — das seleções aos clubes. Bonito de ver e fácil de reconhecer.',
-    color: 'var(--magenta)',
-    icon: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/>',
-  },
-  {
-    title: 'Dois rankings, com pódio',
-    text: 'Um do torneio inteiro e um de cada partida. Empatou? Quem palpitou primeiro fica na frente. Os palpites ficam à mostra pra todos.',
+    title: 'Lembretes e notificações',
+    text: 'Siga seus times e receba aviso 1 dia, 1 hora e na hora do apito — mais a saída da escalação, os gols e o resultado final, direto no celular.',
     color: 'var(--azure)',
-    icon: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+    icon: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   },
 ];
 
@@ -283,42 +320,9 @@ const ranking = [
       </div>
     </section>
 
-    <!-- PORTAL: torneios em destaque → cada um abre o hub próprio -->
-    <section v-if="torneios?.length" class="hubnav-wrap">
-      <div class="hubnav-head">
-        <h2 class="font-display">Torneios</h2>
-        <NuxtLink to="/futebol/torneios" class="hubnav-all">Ver todos <AppIcon name="chevronRight" :size="13" :stroke="2.5" /></NuxtLink>
-      </div>
-      <div class="hubnav">
-        <NuxtLink v-for="t in torneios.slice(0, 4)" :key="t.id" :to="`/futebol/torneios/${t.id}`" class="hubtile">
-          <TournamentBadge :name="t.name" :logo-url="t.competition?.logoUrl" :logo-url-dark="t.competition?.logoUrlDark" :size="44" />
-          <span class="ht-txt">
-            <b>{{ t.name }}</b>
-            <small>
-              <span class="ht-stat" :style="{ color: (TSTATUS[t.status] ?? TSTATUS.UPCOMING).color }">{{ (TSTATUS[t.status] ?? TSTATUS.UPCOMING).label }}</span>
-              <span v-if="t.matchCount != null"> · {{ t.matchCount }} jogos</span>
-            </small>
-          </span>
-          <AppIcon name="chevronRight" :size="16" :stroke="2.4" class="ht-go" />
-        </NuxtLink>
-      </div>
-    </section>
-
-    <!-- HUB: jogos reais (público) — o placar é o anzol -->
-    <section v-if="hubMatches.length" class="hubstrip">
-      <div class="hs-head">
-        <h2 class="font-display">
-          Próximos jogos
-          <NuxtLink v-if="liveCount" to="/futebol/agenda?scope=live" class="hs-live"><span class="d" />{{ liveCount }} ao vivo</NuxtLink>
-        </h2>
-        <NuxtLink to="/futebol/agenda" class="hs-all">Agenda completa <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
-      </div>
-      <div class="hs-grid">
-        <MatchList :matches="hubMatches" :predictions="predMap" show-season @saved="onPredSaved" />
-      </div>
-    </section>
-
-    <!-- MARKETING — só para quem não está logado (logado vê só o portal acima) -->
+    <!-- INTRO (deslogado): hero, 3 passos e a régua de pontuação vêm antes dos
+         jogos/torneios — a venda primeiro. O par "Próximos jogos → Torneios"
+         (compartilhado com o logado) entra logo depois, mais abaixo. -->
     <template v-if="!auth.isAuthenticated">
     <!-- HERO -->
     <section class="hero">
@@ -326,14 +330,14 @@ const ranking = [
       <div class="glow glow-b" aria-hidden="true" />
       <div class="hero-grid">
         <div class="hero-text">
-          <span class="eyebrow">Copa do Mundo FIFA · 2026</span>
+          <span class="eyebrow">Copa do Mundo · 2026</span>
           <h1 class="font-display title">
             O bolão da Copa<br />que a sua turma<br /><span class="hl">vai levar a sério</span>
           </h1>
           <p class="lead">
             Crave os placares dos 104 jogos, monte bolões privados com a galera e
-            veja o ranking se mexer <b>ao vivo</b> a cada gol. Placares automáticos,
-            classificação completa e pontuação que premia a precisão.
+            veja o ranking se mexer <b>ao vivo</b> a cada gol. Placar automático,
+            escalações, estatísticas e a precisão valendo mais ponto.
           </p>
           <div class="cta">
             <NuxtLink to="/cadastro" class="btn btn-gold big">Criar conta grátis</NuxtLink>
@@ -375,65 +379,9 @@ const ranking = [
           <span class="float-badge font-display">CRAVOU! <b>+25</b></span>
         </div>
       </div>
-
-      <div class="stats">
-        <div v-for="s in stats" :key="s.l" class="stat">
-          <span class="font-numeric sv">{{ s.v }}</span>
-          <span class="sl">{{ s.l }}</span>
-        </div>
-      </div>
     </section>
 
-    <!-- HOW IT WORKS -->
-    <section class="block">
-      <h2 class="font-display sec-title">Em 3 passos</h2>
-      <div class="steps">
-        <div v-for="s in steps" :key="s.n" class="step card">
-          <span class="font-display snum" :style="{ color: s.color }">{{ s.n }}</span>
-          <h3>{{ s.title }}</h3>
-          <p>{{ s.text }}</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SCORING -->
-    <section class="block scoring">
-      <div class="sc-head">
-        <h2 class="font-display sec-title">Cravar é a glória</h2>
-        <p class="sc-sub">
-          Acertar quem ganha já garante pontos. A partir daí, quanto mais
-          <b>preciso</b> for o seu placar, mais ele vale — até cravar. O mesmo
-          jogo (<b>2 × 1</b>), do palpite perfeito ao furo:
-        </p>
-      </div>
-      <div class="ladder">
-        <div v-for="c in ladder" :key="c.guess" class="lad" :style="{ '--c': c.color }">
-          <span class="lad-pts font-numeric">{{ c.pts }}</span>
-          <span class="lad-guess font-numeric">{{ c.guess }}</span>
-          <span class="lad-label">{{ c.label }}</span>
-        </div>
-      </div>
-      <p class="sc-note">
-        <span class="sc-star"><AppIcon name="star" :size="15" /></span> E no <b>mata-mata</b> cada acerto vale ainda
-        mais — os pontos crescem a cada fase rumo à final.
-      </p>
-    </section>
-
-    <!-- FEATURES -->
-    <section class="block">
-      <h2 class="font-display sec-title">Por que joga aqui</h2>
-      <div class="feats">
-        <div v-for="f in features" :key="f.title" class="feat card">
-          <span class="fic" :style="{ color: f.color, background: `color-mix(in srgb, ${f.color} 14%, transparent)` }">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="f.icon" />
-          </span>
-          <h3>{{ f.title }}</h3>
-          <p>{{ f.text }}</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- POOLS HIGHLIGHT -->
+    <!-- POOLS HIGHLIGHT — logo após a hero -->
     <section class="split">
       <div class="split-text">
         <span class="kicker">Bolões</span>
@@ -475,6 +423,101 @@ const ranking = [
       </div>
     </section>
 
+    <!-- HOW IT WORKS -->
+    <section class="block">
+      <header class="sec-head">
+        <h2 class="font-display sec-title">Em 3 passos</h2>
+        <p class="sec-lead">Do convite ao apito final — começar leva 1 minuto.</p>
+      </header>
+      <div class="steps">
+        <div v-for="s in steps" :key="s.n" class="step card">
+          <span class="font-display snum" :style="{ color: s.color }">{{ s.n }}</span>
+          <h3>{{ s.title }}</h3>
+          <p>{{ s.text }}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCORING -->
+    <section class="block scoring">
+      <div class="sc-head">
+        <h2 class="font-display sec-title">Cravar é a glória</h2>
+        <p class="sc-sub">
+          Acertar quem ganha já garante pontos. A partir daí, quanto mais
+          <b>preciso</b> for o seu placar, mais ele vale — até cravar. O mesmo
+          jogo (<b>2 × 1</b>), do palpite perfeito ao furo:
+        </p>
+      </div>
+      <div class="ladder">
+        <div v-for="c in ladder" :key="c.guess" class="lad" :style="{ '--c': c.color }">
+          <span class="lad-pts font-numeric">{{ c.pts }}</span>
+          <span class="lad-guess font-numeric">{{ c.guess }}</span>
+          <span class="lad-label">{{ c.label }}</span>
+        </div>
+      </div>
+      <p class="sc-note">
+        <span class="sc-star"><AppIcon name="star" :size="15" /></span> E no <b>mata-mata</b> cada acerto vale ainda
+        mais — os pontos crescem a cada fase rumo à final.
+      </p>
+    </section>
+    </template>
+
+    <!-- PAR COMPARTILHADO: Próximos jogos → Torneios. O logado vê este par no topo
+         (depois de "Seus jogos"); o deslogado vê aqui, depois da régua de
+         pontuação. Seção única, sem duplicação entre os dois estados. -->
+    <section v-if="hubMatches.length" class="hubstrip">
+      <div class="hs-head">
+        <h2 class="font-display">
+          Próximos jogos
+          <NuxtLink v-if="liveCount" to="/futebol/agenda?scope=live" class="hs-live"><span class="d" />{{ liveCount }} ao vivo</NuxtLink>
+        </h2>
+        <NuxtLink to="/futebol/agenda" class="hs-all">Agenda completa <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
+      </div>
+      <div class="hs-grid">
+        <MatchList :matches="hubMatches" :predictions="predMap" show-season @saved="onPredSaved" />
+      </div>
+    </section>
+
+    <!-- PORTAL: torneios em destaque → cada um abre o hub próprio. -->
+    <section v-if="torneios?.length" class="hubnav-wrap">
+      <div class="hubnav-head">
+        <h2 class="font-display">Torneios</h2>
+        <NuxtLink to="/futebol/torneios" class="hubnav-all">Ver todos <AppIcon name="chevronRight" :size="13" :stroke="2.5" /></NuxtLink>
+      </div>
+      <div class="hubnav">
+        <NuxtLink v-for="t in torneios.slice(0, 4)" :key="t.id" :to="`/futebol/torneios/${t.id}`" class="hubtile">
+          <TournamentBadge :name="t.name" :logo-url="t.competition?.logoUrl" :logo-url-dark="t.competition?.logoUrlDark" :size="44" />
+          <span class="ht-txt">
+            <b>{{ t.name }}</b>
+            <small>
+              <span class="ht-stat" :style="{ color: (TSTATUS[t.status] ?? TSTATUS.UPCOMING).color }">{{ (TSTATUS[t.status] ?? TSTATUS.UPCOMING).label }}</span>
+              <span v-if="t.matchCount != null"> · {{ t.matchCount }} jogos</span>
+            </small>
+          </span>
+          <AppIcon name="chevronRight" :size="16" :stroke="2.4" class="ht-go" />
+        </NuxtLink>
+      </div>
+    </section>
+
+    <!-- MARKETING (cont., deslogado): por que jogar, bolões, tempo real e CTA -->
+    <template v-if="!auth.isAuthenticated">
+    <!-- FEATURES -->
+    <section class="block">
+      <header class="sec-head">
+        <h2 class="font-display sec-title">Por que jogar aqui</h2>
+        <p class="sec-lead">Tudo que um bolão da Copa do Mundo precisa — num app só.</p>
+      </header>
+      <div class="feats">
+        <div v-for="f in features" :key="f.title" class="feat card">
+          <span class="fic" :style="{ color: f.color, background: `color-mix(in srgb, ${f.color} 14%, transparent)` }">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="f.icon" />
+          </span>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.text }}</p>
+        </div>
+      </div>
+    </section>
+
     <!-- LIVE BANNER -->
     <section class="livebanner">
       <div class="glow glow-live" aria-hidden="true" />
@@ -501,7 +544,13 @@ const ranking = [
     </section>
 
     <footer class="lfoot">
-      Cravei · Copa do Mundo FIFA 2026
+      <span class="lfoot-brand font-display">Cravei</span>
+      <span class="lfoot-tag">Bolão da Copa do Mundo 2026 · feito pra jogar com os amigos</span>
+      <span class="lfoot-disc">
+        Plataforma independente de bolões entre amigos. Sem qualquer vínculo,
+        patrocínio ou endosso da FIFA ou de entidades organizadoras. Marcas e
+        nomes de competições citados pertencem aos seus respectivos titulares.
+      </span>
     </footer>
     </template>
   </div>
@@ -1136,35 +1185,6 @@ const ranking = [
   font-size: 17px;
 }
 
-/* stats strip */
-.stats {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-top: clamp(28px, 5vw, 44px);
-  padding-top: 22px;
-  border-top: 1px solid var(--border);
-}
-.stat {
-  text-align: center;
-}
-.sv {
-  display: block;
-  font-size: clamp(28px, 5vw, 40px);
-  line-height: 0.9;
-  background: var(--grad-trophy);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.sl {
-  font-size: 11.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
 
 /* ===== sections ===== */
 .block {
@@ -1176,6 +1196,20 @@ const ranking = [
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin-bottom: 18px;
+}
+/* Section header: title + supporting one-liner. Consistent rhythm across the
+   marketing blocks (mirrors the scoring/pools sections that already have a sub). */
+.sec-head {
+  margin-bottom: 18px;
+}
+.sec-head .sec-title {
+  margin-bottom: 6px;
+}
+.sec-lead {
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
 }
 .steps {
   display: grid;
@@ -1519,11 +1553,32 @@ const ranking = [
   justify-content: center;
 }
 .lfoot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   text-align: center;
   color: var(--muted);
-  font-size: 12px;
+  padding: 24px 0 10px;
+}
+.lfoot-brand {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.lfoot-tag {
+  font-size: 12.5px;
   font-weight: 600;
-  padding: 20px 0;
+}
+.lfoot-disc {
+  max-width: 540px;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+  opacity: 0.75;
 }
 
 /* ===== responsive ===== */
@@ -1557,12 +1612,6 @@ const ranking = [
 @media (max-width: 480px) {
   .ladder {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 440px) {
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px 10px;
   }
 }
 </style>

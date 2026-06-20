@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Private app areas (require login) — no value in crawling.
+Disallow: /boloes
+Disallow: /perfil
+Disallow: /configuracoes
+Disallow: /notificacoes
+Disallow: /meus-times
+Disallow: /admin
+# Utility pages, not content.
+Disallow: /entrar
+Disallow: /cadastro
+
+Sitemap: https://cravei.app/sitemap.xml
