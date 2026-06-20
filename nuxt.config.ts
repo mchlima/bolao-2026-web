@@ -16,14 +16,17 @@ const gtagScripts =
       ]
     : [];
 
-// Microsoft Clarity (session replay + heatmaps). Same gating as GA. Clarity
-// tracks SPA navigations on its own, so no route plugin is needed.
+// Microsoft Clarity (session replay + heatmaps). Same gating as GA. The loader is
+// wrapped in window.__loadClarity() and only auto-runs when the initial route is
+// NOT /admin — the back-office is excluded. SPA transitions into /admin are paused
+// by plugins/clarity.client.ts (Clarity self-restarts on pushState, so public
+// routes resume on their own).
 const CLARITY_ID = process.env.NUXT_PUBLIC_CLARITY_ID || 'x9n23dt4qp';
 const clarityScripts =
   process.env.NODE_ENV === 'production' && CLARITY_ID
     ? [
         {
-          children: `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${CLARITY_ID}");`,
+          children: `window.__loadClarity=function(){if(window.__clarityLoaded)return;window.__clarityLoaded=1;(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${CLARITY_ID}")};(function(){var p=location.pathname;if(p!=="/admin"&&p.indexOf("/admin/")!==0){window.__loadClarity()}})();`,
         },
       ]
     : [];
