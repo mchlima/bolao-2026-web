@@ -40,6 +40,7 @@ const metrics = computed<Metric[]>(() => {
 // counts toward the total.
 interface Online {
   total: number;
+  devices: number;
   others: number;
   users: { id: string; name: string; avatarUrl: string | null; devices: number; since: string }[];
 }
@@ -70,7 +71,10 @@ onBeforeUnmount(() => {
       <div class="on-head">
         <span class="on-dot" />
         <span class="font-numeric on-num">{{ online?.total ?? 0 }}</span>
-        <span class="on-lbl">{{ (online?.total ?? 0) === 1 ? 'pessoa online' : 'pessoas online' }}</span>
+        <span class="on-lbl">
+          {{ (online?.total ?? 0) === 1 ? 'pessoa online' : 'pessoas online' }}
+          <span class="on-sub">· {{ online?.devices ?? 0 }} {{ (online?.devices ?? 0) === 1 ? 'dispositivo' : 'dispositivos' }}</span>
+        </span>
       </div>
       <div v-if="online?.users.length" class="on-people">
         <span
@@ -162,6 +166,10 @@ onBeforeUnmount(() => {
   color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+.on-sub {
+  opacity: 0.7;
+  font-weight: 500;
 }
 .on-people {
   display: flex;
