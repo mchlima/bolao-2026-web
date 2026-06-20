@@ -110,6 +110,16 @@ const matchJsonLd = computed(() => {
     homeTeam: teams[0],
     awayTeam: teams[1],
     performer: teams,
+    // Participation is free: a $0 Offer lets the event carry valid ticketing info
+    // (the "ticket" is the palpite) without inventing a paid product.
+    offers: {
+      '@type': 'Offer',
+      name: 'Palpite grátis',
+      price: '0',
+      priceCurrency: 'BRL',
+      availability: 'https://schema.org/InStock',
+      url: canonicalUrl.value,
+    },
     ...(images.length ? { image: images } : {}),
   };
   if (m.stadium) {
@@ -119,6 +129,10 @@ const matchJsonLd = computed(() => {
       address: [m.stadium.city, m.stadium.country].filter(Boolean).join(', '),
     };
   }
+  // Organizer = the competition's governing body (FIFA, CBF, CONMEBOL…), already
+  // persisted on the competition. Same entity organizes the match and the season.
+  const org = m.season?.competition?.confederation;
+  if (org) event.organizer = { '@type': 'SportsOrganization', name: org };
   // Tournament context as a valid nested SportsEvent (superEvent): the season's
   // name + dates + host location (season.location, falling back to the competition
   // country). Only emitted when we have the dates, so it never produces an
@@ -126,14 +140,33 @@ const matchJsonLd = computed(() => {
   const s = m.season;
   if (s?.name && s.startDate) {
     const host = s.location ?? s.competition?.country ?? null;
+    const seasonUrl = m.seasonId ? `${siteUrl}/futebol/torneios/${m.seasonId}` : siteUrl;
     const superEvent: Record<string, unknown> = {
       '@type': 'SportsEvent',
       name: s.name,
+      sport: 'Soccer',
       startDate: s.startDate,
       ...(s.endDate ? { endDate: s.endDate } : {}),
-      ...(m.seasonId ? { url: `${siteUrl}/futebol/torneios/${m.seasonId}` } : {}),
+      eventStatus: 'https://schema.org/EventScheduled',
+      url: seasonUrl,
+      description: `${s.name}: tabela de jogos, classificação, palpites e ranking do bolão grátis no Cravei.`,
+      ...(s.logoUrl ? { image: [s.logoUrl] } : {}),
+      offers: {
+        '@type': 'Offer',
+        name: 'Palpite grátis',
+        price: '0',
+        priceCurrency: 'BRL',
+        availability: 'https://schema.org/InStock',
+        url: seasonUrl,
+      },
     };
     if (host) superEvent.location = { '@type': 'Place', name: host };
+    if (org) superEvent.organizer = { '@type': 'SportsOrganization', name: org };
+    // performer = the participating teams (national sides / clubs) of the season.
+    const squads = (s.teams ?? [])
+      .filter((t) => t.name)
+      .map((t) => ({ '@type': 'SportsTeam', name: t.name, ...(t.logoUrl ? { logo: t.logoUrl } : {}) }));
+    if (squads.length) superEvent.performer = squads;
     event.superEvent = superEvent;
   }
   const crumbs: Record<string, unknown>[] = [

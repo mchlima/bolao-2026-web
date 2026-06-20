@@ -8,9 +8,10 @@ const gtagScripts =
     ? [
         { src: `https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`, async: true },
         {
-          // Defines the global gtag() + sends the initial page view. SPA route
-          // changes are tracked by plugins/gtag.client.ts.
-          children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GTAG_ID}');`,
+          // Defines the global gtag(). Page views (incl. the initial one) are sent
+          // by plugins/gtag.client.ts so it can skip the /admin back-office —
+          // send_page_view:false stops gtag from auto-firing one here.
+          children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GTAG_ID}',{send_page_view:false});`,
         },
       ]
     : [];

@@ -282,7 +282,11 @@ export interface Match {
     startDate?: string | null;
     endDate?: string | null;
     location?: string | null;
-    competition?: { country: string | null } | null;
+    logoUrl?: string | null;
+    competition?: { country: string | null; confederation?: string | null } | null;
+    // Participating teams of the season (present on GET /matches/:id) — feeds the
+    // tournament's `performer` in structured data.
+    teams?: { name: string; logoUrl: string | null }[];
   } | null;
   homeTeam: Team | null;
   awayTeam: Team | null;
