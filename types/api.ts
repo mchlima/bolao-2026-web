@@ -61,6 +61,111 @@ export interface NotificationCampaign {
   updatedAt: string;
 }
 
+// ────────────────────────────────────────── Content pipeline (RSS → rewrite)
+export type NewsItemStatus =
+  | 'DISCOVERED'
+  | 'FILTERED'
+  | 'PROCESSING'
+  | 'PENDING_REVIEW'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'FAILED';
+
+export interface NewsTone {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  promptText: string;
+  version: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { items: number };
+}
+
+export type NewsFeedType = 'RSS' | 'NEWS_API' | 'PAGE';
+
+export interface NewsFeed {
+  id: string;
+  name: string;
+  url: string;
+  type: NewsFeedType;
+  config: Record<string, unknown> | null;
+  sport: string;
+  isActive: boolean;
+  defaultToneId: string | null;
+  fetchIntervalMin: number;
+  lastFetchedAt: string | null;
+  lastStatus: string | null;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { items: number };
+  defaultTone?: { id: string; name: string } | null;
+}
+
+export interface NewsQuote {
+  speaker: string;
+  text: string;
+}
+
+export interface NewsFacts {
+  headlineFact?: string;
+  competition?: string;
+  teams?: string[];
+  people?: string[];
+  score?: string;
+  whenText?: string;
+  keyFacts?: string[];
+  quotes?: NewsQuote[];
+  [k: string]: unknown;
+}
+
+export interface NewsRevision {
+  id: string;
+  itemId: string;
+  attempt: number;
+  guidance: string | null;
+  generatedText: string;
+  toneSnapshot: string | null;
+  model: string | null;
+  createdAt: string;
+}
+
+export interface NewsItem {
+  id: string;
+  feedId: string | null;
+  sourceUrl: string;
+  sourceGuid: string;
+  sourceTitle: string;
+  sourceSummary: string | null;
+  sourceText: string | null;
+  publishedAt: string | null;
+  status: NewsItemStatus;
+  relevanceScore: number | null;
+  relevanceReason: string | null;
+  facts: NewsFacts | null;
+  toneId: string | null;
+  toneSnapshot: string | null;
+  toneVersion: number | null;
+  generatedText: string | null;
+  model: string | null;
+  error: string | null;
+  reviewedById: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  feed?: { id: string; name: string } | null;
+  tone?: { id: string; name: string } | null;
+  revisions?: NewsRevision[];
+}
+
+export interface FeedPreview {
+  title: string;
+  items: { title: string; link: string; isoDate: string | null }[];
+}
+
 export interface User {
   id: string;
   name: string;

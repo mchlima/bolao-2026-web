@@ -115,6 +115,37 @@ const groups: { title?: string; items: NavItem[] }[] = [
     ],
   },
   {
+    title: 'Conteúdo',
+    items: [
+      {
+        to: '/admin/content',
+        label: 'Painel',
+        exact: true,
+        icon: ['M3 3h7v7H3z', 'M14 3h7v7h-7z', 'M14 14h7v7h-7z', 'M3 14h7v7H3z'],
+      },
+      {
+        to: '/admin/content/feeds',
+        label: 'Fontes',
+        icon: ['M4 11a9 9 0 0 1 9 9', 'M4 4a16 16 0 0 1 16 16', 'M6 19a1 1 0 1 0 0 2 1 1 0 0 0 0-2z'],
+      },
+      {
+        to: '/admin/content/tones',
+        label: 'Tons',
+        icon: ['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'],
+      },
+      {
+        to: '/admin/content/triagem',
+        label: 'Triagem',
+        icon: ['M3 4h18l-7 8v6l-4 2v-8z'],
+      },
+      {
+        to: '/admin/content/revisao',
+        label: 'Revisão',
+        icon: ['M9 11l3 3L22 4', 'M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'],
+      },
+    ],
+  },
+  {
     title: 'Sistema',
     items: [
       {
