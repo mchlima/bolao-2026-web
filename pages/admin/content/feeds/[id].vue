@@ -14,6 +14,7 @@ const form = reactive({
   url: '',
   type: 'RSS' as NewsFeedType,
   configText: '',
+  focus: '',
   defaultToneId: '',
   fetchIntervalMin: 15,
   isActive: true,
@@ -56,6 +57,7 @@ onMounted(async () => {
       form.url = f.url;
       form.type = f.type;
       form.configText = f.config ? JSON.stringify(f.config, null, 2) : '';
+      form.focus = f.focus ?? '';
       form.defaultToneId = f.defaultToneId ?? '';
       form.fetchIntervalMin = f.fetchIntervalMin;
       form.isActive = f.isActive;
@@ -105,6 +107,7 @@ async function save() {
     url: form.url.trim(),
     type: form.type,
     config,
+    focus: form.focus.trim() || null,
     defaultToneId: form.defaultToneId || null,
     fetchIntervalMin: form.fetchIntervalMin,
     isActive: form.isActive,
@@ -180,6 +183,19 @@ async function save() {
           </p>
         </template>
 
+        <label>Foco desta fonte <span class="opt">(opcional)</span></label>
+        <textarea
+          v-model="form.focus"
+          class="input"
+          rows="3"
+          maxlength="600"
+          placeholder="Ex.: só mercado da bola (contratações, renovações, sondagens) e seleção brasileira. Ignore vôlei, F1, e-sports e colunas de opinião."
+        />
+        <p class="hint">
+          O robô pontua a relevância de cada notícia desta fonte <strong>em relação a este foco</strong> — o que fica fora cai em
+          <em>Triagem → Filtrados</em> (e pode ser resgatado). Em branco, usa relevância geral de futebol. Não gera custo extra.
+        </p>
+
         <label>Tom padrão</label>
         <select v-model="form.defaultToneId" class="input">
           <option value="">— resolver automaticamente —</option>
@@ -213,6 +229,7 @@ async function save() {
 .pv-title { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; color: var(--emerald); }
 .pv-list { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
 .hint { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 6px 0 0; }
+.opt { font-weight: 600; opacity: 0.7; text-transform: none; }
 .check { display: flex; align-items: center; gap: 8px; flex-direction: row !important; margin-top: 14px; font-weight: 600; color: var(--text); }
 .form-actions { margin-top: 18px; display: flex; justify-content: flex-end; }
 </style>

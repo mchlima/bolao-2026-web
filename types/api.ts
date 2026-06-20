@@ -93,6 +93,7 @@ export interface NewsFeed {
   type: NewsFeedType;
   config: Record<string, unknown> | null;
   sport: string;
+  focus: string | null;
   isActive: boolean;
   defaultToneId: string | null;
   fetchIntervalMin: number;
