@@ -72,14 +72,14 @@ onBeforeUnmount(() => {
       <div class="on-head">
         <span class="on-dot" />
         <span class="font-numeric on-num">{{ online?.total ?? 0 }}</span>
-        <span class="on-lbl">online agora</span>
+        <span class="on-lbl">{{ (online?.total ?? 0) === 1 ? 'dispositivo online' : 'dispositivos online' }}</span>
       </div>
       <div v-if="online?.users.length" class="on-people">
         <span
           v-for="u in online.users"
           :key="u.id"
           class="on-person"
-          :title="u.connections > 1 ? `${u.name} · ${u.connections} abas` : u.name"
+          :title="u.connections > 1 ? `${u.name} · ${u.connections} dispositivos` : u.name"
         >
           <UserAvatar :name="u.name" :src="u.avatarUrl" :size="26" />
           <span class="on-name">{{ u.name }}</span>
@@ -89,7 +89,7 @@ onBeforeUnmount(() => {
       </div>
       <div v-else class="on-empty">
         <template v-if="online && online.total">
-          {{ online.total }} {{ online.total === 1 ? 'conexão anônima' : 'conexões anônimas' }} (deslogados)
+          {{ online.total }} {{ online.total === 1 ? 'dispositivo anônimo' : 'dispositivos anônimos' }} (deslogados)
         </template>
         <template v-else>Ninguém online no momento.</template>
       </div>
