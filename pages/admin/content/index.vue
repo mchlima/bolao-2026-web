@@ -218,7 +218,13 @@ onMounted(load);
 .flow-step { flex: 1 1 0; min-width: 92px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); }
 .flow-step:hover { border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); }
 .flow-arrow { color: var(--muted); flex: none; opacity: 0.7; }
-@media (max-width: 760px) { .flow-arrow { transform: rotate(90deg); } }
+/* Mobile: fluxo vira VERTICAL (passo → seta pra baixo → passo), sem quebrar em grid torto. */
+@media (max-width: 760px) {
+  .flow { flex-direction: column; align-items: stretch; gap: 6px; }
+  .flow-step { flex: none; flex-direction: row; justify-content: flex-start; align-items: center; gap: 14px; padding: 12px 16px; }
+  .flow-step .tile-n { font-size: 24px; min-width: 34px; text-align: center; }
+  .flow-arrow { transform: rotate(90deg); align-self: center; }
+}
 .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 @media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
 .tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 10px; text-align: center; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); }
