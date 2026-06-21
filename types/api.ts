@@ -187,6 +187,30 @@ export interface NewsItemSeo {
   imageAlt?: string;
 }
 
+/** Public news card (listing) — only approved, published articles. */
+export interface NewsCard {
+  slug: string;
+  title: string;
+  dek: string;
+  category: string;
+  tags: string[];
+  imageAlt: string;
+  publishedAt: string;
+  source: string | null;
+}
+
+/** Public full article (slug page). */
+export interface PublicNewsArticle extends NewsCard {
+  body: string;
+  metaTitle: string;
+  metaDescription: string;
+  focusKeyword: string;
+  keywords: string[];
+  keyTakeaways: string[];
+  faq: { question: string; answer: string }[];
+  updatedAt: string;
+}
+
 export interface FeedPreview {
   title: string;
   items: { title: string; link: string; isoDate: string | null }[];

@@ -36,6 +36,7 @@ export default defineEventHandler(async (event) => {
     { loc: '/como-funciona', priority: 0.8, changefreq: 'monthly' },
     { loc: '/futebol/agenda', priority: 0.8, changefreq: 'hourly' },
     { loc: '/futebol/torneios', priority: 0.7, changefreq: 'daily' },
+    { loc: '/futebol/noticias', priority: 0.8, changefreq: 'daily' },
   ];
 
   // Tournaments → each public hub + its standings / matches / ranking tabs.
@@ -97,6 +98,24 @@ export default defineEventHandler(async (event) => {
           images: images.length ? images : undefined,
         });
       }
+    }
+  } catch {
+    /* keep what we have. */
+  }
+
+  // News → each published article (organic-traffic surface).
+  try {
+    const news = await $fetch<{
+      data: { slug: string; publishedAt?: string }[];
+    }>(`${api}/content/news?pageSize=200`);
+    for (const n of news.data ?? []) {
+      if (!n.slug) continue;
+      urls.push({
+        loc: `/futebol/noticias/${n.slug}`,
+        priority: 0.6,
+        changefreq: 'weekly',
+        lastmod: n.publishedAt,
+      });
     }
   } catch {
     /* keep what we have. */
