@@ -98,6 +98,7 @@ export interface NewsFeed {
   isActive: boolean;
   defaultToneId: string | null;
   fetchIntervalMin: number;
+  maxAgeHours: number | null;
   lastFetchedAt: string | null;
   lastStatus: string | null;
   lastError: string | null;

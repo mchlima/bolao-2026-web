@@ -22,6 +22,7 @@ const form = reactive({
   focus: '',
   defaultToneId: '',
   fetchIntervalMin: 15,
+  maxAgeHours: 48,
   isActive: true,
 });
 
@@ -108,6 +109,7 @@ onMounted(async () => {
       form.focus = f.focus ?? '';
       form.defaultToneId = f.defaultToneId ?? '';
       form.fetchIntervalMin = f.fetchIntervalMin;
+      form.maxAgeHours = f.maxAgeHours ?? 48;
       form.isActive = f.isActive;
     } catch {
       ui.toast('error', 'Não foi possível carregar a fonte.');
@@ -184,6 +186,7 @@ async function save() {
     focus: form.focus.trim() || null,
     defaultToneId: form.defaultToneId || null,
     fetchIntervalMin: form.fetchIntervalMin,
+    maxAgeHours: Number(form.maxAgeHours) || 48,
     isActive: form.isActive,
   };
   try {
@@ -330,6 +333,13 @@ async function save() {
 
         <label>Intervalo de coleta (min)</label>
         <input v-model.number="form.fetchIntervalMin" type="number" min="1" max="1440" class="input" style="max-width: 140px" />
+
+        <label>Janela de frescor (horas)</label>
+        <input v-model.number="form.maxAgeHours" type="number" min="1" max="8760" class="input" style="max-width: 140px" />
+        <p class="hint">
+          Notícia mais antiga que isto é descartada (não vira matéria). Padrão <strong>48h</strong>.
+          <template v-if="form.type === 'TOPIC'"> Em pauta de tema mais "morno", aumente (ex.: 168 = 7 dias) p/ render mais.</template>
+        </p>
 
         <label class="check"><input type="checkbox" v-model="form.isActive" /> Ativa</label>
       </div>
