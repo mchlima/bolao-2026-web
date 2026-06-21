@@ -116,7 +116,7 @@ useHead({
     </section>
 
     <div v-if="a.tags.length" class="art-tags">
-      <NuxtLink v-for="t in a.tags" :key="t.slug" :to="`/futebol/noticias/tag/${t.slug}`" class="tag">{{ t.name }}</NuxtLink>
+      <NuxtLink v-for="t in a.tags" :key="t.slug" :to="`/futebol/noticias/assunto/${t.slug}`" class="tag">{{ t.name }}</NuxtLink>
     </div>
 
     <aside class="art-cta">

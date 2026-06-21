@@ -37,6 +37,8 @@ export default defineEventHandler(async (event) => {
     { loc: '/futebol/agenda', priority: 0.8, changefreq: 'hourly' },
     { loc: '/futebol/torneios', priority: 0.7, changefreq: 'daily' },
     { loc: '/futebol/noticias', priority: 0.8, changefreq: 'daily' },
+    { loc: '/futebol/noticias/categoria', priority: 0.6, changefreq: 'weekly' },
+    { loc: '/futebol/noticias/assunto', priority: 0.5, changefreq: 'weekly' },
   ];
 
   // Tournaments → each public hub + its standings / matches / ranking tabs.
@@ -131,7 +133,7 @@ export default defineEventHandler(async (event) => {
       if (c.slug) urls.push({ loc: `/futebol/noticias/categoria/${c.slug}`, priority: 0.5, changefreq: 'weekly' });
     }
     for (const t of tags ?? []) {
-      if (t.slug) urls.push({ loc: `/futebol/noticias/tag/${t.slug}`, priority: 0.4, changefreq: 'weekly' });
+      if (t.slug) urls.push({ loc: `/futebol/noticias/assunto/${t.slug}`, priority: 0.4, changefreq: 'weekly' });
     }
   } catch {
     /* keep what we have. */

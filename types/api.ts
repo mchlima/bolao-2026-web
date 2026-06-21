@@ -167,6 +167,8 @@ export interface NewsItem {
   updatedAt: string;
   feed?: { id: string; name: string; type?: NewsFeedType } | null;
   tone?: { id: string; name: string } | null;
+  category?: EntityRef | null;
+  tags?: EntityRef[];
   revisions?: NewsRevision[];
   duplicateOf?: { id: string; sourceTitle: string } | null;
   duplicates?: { id: string; sourceTitle: string; feed?: { name: string } | null }[];
@@ -187,16 +189,23 @@ export interface NewsItemSeo {
   imageAlt?: string;
 }
 
-/** Entidade leve (nome + slug) de categoria/tag, usada nos links. */
+/** Entidade leve (nome + slug) de categoria/tag, usada nos links públicos. */
 export interface TermRef {
   name: string;
   slug: string;
+}
+
+/** Ref de entidade com id (admin: seleção de categoria/tags no item). */
+export interface EntityRef extends TermRef {
+  id: string;
 }
 
 /** Cabeçalho de página de categoria/tag (nome + descrição + total publicado). */
 export interface TermPage extends TermRef {
   description: string | null;
   total: number;
+  /** Categoria: caminho raiz→nó p/ breadcrumb (Futebol > Copa do Mundo > 2026). */
+  path?: TermRef[];
 }
 
 /** Tag/Categoria no admin (CRUD), com contagem de itens. */
@@ -208,6 +217,18 @@ export interface Taxonomy {
   createdAt: string;
   updatedAt: string;
   _count?: { items: number };
+}
+
+/** Nó da árvore de categorias (admin): lista achatada em DFS. */
+export interface CategoryNode {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  parentId: string | null;
+  depth: number;
+  pathLabel: string[];
+  items: number;
 }
 
 /** Public news card (listing) — only approved, published articles. */

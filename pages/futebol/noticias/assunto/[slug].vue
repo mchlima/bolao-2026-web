@@ -4,7 +4,7 @@ import type { NewsCard, Paginated, TermPage } from '~/types/api';
 const route = useRoute();
 const slug = route.params.slug as string;
 const siteUrl = String(useRuntimeConfig().public.siteUrl);
-const url = `${siteUrl}/futebol/noticias/tag/${slug}`;
+const url = `${siteUrl}/futebol/noticias/assunto/${slug}`;
 
 const { data: term, error } = await useAsyncData(`tag-${slug}`, () =>
   useApi()<TermPage>(`/content/tags/${slug}`),
@@ -59,7 +59,7 @@ useHead({
       <span>#{{ t.name }}</span>
     </nav>
     <header class="term-hero">
-      <span class="term-kind">Tag</span>
+      <span class="term-kind">Assunto</span>
       <h1>{{ t.name }}</h1>
       <p v-if="t.description">{{ t.description }}</p>
       <p class="term-count">{{ t.total }} {{ t.total === 1 ? 'matéria' : 'matérias' }}</p>

@@ -42,7 +42,13 @@ useHead({
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
             { '@type': 'ListItem', position: 2, name: 'Notícias', item: `${siteUrl}/futebol/noticias` },
-            { '@type': 'ListItem', position: 3, name: t.name, item: url },
+            { '@type': 'ListItem', position: 3, name: 'Categorias', item: `${siteUrl}/futebol/noticias/categoria` },
+            ...(t.path ?? [{ name: t.name, slug: t.slug }]).map((p, i) => ({
+              '@type': 'ListItem',
+              position: 4 + i,
+              name: p.name,
+              item: `${siteUrl}/futebol/noticias/categoria/${p.slug}`,
+            })),
           ],
         },
       }),
@@ -56,7 +62,12 @@ useHead({
     <nav class="crumbs">
       <NuxtLink to="/futebol/noticias">Notícias</NuxtLink>
       <span>›</span>
-      <span>{{ t.name }}</span>
+      <NuxtLink to="/futebol/noticias/categoria">Categorias</NuxtLink>
+      <template v-for="(p, i) in (t.path ?? [{ name: t.name, slug: t.slug }])" :key="p.slug">
+        <span>›</span>
+        <NuxtLink v-if="i < (t.path?.length ?? 1) - 1" :to="`/futebol/noticias/categoria/${p.slug}`">{{ p.name }}</NuxtLink>
+        <span v-else>{{ p.name }}</span>
+      </template>
     </nav>
     <header class="term-hero">
       <span class="term-kind">Categoria</span>

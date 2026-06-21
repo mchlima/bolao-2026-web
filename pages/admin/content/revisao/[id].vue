@@ -2,12 +2,6 @@
 import type { NewsItem, NewsItemSeo, NewsTone, Paginated } from '~/types/api';
 import { newsStatus } from '~/utils/content';
 
-// Categorias-âncora (espelham CONTENT_CATEGORIES na API) — sugestões editáveis.
-const CATEGORIES = [
-  'Copa do Mundo', 'Seleção Brasileira', 'Brasileirão', 'Libertadores',
-  'Copa do Brasil', 'Futebol Internacional', 'Análise', 'Bastidores',
-];
-
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 const route = useRoute();
 const ui = useUiStore();
@@ -26,7 +20,7 @@ const savingSeo = ref(false);
 
 // Cópia editável do SEO/GEO (a edição vai pro PATCH :id/seo, mesclando no gerado).
 const seoForm = reactive({
-  slug: '', metaTitle: '', metaDescription: '', dek: '', category: '', focusKeyword: '', tags: '', keywords: '',
+  slug: '', metaTitle: '', metaDescription: '', dek: '', focusKeyword: '', keywords: '',
 });
 function syncSeoForm() {
   const s: NewsItemSeo = item.value?.seo ?? {};
@@ -34,9 +28,7 @@ function syncSeoForm() {
   seoForm.metaTitle = s.metaTitle ?? '';
   seoForm.metaDescription = s.metaDescription ?? '';
   seoForm.dek = s.dek ?? '';
-  seoForm.category = s.category ?? '';
   seoForm.focusKeyword = s.focusKeyword ?? '';
-  seoForm.tags = (s.tags ?? []).join(', ');
   seoForm.keywords = (s.keywords ?? []).join(', ');
 }
 const seo = computed<NewsItemSeo>(() => item.value?.seo ?? {});
@@ -48,9 +40,7 @@ const seoDirty = computed(() => {
     seoForm.metaTitle !== (s.metaTitle ?? '') ||
     seoForm.metaDescription !== (s.metaDescription ?? '') ||
     seoForm.dek !== (s.dek ?? '') ||
-    seoForm.category !== (s.category ?? '') ||
     seoForm.focusKeyword !== (s.focusKeyword ?? '') ||
-    seoForm.tags !== (s.tags ?? []).join(', ') ||
     seoForm.keywords !== (s.keywords ?? []).join(', ')
   );
 });
@@ -76,9 +66,7 @@ async function saveSeo() {
         metaTitle: seoForm.metaTitle.trim(),
         metaDescription: seoForm.metaDescription.trim(),
         dek: seoForm.dek.trim(),
-        category: seoForm.category.trim(),
         focusKeyword: seoForm.focusKeyword.trim(),
-        tags: list(seoForm.tags),
         keywords: list(seoForm.keywords),
       },
     });
@@ -271,6 +259,20 @@ async function exportText() {
     </section>
     </div>
 
+    <!-- Categoria & assuntos: o admin seleciona as entidades (cria se não existir) -->
+    <section v-if="item.generatedText" class="card adm-panel">
+      <h3 class="ctitle">Categoria &amp; assuntos</h3>
+      <p class="chint">Onde a matéria entra no site. A IA sugeriu a partir dos fatos — confirme ou ajuste. Categoria é hierárquica (até 3 níveis); tags novas são criadas e reaproveitadas.</p>
+      <ItemTaxonomyPicker
+        :item-id="itemId"
+        :category="item.category ?? null"
+        :tags="item.tags ?? []"
+        :suggested-category="seo.category"
+        :suggested-tags="seo.tags"
+        @saved="load"
+      />
+    </section>
+
     <!-- SEO & descoberta: gerado junto com a matéria para tráfego orgânico (Google + IA) -->
     <section v-if="item.generatedText" class="card adm-panel seo-card">
       <div class="seo-head">
@@ -309,18 +311,9 @@ async function exportText() {
             <span class="fl">Linha-fina (resposta direta — GEO)</span>
             <input v-model="seoForm.dek" class="input" />
           </label>
-          <label class="fld">
-            <span class="fl">Categoria</span>
-            <input v-model="seoForm.category" class="input" list="seo-cats" />
-            <datalist id="seo-cats"><option v-for="c in CATEGORIES" :key="c" :value="c" /></datalist>
-          </label>
-          <label class="fld">
+          <label class="fld full">
             <span class="fl">Palavra-chave</span>
             <input v-model="seoForm.focusKeyword" class="input" />
-          </label>
-          <label class="fld full">
-            <span class="fl">Tags <em class="cc-muted">vírgula separa</em></span>
-            <input v-model="seoForm.tags" class="input" placeholder="Brasil, Marrocos, Copa do Mundo" />
           </label>
           <label class="fld full">
             <span class="fl">Palavras-chave secundárias <em class="cc-muted">vírgula separa</em></span>
