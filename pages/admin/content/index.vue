@@ -14,6 +14,7 @@ interface Dashboard {
   config: Config;
   today: { items: number; costUsd: number };
   status: Record<string, number>;
+  flagged: number;
   sources: { total: number; active: number; withError: number };
   tonesActive: number;
   lastIngestAt: string | null;
@@ -135,6 +136,13 @@ onMounted(load);
         <AppIcon name="chevronRight" :size="20" :stroke="2.4" />
       </NuxtLink>
 
+      <!-- Alerta de fidelidade -->
+      <NuxtLink v-if="data.flagged > 0" to="/admin/content/revisao?tab=PENDING_REVIEW" class="card adm-panel flag-alert">
+        <AppIcon name="shield" :size="18" :stroke="2.2" />
+        <span><strong>{{ data.flagged }}</strong> matéria(s) em revisão com <strong>alerta de fidelidade</strong> — a verificação achou afirmações sem lastro. Revise antes de aprovar.</span>
+        <AppIcon name="chevronRight" :size="18" :stroke="2.4" class="fa-arrow" />
+      </NuxtLink>
+
       <!-- Fluxo da esteira (em ordem) -->
       <section class="card adm-panel">
         <h3 class="ctitle">Fluxo da esteira</h3>
@@ -196,6 +204,10 @@ onMounted(load);
 .bar span.over { background: var(--scarlet); box-shadow: 0 0 8px var(--scarlet); }
 .over-badge { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--scarlet); }
 .hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+.flag-alert { display: flex; align-items: center; gap: 12px; color: var(--text); border-left: 4px solid var(--gold); font-size: 13px; line-height: 1.45; }
+.flag-alert > :first-child { color: var(--gold); flex: none; }
+.flag-alert .fa-arrow { color: var(--muted); flex: none; margin-left: auto; }
+.flag-alert:hover { border-color: var(--gold); }
 .cfg-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text); }
 .cfg-link:hover { border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); }
 .cfg-link .cfg-title { font-weight: 700; font-size: 14px; }
