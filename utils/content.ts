@@ -10,6 +10,7 @@ export const NEWS_STATUS: Record<
   APPROVED: { label: 'Aprovado', tone: 'emerald' },
   REJECTED: { label: 'Rejeitado', tone: 'scarlet' },
   FAILED: { label: 'Falhou', tone: 'scarlet' },
+  DUPLICATE: { label: 'Duplicada', tone: 'neutral' },
 };
 
 export function newsStatus(s: string) {

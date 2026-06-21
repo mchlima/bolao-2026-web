@@ -165,6 +165,17 @@ async function exportText() {
       </div>
     </div>
 
+    <div v-if="item.duplicates && item.duplicates.length" class="card adm-panel">
+      <h3 class="ctitle">Outras fontes do mesmo assunto ({{ item.duplicates.length }})</h3>
+      <p class="chint">Notícias que o robô identificou como o mesmo acontecimento e suprimiu (não gerou texto delas). Esta é a matéria que prevaleceu.</p>
+      <ul class="dups">
+        <li v-for="d in item.duplicates" :key="d.id">
+          <span class="dup-src">{{ d.feed?.name ?? '—' }}</span>
+          {{ d.sourceTitle }}
+        </li>
+      </ul>
+    </div>
+
     <div v-if="item.revisions && item.revisions.length > 1" class="card adm-panel">
       <h3 class="ctitle">Histórico de gerações</h3>
       <div v-for="r in item.revisions" :key="r.id" class="rev">
@@ -209,4 +220,6 @@ async function exportText() {
 .rev-head { font-size: 13px; margin-bottom: 6px; }
 .rev-guid { color: var(--azure); font-style: italic; margin-left: 6px; }
 .rev-text { white-space: pre-wrap; font: inherit; font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0; }
+.dups { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.dup-src { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-right: 6px; }
 </style>

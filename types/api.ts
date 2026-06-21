@@ -69,7 +69,8 @@ export type NewsItemStatus =
   | 'PENDING_REVIEW'
   | 'APPROVED'
   | 'REJECTED'
-  | 'FAILED';
+  | 'FAILED'
+  | 'DUPLICATE';
 
 export interface NewsTone {
   id: string;
@@ -144,6 +145,8 @@ export interface NewsItem {
   sourceText: string | null;
   publishedAt: string | null;
   status: NewsItemStatus;
+  eventKey: string | null;
+  duplicateOfId: string | null;
   relevanceScore: number | null;
   relevanceReason: string | null;
   facts: NewsFacts | null;
@@ -160,6 +163,8 @@ export interface NewsItem {
   feed?: { id: string; name: string } | null;
   tone?: { id: string; name: string } | null;
   revisions?: NewsRevision[];
+  duplicateOf?: { id: string; sourceTitle: string } | null;
+  duplicates?: { id: string; sourceTitle: string; feed?: { name: string } | null }[];
 }
 
 export interface FeedPreview {
