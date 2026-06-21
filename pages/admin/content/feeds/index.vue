@@ -31,9 +31,10 @@ function fmtWhen(iso: string | null): string {
 
 async function fetchNow(f: NewsFeed) {
   try {
-    const r = await useApi()<{ inserted: number }>(`/admin/content/feeds/${f.id}/fetch`, { method: 'POST' });
+    const r = await useApi()<{ inserted: number; found: number; stale: number }>(`/admin/content/feeds/${f.id}/fetch`, { method: 'POST' });
     if (r.inserted) ui.toast('success', `${r.inserted} novo(s) item(ns).`);
-    else if (f.type === 'TOPIC') ui.toast('info', 'Busca feita, mas sem artigo novo/fresco — tente um assunto mais específico e domínios de notícia.');
+    else if (f.type === 'TOPIC' && r.stale > 0) ui.toast('info', `Achei ${r.found} matéria(s), mas todas têm mais de 48h — sem novidade fresca agora sobre esse assunto.`);
+    else if (f.type === 'TOPIC') ui.toast('info', 'Busca feita, mas nenhuma matéria recente encontrada — tente outro assunto ou ajuste os domínios.');
     else ui.toast('info', 'Sem novidades agora.');
     await load();
   } catch (e) { err(e); }
