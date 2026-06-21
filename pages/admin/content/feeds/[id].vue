@@ -50,6 +50,33 @@ const tones = ref<NewsTone[]>([]);
 const preview = ref<FeedPreview | null>(null);
 const testing = ref(false);
 
+// ── Estimativa de custo da Pauta (recalcula ao vivo) ──
+const genModel = ref('claude-sonnet-4-6'); // modelo de geração (vem das Configurações)
+const PRICES: Record<string, { in: number; out: number }> = {
+  'claude-haiku-4-5': { in: 1, out: 5 },
+  'claude-sonnet-4-6': { in: 3, out: 15 },
+  'claude-opus-4-8': { in: 5, out: 25 },
+};
+const MODEL_SHORT: Record<string, string> = {
+  'claude-haiku-4-5': 'Haiku', 'claude-sonnet-4-6': 'Sonnet', 'claude-opus-4-8': 'Opus',
+};
+// Custos médios aproximados (token shapes típicos observados nos testes).
+function perSearchCost() { return 0.01 + (11000 / 1e6) * 1; } // taxa US$0,01 + ~11k tokens no Haiku
+function perArticleCost(model: string) {
+  const p = PRICES[model] ?? PRICES['claude-sonnet-4-6'];
+  const extract = (2000 / 1e6) * 1 + (400 / 1e6) * 5; // extração no Haiku
+  const generate = (1000 / 1e6) * p.in + (800 / 1e6) * p.out; // geração no modelo escolhido
+  return extract + generate;
+}
+const topicEstimate = computed(() => {
+  const searches = Math.max(1, Number(form.topicMaxSearches) || 1);
+  const results = Math.max(1, Number(form.topicMaxResults) || 1);
+  const discovery = searches * perSearchCost();
+  const processing = results * perArticleCost(genModel.value);
+  return { discovery, processing, total: discovery + processing };
+});
+function usd(x: number) { return '$' + x.toFixed(x < 1 ? 3 : 2); }
+
 function err(e: unknown) {
   ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro');
 }
@@ -58,6 +85,10 @@ onMounted(async () => {
   try {
     const t = await useApi()<Paginated<NewsTone>>('/admin/content/tones?pageSize=100');
     tones.value = t.data;
+  } catch { /* ignore */ }
+  try {
+    const s = await useApi()<{ generateModel: string }>('/admin/content/settings');
+    if (s.generateModel) genModel.value = s.generateModel;
   } catch { /* ignore */ }
   if (!isNew.value) {
     try {
@@ -243,6 +274,22 @@ async function save() {
             </div>
           </div>
           <p class="hint">Controlam o custo: cada busca ~US$0,01 + tokens, somado ao teto de gasto. Frescor de 48h e dedup valem igual. Use um intervalo de coleta maior p/ não pesquisar com muita frequência.</p>
+
+          <div class="cost-est">
+            <div class="ce-row">
+              <span>Descoberta — {{ form.topicMaxSearches }} busca(s)</span>
+              <strong>~{{ usd(topicEstimate.discovery) }}</strong>
+            </div>
+            <div class="ce-row">
+              <span>Se as {{ form.topicMaxResults }} virarem matéria ({{ MODEL_SHORT[genModel] ?? genModel }})</span>
+              <strong>~{{ usd(topicEstimate.processing) }}</strong>
+            </div>
+            <div class="ce-row total">
+              <span>Pior caso por rodada</span>
+              <strong>~{{ usd(topicEstimate.total) }}</strong>
+            </div>
+            <p class="ce-note">Estimativa por rodada de busca. Na prática costuma ser <strong>bem menos</strong> — relevância e dedup barram boa parte antes de gerar. Seu teto de gasto/dia trava em qualquer cenário.</p>
+          </div>
         </template>
 
         <!-- API/Página: config JSON livre -->
@@ -307,6 +354,14 @@ async function save() {
 .topic-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .topic-nums label { display: block; }
 @media (max-width: 560px) { .topic-nums { grid-template-columns: 1fr; } }
+.cost-est { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--bg-base); }
+.ce-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13px; padding: 3px 0; }
+.ce-row span { color: var(--muted); }
+.ce-row strong { font-family: 'Oswald', sans-serif; font-weight: 700; }
+.ce-row.total { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 8px; }
+.ce-row.total span { color: var(--text); font-weight: 700; }
+.ce-row.total strong { font-size: 16px; color: var(--gold); }
+.ce-note { font-size: 11.5px; color: var(--muted); line-height: 1.45; margin: 8px 0 0; opacity: 0.9; }
 .preview { margin-top: 8px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--bg-base); }
 .pv-title { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; color: var(--emerald); }
 .pv-list { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
