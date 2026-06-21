@@ -127,6 +127,7 @@ onMounted(load);
         </div>
         <p class="hint">
           O robô automático para ao bater qualquer teto (reseta à meia-noite UTC). O <strong>excedente</strong> acima vem de gerações manuais forçadas (Regerar/Resgatar confirmados).
+          <br>O volume conta só <strong>matérias geradas</strong>; notícias filtradas custam a extração (entram no teto de US$), mas não consomem o limite de volume.
         </p>
       </section>
 
