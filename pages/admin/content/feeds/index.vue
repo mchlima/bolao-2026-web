@@ -63,26 +63,7 @@ function actionsFor(f: NewsFeed): MenuItem[] {
     { key: 'del', label: 'Excluir', icon: 'trash', tone: 'danger', onSelect: () => remove(f) },
   ];
 }
-const paused = ref(false);
-async function loadSettings() {
-  try {
-    paused.value = (await useApi()<{ paused: boolean }>('/admin/content/settings')).paused;
-  } catch { /* ignore */ }
-}
-async function togglePaused() {
-  try {
-    const r = await useApi()<{ paused: boolean }>('/admin/content/settings', {
-      method: 'PATCH',
-      body: { paused: !paused.value },
-    });
-    paused.value = r.paused;
-    ui.toast(paused.value ? 'info' : 'success', paused.value ? 'Robô pausado — nada coleta nem gera.' : 'Robô religado.');
-  } catch (e) { err(e); }
-}
-onMounted(() => {
-  load();
-  loadSettings();
-});
+onMounted(load);
 </script>
 
 <template>
@@ -92,10 +73,6 @@ onMounted(() => {
       subtitle="De onde vêm as notícias: RSS, API de notícias ou crawl de página. O robô lê cada fonte ativa automaticamente (varre a cada ~5 min, respeitando o intervalo de cada uma), descarta o que for antigo e joga as novas na Triagem. Pause uma fonte pelo toggle, sem excluí-la."
     >
       <template #actions>
-        <div class="robot" :title="paused ? 'O robô está pausado — não coleta nem gera.' : 'O robô está ligado.'">
-          <span class="robot-lbl" :class="{ off: paused }">{{ paused ? 'Robô pausado' : 'Robô ligado' }}</span>
-          <ToggleSwitch :on="!paused" @toggle="togglePaused" />
-        </div>
         <NuxtLink to="/admin/content/feeds/new" class="btn btn-primary">
           <AppIcon name="plus" :size="15" :stroke="2.4" /> Nova fonte
         </NuxtLink>
@@ -154,9 +131,6 @@ onMounted(() => {
 .furl { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .muted-txt { font-size: 12.5px; color: var(--muted); font-weight: 600; }
 .type-badge { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; }
-.robot { display: flex; align-items: center; gap: 8px; margin-right: 4px; }
-.robot-lbl { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--emerald); }
-.robot-lbl.off { color: var(--scarlet); }
 .health { display: flex; align-items: center; gap: 8px; }
 .hwhen { font-size: 11.5px; color: var(--muted); }
 .acts { display: flex; justify-content: flex-end; }
