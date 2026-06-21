@@ -2,7 +2,7 @@
 import type { TermPage } from '~/types/api';
 
 const siteUrl = String(useRuntimeConfig().public.siteUrl);
-const url = `${siteUrl}/futebol/noticias/categoria`;
+const url = `${siteUrl}/noticias/categoria`;
 
 const { data } = await useAsyncData('cat-hub', () => useApi()<TermPage[]>('/content/categories'));
 const terms = computed(() => data.value ?? []);
@@ -20,7 +20,7 @@ useHead({ link: [{ rel: 'canonical', href: url }] });
 <template>
   <div class="hub">
     <nav class="crumbs">
-      <NuxtLink to="/futebol/noticias">Notícias</NuxtLink>
+      <NuxtLink to="/noticias">Notícias</NuxtLink>
       <span>›</span><span>Categorias</span>
     </nav>
     <header class="hub-hero">
@@ -30,7 +30,7 @@ useHead({ link: [{ rel: 'canonical', href: url }] });
 
     <ul v-if="terms.length" class="term-list">
       <li v-for="t in terms" :key="t.slug">
-        <NuxtLink :to="`/futebol/noticias/categoria/${t.slug}`" class="term-chip">
+        <NuxtLink :to="`/noticias/categoria/${t.slug}`" class="term-chip">
           <span class="tc-name">{{ t.name }}</span>
           <span class="tc-count">{{ t.total }}</span>
         </NuxtLink>

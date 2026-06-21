@@ -2,7 +2,7 @@
 import type { NewsCard, Paginated } from '~/types/api';
 
 const siteUrl = String(useRuntimeConfig().public.siteUrl);
-const listUrl = `${siteUrl}/futebol/noticias`;
+const listUrl = `${siteUrl}/noticias`;
 
 const { data } = await useAsyncData('public-news', () =>
   useApi()<Paginated<NewsCard>>('/content/news?pageSize=30'),

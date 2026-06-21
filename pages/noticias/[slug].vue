@@ -13,7 +13,7 @@ if (error.value || !article.value) {
 }
 
 const a = article.value;
-const url = `${siteUrl}/futebol/noticias/${slug}`;
+const url = `${siteUrl}/noticias/${slug}`;
 const paragraphs = computed(() => a.body.split(/\n+/).map((s) => s.trim()).filter(Boolean));
 
 function fmtDate(iso: string): string {
@@ -76,7 +76,7 @@ useHead({
             '@type': 'BreadcrumbList',
             itemListElement: [
               { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
-              { '@type': 'ListItem', position: 2, name: 'Notícias', item: `${siteUrl}/futebol/noticias` },
+              { '@type': 'ListItem', position: 2, name: 'Notícias', item: `${siteUrl}/noticias` },
               { '@type': 'ListItem', position: 3, name: a.title, item: url },
             ],
           },
@@ -90,12 +90,12 @@ useHead({
 <template>
   <article v-if="a" class="art">
     <nav class="crumbs">
-      <NuxtLink to="/futebol/noticias">Notícias</NuxtLink>
+      <NuxtLink to="/noticias">Notícias</NuxtLink>
       <span>›</span>
-      <NuxtLink v-if="a.category" :to="`/futebol/noticias/categoria/${a.category.slug}`">{{ a.category.name }}</NuxtLink>
+      <NuxtLink v-if="a.category" :to="`/noticias/categoria/${a.category.slug}`">{{ a.category.name }}</NuxtLink>
     </nav>
 
-    <NuxtLink v-if="a.category" :to="`/futebol/noticias/categoria/${a.category.slug}`" class="art-cat">{{ a.category.name }}</NuxtLink>
+    <NuxtLink v-if="a.category" :to="`/noticias/categoria/${a.category.slug}`" class="art-cat">{{ a.category.name }}</NuxtLink>
     <h1 class="art-title">{{ a.title }}</h1>
     <p v-if="a.dek" class="art-dek">{{ a.dek }}</p>
     <div class="art-meta">
@@ -116,7 +116,7 @@ useHead({
     </section>
 
     <div v-if="a.tags.length" class="art-tags">
-      <NuxtLink v-for="t in a.tags" :key="t.slug" :to="`/futebol/noticias/assunto/${t.slug}`" class="tag">{{ t.name }}</NuxtLink>
+      <NuxtLink v-for="t in a.tags" :key="t.slug" :to="`/noticias/assunto/${t.slug}`" class="tag">{{ t.name }}</NuxtLink>
     </div>
 
     <aside class="art-cta">

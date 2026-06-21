@@ -4,7 +4,7 @@ import type { NewsCard, Paginated, TermPage } from '~/types/api';
 const route = useRoute();
 const slug = route.params.slug as string;
 const siteUrl = String(useRuntimeConfig().public.siteUrl);
-const url = `${siteUrl}/futebol/noticias/assunto/${slug}`;
+const url = `${siteUrl}/noticias/assunto/${slug}`;
 
 const { data: term, error } = await useAsyncData(`tag-${slug}`, () =>
   useApi()<TermPage>(`/content/tags/${slug}`),
@@ -41,7 +41,7 @@ useHead({
           '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
-            { '@type': 'ListItem', position: 2, name: 'Notícias', item: `${siteUrl}/futebol/noticias` },
+            { '@type': 'ListItem', position: 2, name: 'Notícias', item: `${siteUrl}/noticias` },
             { '@type': 'ListItem', position: 3, name: t.name, item: url },
           ],
         },
@@ -54,7 +54,7 @@ useHead({
 <template>
   <div class="term-page">
     <nav class="crumbs">
-      <NuxtLink to="/futebol/noticias">Notícias</NuxtLink>
+      <NuxtLink to="/noticias">Notícias</NuxtLink>
       <span>›</span>
       <span>#{{ t.name }}</span>
     </nav>

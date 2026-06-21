@@ -3,10 +3,15 @@
 // and admin stay private. The personal home was merged into the portal home (/).
 // Runs SSR + client (token in cookie).
 
-// Public sporting content + the landing/auth/howto pages. Everything else private.
+// Public sporting content + the landing/auth/howto pages + the news section.
+// Everything else private.
 const PUBLIC_EXACT = new Set(['/', '/entrar', '/cadastro', '/como-funciona']);
 const isPublicPath = (path: string): boolean =>
-  PUBLIC_EXACT.has(path) || path === '/futebol' || path.startsWith('/futebol/');
+  PUBLIC_EXACT.has(path) ||
+  path === '/futebol' ||
+  path.startsWith('/futebol/') ||
+  path === '/noticias' ||
+  path.startsWith('/noticias/');
 
 export default defineNuxtRouteMiddleware((to) => {
   // Legacy routes moved under the sport namespace — redirect (keeps old links/SEO).
@@ -17,6 +22,13 @@ export default defineNuxtRouteMiddleware((to) => {
   }
   if (to.path === '/matches' || to.path.startsWith('/matches/')) {
     return navigateTo(to.fullPath.replace('/matches', '/futebol/agenda'), {
+      redirectCode: 301,
+    });
+  }
+  // News moved out of the sport namespace: /futebol/noticias → /noticias (the
+  // section already has its own "Futebol" category, so the prefix was redundant).
+  if (to.path === '/futebol/noticias' || to.path.startsWith('/futebol/noticias/')) {
+    return navigateTo(to.fullPath.replace('/futebol/noticias', '/noticias'), {
       redirectCode: 301,
     });
   }

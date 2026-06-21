@@ -30,7 +30,7 @@ const notifications = useNotificationsStore();
         <NuxtLink to="/" class="nav-link">Início</NuxtLink>
         <NuxtLink to="/futebol/agenda" class="nav-link">Agenda</NuxtLink>
         <NuxtLink to="/futebol/torneios" class="nav-link">Torneios</NuxtLink>
-        <NuxtLink to="/futebol/noticias" class="nav-link">Notícias</NuxtLink>
+        <NuxtLink to="/noticias" class="nav-link">Notícias</NuxtLink>
         <template v-if="auth.isAuthenticated">
           <NuxtLink to="/boloes" class="nav-link">Bolões</NuxtLink>
         </template>

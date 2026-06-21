@@ -4,7 +4,7 @@ import type { NewsCard, Paginated, TermPage } from '~/types/api';
 const route = useRoute();
 const slug = route.params.slug as string;
 const siteUrl = String(useRuntimeConfig().public.siteUrl);
-const url = `${siteUrl}/futebol/noticias/categoria/${slug}`;
+const url = `${siteUrl}/noticias/categoria/${slug}`;
 
 const { data: term, error } = await useAsyncData(`cat-${slug}`, () =>
   useApi()<TermPage>(`/content/categories/${slug}`),
@@ -41,13 +41,13 @@ useHead({
           '@type': 'BreadcrumbList',
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
-            { '@type': 'ListItem', position: 2, name: 'Notícias', item: `${siteUrl}/futebol/noticias` },
-            { '@type': 'ListItem', position: 3, name: 'Categorias', item: `${siteUrl}/futebol/noticias/categoria` },
+            { '@type': 'ListItem', position: 2, name: 'Notícias', item: `${siteUrl}/noticias` },
+            { '@type': 'ListItem', position: 3, name: 'Categorias', item: `${siteUrl}/noticias/categoria` },
             ...(t.path ?? [{ name: t.name, slug: t.slug }]).map((p, i) => ({
               '@type': 'ListItem',
               position: 4 + i,
               name: p.name,
-              item: `${siteUrl}/futebol/noticias/categoria/${p.slug}`,
+              item: `${siteUrl}/noticias/categoria/${p.slug}`,
             })),
           ],
         },
@@ -60,12 +60,12 @@ useHead({
 <template>
   <div class="term-page">
     <nav class="crumbs">
-      <NuxtLink to="/futebol/noticias">Notícias</NuxtLink>
+      <NuxtLink to="/noticias">Notícias</NuxtLink>
       <span>›</span>
-      <NuxtLink to="/futebol/noticias/categoria">Categorias</NuxtLink>
+      <NuxtLink to="/noticias/categoria">Categorias</NuxtLink>
       <template v-for="(p, i) in (t.path ?? [{ name: t.name, slug: t.slug }])" :key="p.slug">
         <span>›</span>
-        <NuxtLink v-if="i < (t.path?.length ?? 1) - 1" :to="`/futebol/noticias/categoria/${p.slug}`">{{ p.name }}</NuxtLink>
+        <NuxtLink v-if="i < (t.path?.length ?? 1) - 1" :to="`/noticias/categoria/${p.slug}`">{{ p.name }}</NuxtLink>
         <span v-else>{{ p.name }}</span>
       </template>
     </nav>

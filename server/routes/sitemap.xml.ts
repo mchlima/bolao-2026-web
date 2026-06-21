@@ -36,9 +36,9 @@ export default defineEventHandler(async (event) => {
     { loc: '/como-funciona', priority: 0.8, changefreq: 'monthly' },
     { loc: '/futebol/agenda', priority: 0.8, changefreq: 'hourly' },
     { loc: '/futebol/torneios', priority: 0.7, changefreq: 'daily' },
-    { loc: '/futebol/noticias', priority: 0.8, changefreq: 'daily' },
-    { loc: '/futebol/noticias/categoria', priority: 0.6, changefreq: 'weekly' },
-    { loc: '/futebol/noticias/assunto', priority: 0.5, changefreq: 'weekly' },
+    { loc: '/noticias', priority: 0.8, changefreq: 'daily' },
+    { loc: '/noticias/categoria', priority: 0.6, changefreq: 'weekly' },
+    { loc: '/noticias/assunto', priority: 0.5, changefreq: 'weekly' },
   ];
 
   // Tournaments → each public hub + its standings / matches / ranking tabs.
@@ -113,7 +113,7 @@ export default defineEventHandler(async (event) => {
     for (const n of news.data ?? []) {
       if (!n.slug) continue;
       urls.push({
-        loc: `/futebol/noticias/${n.slug}`,
+        loc: `/noticias/${n.slug}`,
         priority: 0.6,
         changefreq: 'weekly',
         lastmod: n.publishedAt,
@@ -130,10 +130,10 @@ export default defineEventHandler(async (event) => {
       $fetch<{ slug: string }[]>(`${api}/content/tags`),
     ]);
     for (const c of cats ?? []) {
-      if (c.slug) urls.push({ loc: `/futebol/noticias/categoria/${c.slug}`, priority: 0.5, changefreq: 'weekly' });
+      if (c.slug) urls.push({ loc: `/noticias/categoria/${c.slug}`, priority: 0.5, changefreq: 'weekly' });
     }
     for (const t of tags ?? []) {
-      if (t.slug) urls.push({ loc: `/futebol/noticias/assunto/${t.slug}`, priority: 0.4, changefreq: 'weekly' });
+      if (t.slug) urls.push({ loc: `/noticias/assunto/${t.slug}`, priority: 0.4, changefreq: 'weekly' });
     }
   } catch {
     /* keep what we have. */

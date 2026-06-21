@@ -10,7 +10,7 @@ function fmtDate(iso: string): string {
 
 <template>
   <div class="news-grid">
-    <NuxtLink v-for="n in items" :key="n.slug" :to="`/futebol/noticias/${n.slug}`" class="ncard">
+    <NuxtLink v-for="n in items" :key="n.slug" :to="`/noticias/${n.slug}`" class="ncard">
       <span v-if="n.category" class="ncat">{{ n.category.name }}</span>
       <h2 class="ntitle">{{ n.title }}</h2>
       <p v-if="n.dek" class="ndek">{{ n.dek }}</p>
