@@ -152,6 +152,7 @@ export interface NewsItem {
   relevanceScore: number | null;
   relevanceReason: string | null;
   facts: NewsFacts | null;
+  seo: NewsItemSeo | null;
   toneId: string | null;
   toneSnapshot: string | null;
   toneVersion: number | null;
@@ -169,6 +170,21 @@ export interface NewsItem {
   revisions?: NewsRevision[];
   duplicateOf?: { id: string; sourceTitle: string } | null;
   duplicates?: { id: string; sourceTitle: string; feed?: { name: string } | null }[];
+}
+
+/** SEO/GEO/taxonomy package generated with the article (powers organic discovery). */
+export interface NewsItemSeo {
+  dek?: string;
+  slug?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  focusKeyword?: string;
+  keywords?: string[];
+  category?: string;
+  tags?: string[];
+  keyTakeaways?: string[];
+  faq?: { question: string; answer: string }[];
+  imageAlt?: string;
 }
 
 export interface FeedPreview {
