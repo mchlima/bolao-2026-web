@@ -833,6 +833,7 @@ export interface MatchStats {
 export interface MatchNote {
   id: string;
   text: string;
+  minute: string | null;
   authorId: string | null;
   createdAt: string;
 }

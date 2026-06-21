@@ -13,6 +13,9 @@ const text = ref('');
 const sending = ref(false);
 const generating = ref(false);
 const streamEl = ref<HTMLElement | null>(null);
+// Tempo automático ligado = usa o relógio ao vivo; desligado = input manual (pode ir vazio).
+const autoTime = ref(true);
+const manualTime = ref('');
 
 function err(e: unknown) {
   ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro');
@@ -44,9 +47,11 @@ const isFinished = computed(() => match.value?.status === 'FINISHED');
 async function send() {
   const t = text.value.trim();
   if (!t || sending.value) return;
+  // Auto: relógio ao vivo (pode ser nulo se não estiver LIVE). Manual: o que foi digitado (ou vazio).
+  const minute = autoTime.value ? match.value?.liveClock || null : manualTime.value.trim() || null;
   sending.value = true;
   try {
-    const note = await useApi()<MatchNote>(`/admin/matches/${matchId}/notes`, { method: 'POST', body: { text: t } });
+    const note = await useApi()<MatchNote>(`/admin/matches/${matchId}/notes`, { method: 'POST', body: { text: t, minute } });
     notes.value = [...notes.value, note];
     text.value = '';
     scrollDown();
@@ -130,7 +135,7 @@ function fmtTime(iso: string): string {
         <div ref="streamEl" class="stream">
           <p v-if="!notes.length" class="empty">Comece a narrar — escreva o que você vê. Cada comentário entra como fato da matéria.</p>
           <div v-for="n in notes" :key="n.id" class="msg">
-            <div class="msg-body">{{ n.text }}</div>
+            <div class="msg-body"><span v-if="n.minute" class="msg-min">{{ n.minute }}</span>{{ n.text }}</div>
             <div class="msg-foot">
               <span class="msg-time">{{ fmtTime(n.createdAt) }}</span>
               <button class="msg-del" title="Excluir" @click="removeNote(n.id)"><AppIcon name="close" :size="12" :stroke="2.4" /></button>
@@ -138,14 +143,29 @@ function fmtTime(iso: string): string {
           </div>
         </div>
         <div class="composer">
-          <textarea
-            v-model="text" class="input ta" rows="2"
-            placeholder="Escreva um comentário e Enter para enviar (Shift+Enter quebra linha)…"
-            @keydown="onKeydown"
-          />
-          <button class="btn btn-primary send" :disabled="!text.trim() || sending" @click="send">
-            <AppIcon name="arrowUp" :size="16" :stroke="2.4" />
-          </button>
+          <div class="time-ctl">
+            <label class="autochk">
+              <input v-model="autoTime" type="checkbox" />
+              <span>Tempo automático</span>
+            </label>
+            <span v-if="autoTime" class="auto-hint">
+              {{ match.liveClock ? `→ marca ${match.liveClock}` : '→ sem tempo (jogo não está ao vivo)' }}
+            </span>
+            <input
+              v-else v-model="manualTime" class="input time-in" maxlength="12"
+              placeholder="tempo (ex.: 67') — pode deixar vazio"
+            />
+          </div>
+          <div class="composer-row">
+            <textarea
+              v-model="text" class="input ta" rows="2"
+              placeholder="Escreva um comentário e Enter para enviar (Shift+Enter quebra linha)…"
+              @keydown="onKeydown"
+            />
+            <button class="btn btn-primary send" :disabled="!text.trim() || sending" @click="send">
+              <AppIcon name="arrowUp" :size="16" :stroke="2.4" />
+            </button>
+          </div>
         </div>
       </section>
 
@@ -183,12 +203,19 @@ function fmtTime(iso: string): string {
 .empty { color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: auto; text-align: center; max-width: 320px; }
 .msg { align-self: flex-start; max-width: 88%; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; border-top-left-radius: 4px; padding: 9px 12px; }
 .msg-body { font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.msg-min { display: inline-block; font-size: 11px; font-weight: 800; color: var(--azure); background: color-mix(in srgb, var(--azure) 12%, transparent); border-radius: 5px; padding: 1px 6px; margin-right: 7px; vertical-align: 1px; font-variant-numeric: tabular-nums; }
 .msg-foot { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
 .msg-time { font-size: 10.5px; color: var(--muted); font-weight: 600; }
 .msg-del { display: inline-flex; border: none; background: none; color: var(--muted); cursor: pointer; padding: 1px; border-radius: 4px; opacity: 0; transition: opacity 0.12s, color 0.12s; }
 .msg:hover .msg-del { opacity: 1; }
 .msg-del:hover { color: var(--scarlet); }
-.composer { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); background: var(--bg-surface); }
+.composer { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-top: 1px solid var(--border); background: var(--bg-surface); }
+.time-ctl { display: flex; align-items: center; gap: 10px; }
+.autochk { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--text); cursor: pointer; user-select: none; white-space: nowrap; }
+.autochk input { cursor: pointer; accent-color: var(--azure); }
+.auto-hint { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.time-in { flex: 1; max-width: 260px; font-size: 13px; padding: 6px 10px; }
+.composer-row { display: flex; gap: 8px; }
 .ta { resize: none; flex: 1; }
 .send { flex: 0 0 auto; align-self: stretch; padding: 0 16px; }
 
