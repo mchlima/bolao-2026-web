@@ -3,7 +3,11 @@ import type { NewsItem } from '~/types/api';
 
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 const ui = useUiStore();
-const statusFilter = ref<'FILTERED' | 'DUPLICATE' | 'DISCOVERED' | 'PROCESSING' | 'FAILED'>('FILTERED');
+const route = useRoute();
+type TKey = 'FILTERED' | 'DUPLICATE' | 'DISCOVERED' | 'PROCESSING' | 'FAILED';
+const TAB_KEYS: TKey[] = ['FILTERED', 'DUPLICATE', 'DISCOVERED', 'PROCESSING', 'FAILED'];
+const queryTab = route.query.tab as string | undefined;
+const statusFilter = ref<TKey>(TAB_KEYS.includes(queryTab as TKey) ? (queryTab as TKey) : 'FILTERED');
 const { page, data, load } = useAdminList<NewsItem>('/admin/content/items', () => `status=${statusFilter.value}`);
 watch(statusFilter, () => { page.value = 1; load(); });
 

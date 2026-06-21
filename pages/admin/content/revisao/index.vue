@@ -3,7 +3,11 @@ import type { NewsItem } from '~/types/api';
 
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 const tz = useTz();
-const statusFilter = ref<'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'>('PENDING_REVIEW');
+const route = useRoute();
+type RKey = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
+const R_KEYS: RKey[] = ['PENDING_REVIEW', 'APPROVED', 'REJECTED'];
+const rQueryTab = route.query.tab as string | undefined;
+const statusFilter = ref<RKey>(R_KEYS.includes(rQueryTab as RKey) ? (rQueryTab as RKey) : 'PENDING_REVIEW');
 const { page, data, load } = useAdminList<NewsItem>('/admin/content/items', () => `status=${statusFilter.value}`);
 watch(statusFilter, () => { page.value = 1; load(); });
 

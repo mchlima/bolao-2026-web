@@ -72,12 +72,19 @@ const budgetOver = computed(() =>
 const volOver = computed(() =>
   data.value && cfg.maxPerDay > 0 ? data.value.today.items - cfg.maxPerDay : 0,
 );
-const TILES = [
-  { key: 'PENDING_REVIEW', label: 'Em revisão', tone: 'gold', to: '/admin/content/revisao' },
-  { key: 'DISCOVERED', label: 'Na fila', tone: 'azure', to: '/admin/content/triagem' },
-  { key: 'APPROVED', label: 'Aprovadas', tone: 'emerald', to: '/admin/content/revisao' },
-  { key: 'FILTERED', label: 'Filtradas', tone: 'neutral', to: '/admin/content/triagem' },
-  { key: 'FAILED', label: 'Falhas', tone: 'scarlet', to: '/admin/content/triagem' },
+// Etapas do fluxo, NA ORDEM em que o item caminha (fila → processando → revisão → aprovada).
+const FLOW = [
+  { key: 'DISCOVERED', label: 'Na fila', tone: 'azure', to: '/admin/content/triagem?tab=DISCOVERED' },
+  { key: 'PROCESSING', label: 'Processando', tone: 'azure', to: '/admin/content/triagem?tab=PROCESSING' },
+  { key: 'PENDING_REVIEW', label: 'Em revisão', tone: 'gold', to: '/admin/content/revisao?tab=PENDING_REVIEW' },
+  { key: 'APPROVED', label: 'Aprovadas', tone: 'emerald', to: '/admin/content/revisao?tab=APPROVED' },
+];
+// Estados FORA do fluxo direto: terminais ou desviados, mas que você ainda pode mudar (resgatar/rever).
+const SIDE = [
+  { key: 'FILTERED', label: 'Filtradas', tone: 'neutral', to: '/admin/content/triagem?tab=FILTERED', sub: 'resgatável' },
+  { key: 'DUPLICATE', label: 'Duplicadas', tone: 'neutral', to: '/admin/content/triagem?tab=DUPLICATE', sub: 'resgatável' },
+  { key: 'REJECTED', label: 'Rejeitadas', tone: 'scarlet', to: '/admin/content/revisao?tab=REJECTED', sub: 'resgatável' },
+  { key: 'FAILED', label: 'Falhas', tone: 'scarlet', to: '/admin/content/triagem?tab=FAILED', sub: 'precisa de atenção' },
 ];
 function fmt(iso: string | null) {
   if (!iso) return 'nunca';
@@ -149,13 +156,31 @@ onMounted(load);
         <div class="save-row"><button class="btn btn-primary" :disabled="busy" @click="saveLimits">Salvar limites</button></div>
       </section>
 
-      <!-- Fila -->
-      <div class="tiles">
-        <NuxtLink v-for="t in TILES" :key="t.key" :to="t.to" class="card adm-panel tile">
-          <span class="tile-n" :class="`t-${t.tone}`">{{ nStat(t.key) }}</span>
-          <span class="tile-l">{{ t.label }}</span>
-        </NuxtLink>
-      </div>
+      <!-- Fluxo da esteira (em ordem) -->
+      <section class="card adm-panel">
+        <h3 class="ctitle">Fluxo da esteira</h3>
+        <div class="flow">
+          <template v-for="(t, i) in FLOW" :key="t.key">
+            <NuxtLink :to="t.to" class="flow-step">
+              <span class="tile-n" :class="`t-${t.tone}`">{{ nStat(t.key) }}</span>
+              <span class="tile-l">{{ t.label }}</span>
+            </NuxtLink>
+            <AppIcon v-if="i < FLOW.length - 1" name="chevronRight" :size="18" :stroke="2.4" class="flow-arrow" />
+          </template>
+        </div>
+      </section>
+
+      <!-- Estados fora do fluxo (terminais/temporários, podem mudar) -->
+      <section class="card adm-panel">
+        <h3 class="ctitle">Estados <span class="ctitle-sub">— fora do fluxo direto; ainda dá pra resgatar ou rever</span></h3>
+        <div class="tiles side">
+          <NuxtLink v-for="t in SIDE" :key="t.key" :to="t.to" class="tile">
+            <span class="tile-n" :class="`t-${t.tone}`">{{ nStat(t.key) }}</span>
+            <span class="tile-l">{{ t.label }}</span>
+            <span class="tile-sub">{{ t.sub }}</span>
+          </NuxtLink>
+        </div>
+      </section>
 
       <section class="card adm-panel meta-row">
         <NuxtLink to="/admin/content/feeds" class="meta">
@@ -196,11 +221,19 @@ onMounted(load);
 .limits label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 8px; }
 .limits .lh { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); opacity: 0.8; }
 .save-row { margin-top: 14px; display: flex; justify-content: flex-end; }
-.tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.ctitle-sub { font-weight: 600; text-transform: none; letter-spacing: 0; opacity: 0.8; }
+.flow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.flow-step { flex: 1 1 0; min-width: 92px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); }
+.flow-step:hover { border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); }
+.flow-arrow { color: var(--muted); flex: none; opacity: 0.7; }
+@media (max-width: 760px) { .flow-arrow { transform: rotate(90deg); } }
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 @media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, 1fr); } .limits { grid-template-columns: 1fr; } }
-.tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 10px; text-align: center; }
+.tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 10px; text-align: center; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); }
+.tiles.side .tile:hover { border-color: color-mix(in srgb, var(--scarlet) 35%, var(--border)); }
 .tile-n { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 30px; line-height: 1; }
 .tile-l { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.tile-sub { font-size: 10.5px; font-weight: 600; color: var(--muted); opacity: 0.75; }
 .t-gold { color: var(--gold); } .t-azure { color: var(--azure); } .t-emerald { color: var(--emerald); } .t-scarlet { color: var(--scarlet); } .t-neutral { color: var(--text); }
 .meta-row { display: flex; gap: 28px; flex-wrap: wrap; }
 .meta { display: flex; flex-direction: column; gap: 2px; }
