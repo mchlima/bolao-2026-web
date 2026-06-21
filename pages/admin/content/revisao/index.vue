@@ -4,8 +4,8 @@ import type { NewsItem } from '~/types/api';
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 const tz = useTz();
 const route = useRoute();
-type RKey = 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED';
-const R_KEYS: RKey[] = ['PENDING_REVIEW', 'APPROVED', 'REJECTED'];
+type RKey = 'PENDING_REVIEW' | 'PROMOTED' | 'REJECTED';
+const R_KEYS: RKey[] = ['PENDING_REVIEW', 'PROMOTED', 'REJECTED'];
 const rQueryTab = route.query.tab as string | undefined;
 const statusFilter = ref<RKey>(R_KEYS.includes(rQueryTab as RKey) ? (rQueryTab as RKey) : 'PENDING_REVIEW');
 const { page, data, load } = useAdminList<NewsItem>('/admin/content/items', () => `status=${statusFilter.value}`);
@@ -13,13 +13,13 @@ watch(statusFilter, () => { page.value = 1; load(); });
 
 const TABS = [
   { key: 'PENDING_REVIEW', label: 'Em revisão' },
-  { key: 'APPROVED', label: 'Aprovados' },
+  { key: 'PROMOTED', label: 'Enviados ao CMS' },
   { key: 'REJECTED', label: 'Rejeitados' },
 ] as const;
 
 const TAB_HELP: Record<string, string> = {
-  PENDING_REVIEW: 'Matérias prontas esperando sua avaliação. Abra uma para comparar o texto gerado com os fatos e a fonte, ajustar com uma orientação (regerar), e então aprovar ou rejeitar.',
-  APPROVED: 'Matérias que você aprovou — prontas para copiar/exportar e publicar onde quiser.',
+  PENDING_REVIEW: 'Matérias prontas esperando sua avaliação. Abra uma para comparar o texto gerado com os fatos e a fonte, ajustar com uma orientação (regerar), e então enviar pro CMS ou rejeitar.',
+  PROMOTED: 'Matérias que você promoveu — viraram posts no CMS (rascunho ou publicado). Gerencie e publique em Publicações › Posts.',
   REJECTED: 'Matérias descartadas na revisão. Ficam aqui como histórico.',
 };
 

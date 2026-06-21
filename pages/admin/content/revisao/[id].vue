@@ -16,9 +16,12 @@ const toneOverride = ref('');
 const expandedRev = ref<string | null>(null);
 const regenerating = ref(false);
 const showRegen = ref(false);
-const savingSeo = ref(false);
+
+// Sugestões de taxonomia (do pacote SEO gerado) — usadas pelo seletor de categoria/tags.
+const seo = computed<NewsItemSeo>(() => item.value?.seo ?? {});
 
 // Cópia editável do SEO/GEO (a edição vai pro PATCH :id/seo, mesclando no gerado).
+const savingSeo = ref(false);
 const seoForm = reactive({
   slug: '', metaTitle: '', metaDescription: '', dek: '', focusKeyword: '', keywords: '',
 });
@@ -31,7 +34,6 @@ function syncSeoForm() {
   seoForm.focusKeyword = s.focusKeyword ?? '';
   seoForm.keywords = (s.keywords ?? []).join(', ');
 }
-const seo = computed<NewsItemSeo>(() => item.value?.seo ?? {});
 const hasSeo = computed(() => !!item.value?.seo && Object.keys(item.value.seo).length > 0);
 const seoDirty = computed(() => {
   const s = item.value?.seo ?? {};
@@ -44,17 +46,10 @@ const seoDirty = computed(() => {
     seoForm.keywords !== (s.keywords ?? []).join(', ')
   );
 });
-// Saúde do comprimento: fora da faixa ideal vira alerta (laranja); vazio fica neutro.
 function lenClass(n: number, lo: number, hi: number): string {
   if (!n) return 'cc-muted';
   return n < lo || n > hi ? 'cc-warn' : 'cc-ok';
 }
-
-function confirmRegen() {
-  showRegen.value = false;
-  void reprocess();
-}
-
 async function saveSeo() {
   savingSeo.value = true;
   try {
@@ -73,6 +68,11 @@ async function saveSeo() {
     await load();
     ui.toast('success', 'SEO salvo.');
   } catch (e) { err(e); } finally { savingSeo.value = false; }
+}
+
+function confirmRegen() {
+  showRegen.value = false;
+  void reprocess();
 }
 
 function err(e: unknown) {
@@ -120,13 +120,17 @@ function revWhen(iso: string): string {
 }
 function toggleRev(id: string) { expandedRev.value = expandedRev.value === id ? null : id; }
 
-async function approve() {
+/** Promove pro CMS: cria um Post (rascunho, ou publicado se publish=true) e abre o editor. */
+async function promote(publish: boolean) {
   busy.value = true;
   try {
-    await useApi()(`/admin/content/items/${itemId}/approve`, { method: 'POST' });
-    ui.toast('success', 'Aprovado!');
-    await load();
-  } catch (e) { err(e); } finally { busy.value = false; }
+    const post = await useApi()<{ id: string }>(`/admin/content/items/${itemId}/promote`, {
+      method: 'POST',
+      body: { publish },
+    });
+    ui.toast('success', publish ? 'Enviado ao CMS e publicado!' : 'Enviado pro CMS como rascunho.');
+    navigateTo(`/admin/posts/${post.id}`);
+  } catch (e) { err(e); busy.value = false; }
 }
 async function reject() {
   const ok = await ui.confirm({ title: 'Rejeitar', msg: 'Descartar esta matéria?', confirmLabel: 'Rejeitar', danger: true });
@@ -202,8 +206,11 @@ async function exportText() {
       </button>
       <div class="act-decide">
         <button class="btn reject-btn" :disabled="busy" @click="reject"><AppIcon name="close" :size="14" :stroke="2.2" /> Rejeitar</button>
-        <button class="btn btn-primary" :disabled="busy || item.status === 'APPROVED'" @click="approve">
-          <AppIcon name="check" :size="14" :stroke="2.4" /> Aprovar
+        <button class="btn" :disabled="busy || item.status === 'PROMOTED'" @click="promote(true)" title="Cria o post já publicado, pulando a edição no CMS">
+          Publicar já
+        </button>
+        <button class="btn btn-primary" :disabled="busy || item.status === 'PROMOTED'" @click="promote(false)">
+          <AppIcon name="check" :size="14" :stroke="2.4" /> Enviar pro CMS
         </button>
       </div>
     </div>
@@ -259,10 +266,10 @@ async function exportText() {
     </section>
     </div>
 
-    <!-- Categoria & assuntos: o admin seleciona as entidades (cria se não existir) -->
+    <!-- Categoria & assuntos: pré-seleção (carregada pro Post ao promover) -->
     <section v-if="item.generatedText" class="card adm-panel tax-card">
       <h3 class="ctitle">Categoria &amp; assuntos</h3>
-      <p class="chint">Onde a matéria entra no site. A IA sugeriu a partir dos fatos — confirme ou ajuste. Categoria é hierárquica (até 3 níveis); tags novas são criadas e reaproveitadas.</p>
+      <p class="chint">Pré-seleção opcional — ao enviar pro CMS, ela vai junto pro post. SEO e demais ajustes ficam no editor do CMS. Categoria é hierárquica (até 3 níveis); tags novas são criadas e reaproveitadas.</p>
       <ItemTaxonomyPicker
         :item-id="itemId"
         :category="item.category ?? null"
@@ -278,7 +285,7 @@ async function exportText() {
       <div class="seo-head">
         <div>
           <h3 class="ctitle">SEO &amp; descoberta</h3>
-          <p class="chint">Gerado com a matéria para ser achada no Google e citada por buscadores de IA (GEO). Ajuste antes de publicar.</p>
+          <p class="chint">Gerado com a matéria para ser achada no Google e citada por buscadores de IA (GEO). Ajuste aqui antes de promover — vai junto pro post no CMS.</p>
         </div>
         <button class="btn btn-primary seo-save" :disabled="!seoDirty || savingSeo" @click="saveSeo">
           <AppIcon name="check" :size="14" :stroke="2.4" /> {{ savingSeo ? 'Salvando…' : 'Salvar SEO' }}

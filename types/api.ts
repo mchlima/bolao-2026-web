@@ -67,7 +67,7 @@ export type NewsItemStatus =
   | 'FILTERED'
   | 'PROCESSING'
   | 'PENDING_REVIEW'
-  | 'APPROVED'
+  | 'PROMOTED'
   | 'REJECTED'
   | 'FAILED'
   | 'DUPLICATE';
@@ -276,6 +276,55 @@ export interface PublicNewsArticle extends NewsCard {
 export interface FeedPreview {
   title: string;
   items: { title: string; link: string; isoDate: string | null }[];
+}
+
+// ── CMS Posts (entidade editorial; separada da esteira NewsItem) ──
+export type PostStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+/** Pacote SEO/GEO do artigo (sem slug/dek/categoria/tags — esses são campos do post). */
+export interface PostSeo {
+  metaTitle?: string;
+  metaDescription?: string;
+  focusKeyword?: string;
+  imageAlt?: string;
+  keywords?: string[];
+  keyTakeaways?: string[];
+  faq?: { question: string; answer: string }[];
+}
+
+/** Linha da listagem do CMS (/admin/posts). */
+export interface PostListRow {
+  id: string;
+  title: string;
+  slug: string;
+  status: PostStatus;
+  publishedAt: string | null;
+  hasPendingChanges: boolean;
+  category: { name: string; slug: string } | null;
+  tagCount: number;
+  fromEngine: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** View do editor: campos DE TRABALHO (draft ?? colunas) + estado de publicação. */
+export interface PostView {
+  id: string;
+  status: PostStatus;
+  title: string;
+  slug: string;
+  dek: string | null;
+  body: string;
+  seo: PostSeo | null;
+  categoryId: string | null;
+  tags: EntityRef[];
+  /** Slug atualmente no ar (só relevante quando PUBLISHED). */
+  publishedSlug: string | null;
+  hasPendingChanges: boolean;
+  publishedAt: string | null;
+  fromEngine: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface User {
