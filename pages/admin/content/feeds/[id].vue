@@ -412,17 +412,24 @@ async function save() {
           </p>
         </template>
 
-        <label>Foco desta fonte <span class="opt">(opcional)</span></label>
+        <label>{{ form.type === 'MATCH_REPORT' ? 'Direcionamento editorial' : 'Foco desta fonte' }} <span class="opt">(opcional)</span></label>
         <textarea
           v-model="form.focus"
           class="input"
           rows="3"
           maxlength="600"
-          placeholder="Ex.: só mercado da bola (contratações, renovações, sondagens) e seleção brasileira. Ignore vôlei, F1, e-sports e colunas de opinião."
+          :placeholder="form.type === 'MATCH_REPORT'
+            ? 'Ex.: destaque sempre as defesas e o desempenho do goleiro, e o que o resultado muda na classificação do grupo.'
+            : 'Ex.: só mercado da bola (contratações, renovações, sondagens) e seleção brasileira. Ignore vôlei, F1, e-sports e colunas de opinião.'"
         />
         <p class="hint">
-          O robô pontua a relevância de cada notícia desta fonte <strong>em relação a este foco</strong> — o que fica fora cai em
-          <em>Triagem → Filtrados</em> (e pode ser resgatado). Em branco, usa relevância geral de futebol. Não gera custo extra.
+          <template v-if="form.type === 'MATCH_REPORT'">
+            Um ângulo fixo aplicado a <strong>toda matéria desta fonte</strong> — entra como orientação ao gerador, junto com o tom. Em branco, sem direcionamento.
+          </template>
+          <template v-else>
+            O robô pontua a relevância de cada notícia desta fonte <strong>em relação a este foco</strong> — o que fica fora cai em
+            <em>Triagem → Filtrados</em> (e pode ser resgatado). Em branco, usa relevância geral de futebol. Não gera custo extra.
+          </template>
         </p>
 
         <label>Tom padrão</label>
