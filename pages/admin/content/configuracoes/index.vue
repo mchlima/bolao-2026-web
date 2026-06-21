@@ -6,11 +6,12 @@ interface Config {
   paused: boolean;
   dailyBudgetUsd: number;
   maxPerDay: number;
+  extractModel: string;
   generateModel: string;
   relevanceMin: number;
 }
 
-const cfg = reactive<Config>({ paused: true, dailyBudgetUsd: 1, maxPerDay: 50, generateModel: 'claude-sonnet-4-6', relevanceMin: 0.4 });
+const cfg = reactive<Config>({ paused: true, dailyBudgetUsd: 1, maxPerDay: 50, extractModel: 'claude-haiku-4-5', generateModel: 'claude-sonnet-4-6', relevanceMin: 0.4 });
 const loaded = ref(false);
 const busy = ref(false);
 
@@ -37,6 +38,7 @@ async function save() {
       body: {
         dailyBudgetUsd: Number(cfg.dailyBudgetUsd) || 0,
         maxPerDay: Number(cfg.maxPerDay) || 0,
+        extractModel: cfg.extractModel,
         generateModel: cfg.generateModel,
         relevanceMin: Number(cfg.relevanceMin) || 0,
       },
@@ -66,7 +68,11 @@ onMounted(load);
         <input v-model.number="cfg.dailyBudgetUsd" type="number" min="0" step="0.5" class="input" />
         <label>Máx. matérias/dia <span class="lh">0 = sem limite</span></label>
         <input v-model.number="cfg.maxPerDay" type="number" min="0" step="10" class="input" />
-        <label>Modelo de geração</label>
+        <label>Modelo de extração <span class="lh">apura os fatos + verifica</span></label>
+        <select v-model="cfg.extractModel" class="input">
+          <option v-for="m in MODELS" :key="m.id" :value="m.id">{{ m.label }}</option>
+        </select>
+        <label>Modelo de geração <span class="lh">escreve a matéria</span></label>
         <select v-model="cfg.generateModel" class="input">
           <option v-for="m in MODELS" :key="m.id" :value="m.id">{{ m.label }}</option>
         </select>
@@ -76,6 +82,7 @@ onMounted(load);
       <p class="hint">
         O robô para automaticamente ao bater o teto de gasto OU o de volume (o que vier primeiro), resetando à meia-noite UTC.
         O volume conta só matérias geradas; filtradas custam a extração (entram no teto de US$), mas não consomem o limite de volume.
+        <br>O <strong>modelo de extração</strong> apura os fatos e faz a verificação (contra a fonte): subi-lo (ex.: Sonnet) reduz erro na apuração — como nomear o torneio errado — ao custo de mais tokens por item.
       </p>
       <div class="save-row"><button class="btn btn-primary" :disabled="busy" @click="save">{{ busy ? 'Salvando…' : 'Salvar configurações' }}</button></div>
     </section>

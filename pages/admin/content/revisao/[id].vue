@@ -113,7 +113,7 @@ async function exportText() {
     </div>
 
     <div v-if="item.verifyOk === false" class="card adm-panel verify-warn">
-      <div class="vw-head"><AppIcon name="shield" :size="16" :stroke="2.2" /> A verificação encontrou afirmações sem lastro nos fatos</div>
+      <div class="vw-head"><AppIcon name="shield" :size="16" :stroke="2.2" /> A verificação (contra a fonte) encontrou problemas — fidelidade ou derivação</div>
       <ul class="vw-list">
         <li v-for="(line, i) in (item.verifyNotes || '').split('\n').filter(Boolean)" :key="i">{{ line }}</li>
       </ul>
