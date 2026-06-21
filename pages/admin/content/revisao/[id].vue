@@ -36,6 +36,12 @@ onMounted(async () => {
   toneOverride.value = item.value?.toneId ?? '';
 });
 
+// Item de fonte generativa (ex.: resumo de jogo): não há prosa-fonte de terceiro —
+// os fatos ao lado SÃO a base; a "fonte" é o nosso banco.
+const isGenerated = computed(
+  () => item.value?.feed?.type === 'MATCH_REPORT' || (item.value?.sourceUrl?.startsWith('match:') ?? false),
+);
+
 const factEntries = computed<[string, unknown][]>(() => {
   const f = item.value?.facts;
   if (!f) return [];
@@ -113,7 +119,7 @@ async function exportText() {
     </div>
 
     <div v-if="item.verifyOk === false" class="card adm-panel verify-warn">
-      <div class="vw-head"><AppIcon name="shield" :size="16" :stroke="2.2" /> A verificação (contra a fonte) encontrou problemas — fidelidade ou derivação</div>
+      <div class="vw-head"><AppIcon name="shield" :size="16" :stroke="2.2" /> {{ isGenerated ? 'A verificação (contra os fatos) encontrou afirmações sem lastro' : 'A verificação (contra a fonte) encontrou problemas — fidelidade ou derivação' }}</div>
       <ul class="vw-list">
         <li v-for="(line, i) in (item.verifyNotes || '').split('\n').filter(Boolean)" :key="i">{{ line }}</li>
       </ul>
@@ -141,13 +147,20 @@ async function exportText() {
       </section>
 
       <section class="card adm-panel col">
-        <h3 class="ctitle">Fonte original</h3>
-        <p class="chint">A notícia de origem. O texto NÃO é copiado — serve só para apurar os fatos.</p>
-        <p class="src-title">{{ item.sourceTitle }}</p>
-        <div class="src-body">{{ item.sourceText || item.sourceSummary || '—' }}</div>
-        <a :href="item.sourceUrl" target="_blank" rel="noopener" class="btn btn-sm">
-          <AppIcon name="externalLink" :size="14" :stroke="2" /> Abrir notícia
-        </a>
+        <h3 class="ctitle">{{ isGenerated ? 'Origem' : 'Fonte original' }}</h3>
+        <template v-if="isGenerated">
+          <p class="chint">Gerada a partir dos <strong>dados da partida no nosso banco</strong> — não há fonte de terceiro. Os fatos ao lado são a base.</p>
+          <p class="src-title">{{ item.sourceTitle }}</p>
+          <span class="gen-badge"><AppIcon name="check" :size="13" :stroke="2.4" /> Resumo de jogo · {{ item.feed?.name ?? 'banco' }}</span>
+        </template>
+        <template v-else>
+          <p class="chint">A notícia de origem. O texto NÃO é copiado — serve só para apurar os fatos.</p>
+          <p class="src-title">{{ item.sourceTitle }}</p>
+          <div class="src-body">{{ item.sourceText || item.sourceSummary || '—' }}</div>
+          <a :href="item.sourceUrl" target="_blank" rel="noopener" class="btn btn-sm">
+            <AppIcon name="externalLink" :size="14" :stroke="2" /> Abrir notícia
+          </a>
+        </template>
       </section>
     </div>
 
@@ -218,6 +231,7 @@ async function exportText() {
 .facts dt { font-weight: 700; color: var(--muted); }
 .facts dd { margin: 0; }
 .src-title { font-weight: 700; font-size: 14px; margin: 0 0 8px; }
+.gen-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--emerald); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; }
 .src-body { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 12px; max-height: 360px; overflow-y: auto; white-space: pre-wrap; }
 .muted-txt { font-size: 13px; color: var(--muted); }
 .actbar { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; align-items: flex-end; }

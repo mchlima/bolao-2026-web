@@ -85,7 +85,7 @@ export interface NewsTone {
   _count?: { items: number };
 }
 
-export type NewsFeedType = 'RSS' | 'NEWS_API' | 'PAGE' | 'TOPIC';
+export type NewsFeedType = 'RSS' | 'NEWS_API' | 'PAGE' | 'TOPIC' | 'MATCH_REPORT';
 
 export interface NewsFeed {
   id: string;
@@ -139,6 +139,7 @@ export interface NewsRevision {
 export interface NewsItem {
   id: string;
   feedId: string | null;
+  matchId: string | null;
   sourceUrl: string;
   sourceGuid: string;
   sourceTitle: string;
@@ -163,7 +164,7 @@ export interface NewsItem {
   reviewedAt: string | null;
   createdAt: string;
   updatedAt: string;
-  feed?: { id: string; name: string } | null;
+  feed?: { id: string; name: string; type?: NewsFeedType } | null;
   tone?: { id: string; name: string } | null;
   revisions?: NewsRevision[];
   duplicateOf?: { id: string; sourceTitle: string } | null;

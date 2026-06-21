@@ -19,6 +19,14 @@ const form = reactive({
   topicDomains: '',
   topicMaxSearches: 2,
   topicMaxResults: 12,
+  // Campos do Resumo de jogo (MATCH_REPORT) — viram config { seasonIds, blocks, notableCap, delayMinutes }.
+  mrSeasonIds: [] as string[],
+  mrNotableCap: 4,
+  mrDelayMinutes: 20,
+  mrBlocks: {
+    identificacao: true, gols: true, cartoes: true, substituicoes: true, escalacoes: true,
+    estatisticas: true, lancesNotaveis: true, classificacao: true, proximaRodada: true,
+  } as Record<string, boolean>,
   focus: '',
   defaultToneId: '',
   fetchIntervalMin: 15,
@@ -26,17 +34,40 @@ const form = reactive({
   isActive: true,
 });
 
+// Blocos de dado do resumo de jogo (o que entra no pacote de fatos). O objetivo da
+// fonte = quais blocos + tom (flash curto = só os primeiros; análise = todos).
+const BLOCK_DEFS: { key: string; label: string; hint: string }[] = [
+  { key: 'identificacao', label: 'Identificação', hint: 'competição, fase, rodada, estádio, público, árbitro' },
+  { key: 'gols', label: 'Gols', hint: 'autores, minutos, assistências' },
+  { key: 'cartoes', label: 'Cartões', hint: 'amarelos e vermelhos' },
+  { key: 'substituicoes', label: 'Substituições', hint: 'quem entrou/saiu' },
+  { key: 'escalacoes', label: 'Escalações', hint: 'titulares + formação' },
+  { key: 'estatisticas', label: 'Estatísticas', hint: 'posse, finalizações, defesas…' },
+  { key: 'lancesNotaveis', label: 'Lances notáveis', hint: 'defesas, trave, VAR (limitado pelo teto)' },
+  { key: 'classificacao', label: 'Classificação', hint: 'tabela do grupo após o jogo' },
+  { key: 'proximaRodada', label: 'Próxima rodada', hint: 'o que vem na sequência' },
+];
+
+interface SeasonOpt { id: string; name: string; seasonLabel: string | null; competition?: { name: string } | null }
+const seasons = ref<SeasonOpt[]>([]);
+function seasonLabel(s: SeasonOpt): string {
+  const comp = s.competition?.name;
+  return comp && !s.name.includes(comp) ? `${comp} — ${s.name}` : s.name;
+}
+
 const TYPES: { key: NewsFeedType; label: string }[] = [
   { key: 'RSS', label: 'RSS' },
   { key: 'NEWS_API', label: 'API de notícias' },
   { key: 'PAGE', label: 'Página (crawl)' },
   { key: 'TOPIC', label: 'Pauta (busca)' },
+  { key: 'MATCH_REPORT', label: 'Resumo de jogo' },
 ];
 const URL_LABEL: Record<NewsFeedType, string> = {
   RSS: 'URL do RSS',
   NEWS_API: 'URL do endpoint da API',
   PAGE: 'URL da página/seção',
   TOPIC: '',
+  MATCH_REPORT: '',
 };
 const CONFIG_PLACEHOLDER: Record<NewsFeedType, string> = {
   RSS: '',
@@ -45,7 +76,11 @@ const CONFIG_PLACEHOLDER: Record<NewsFeedType, string> = {
   PAGE: '{\n  "linkPattern": "/futebol/.+/noticia/",\n  "limit": 25\n}',
   TOPIC:
     '{\n  "query": "Copa do Mundo 2026: resultados, lesões, convocações",\n  "allowedDomains": ["ge.globo.com", "espn.com.br"],\n  "maxSearches": 2,\n  "maxResults": 12\n}',
+  MATCH_REPORT: '',
 };
+
+// Fontes generativas escondem a URL (leem o banco) — como a Pauta.
+const URLLESS_TYPES: NewsFeedType[] = ['TOPIC', 'MATCH_REPORT'];
 
 const tones = ref<NewsTone[]>([]);
 const preview = ref<FeedPreview | null>(null);
@@ -91,6 +126,10 @@ onMounted(async () => {
     const s = await useApi()<{ generateModel: string }>('/admin/content/settings');
     if (s.generateModel) genModel.value = s.generateModel;
   } catch { /* ignore */ }
+  try {
+    const s = await useApi()<Paginated<SeasonOpt>>('/seasons?pageSize=100');
+    seasons.value = s.data;
+  } catch { /* ignore */ }
   if (!isNew.value) {
     try {
       const f = await useApi()<NewsFeed>(`/admin/content/feeds/${feedId.value}`);
@@ -103,6 +142,14 @@ onMounted(async () => {
         form.topicDomains = (c.allowedDomains ?? []).join(', ');
         form.topicMaxSearches = c.maxSearches ?? 2;
         form.topicMaxResults = c.maxResults ?? 12;
+      } else if (f.type === 'MATCH_REPORT') {
+        const c = (f.config ?? {}) as {
+          seasonIds?: string[]; blocks?: Record<string, boolean>; notableCap?: number; delayMinutes?: number;
+        };
+        form.mrSeasonIds = Array.isArray(c.seasonIds) ? c.seasonIds : [];
+        form.mrNotableCap = c.notableCap ?? 4;
+        form.mrDelayMinutes = c.delayMinutes ?? 20;
+        if (c.blocks) for (const k of Object.keys(form.mrBlocks)) form.mrBlocks[k] = c.blocks[k] !== false;
       } else {
         form.configText = f.config ? JSON.stringify(f.config, null, 2) : '';
       }
@@ -135,8 +182,8 @@ async function testUrl() {
 }
 
 function parseConfig(): Record<string, unknown> | null {
-  // RSS não tem config; TOPIC monta a config a partir dos campos no save().
-  if (form.type === 'RSS' || form.type === 'TOPIC' || !form.configText.trim()) return null;
+  // RSS não tem config; TOPIC/MATCH_REPORT montam a config dos campos no save().
+  if (URLLESS_TYPES.includes(form.type) || form.type === 'RSS' || !form.configText.trim()) return null;
   return JSON.parse(form.configText) as Record<string, unknown>;
 }
 
@@ -173,6 +220,18 @@ async function save() {
       maxResults: Number(form.topicMaxResults) || 12,
     };
     url = 'pauta:' + slug(q);
+  } else if (form.type === 'MATCH_REPORT') {
+    if (!form.mrSeasonIds.length) {
+      ui.toast('error', 'Escolha ao menos uma temporada (escopo da fonte).');
+      return;
+    }
+    config = {
+      seasonIds: form.mrSeasonIds,
+      blocks: { ...form.mrBlocks },
+      notableCap: Number(form.mrNotableCap) || 0,
+      delayMinutes: Number(form.mrDelayMinutes) || 0,
+    };
+    url = 'match-report:' + (slug(form.name) || 'fonte');
   } else if (!url) {
     ui.toast('error', 'A URL é obrigatória.');
     return;
@@ -229,7 +288,7 @@ async function save() {
         <label>Nome</label>
         <input v-model="form.name" class="input" maxlength="120" placeholder="Ex.: ge.globo — Futebol" />
 
-        <template v-if="form.type !== 'TOPIC'">
+        <template v-if="!URLLESS_TYPES.includes(form.type)">
           <label>{{ URL_LABEL[form.type] }}</label>
           <div class="url-row">
             <input v-model="form.url" class="input" placeholder="https://…" />
@@ -295,6 +354,47 @@ async function save() {
           </div>
         </template>
 
+        <!-- Resumo de jogo: lê o nosso banco, sem URL -->
+        <template v-else-if="form.type === 'MATCH_REPORT'">
+          <p class="mr-intro">
+            Esta fonte não busca na web — ela lê o <strong>nosso banco</strong> e gera o resumo de cada
+            jogo encerrado no escopo, a partir dos dados estruturados (original por construção). Defina
+            o que ela cobre e quais blocos entram na matéria.
+          </p>
+
+          <label>Temporadas cobertas <span class="opt">(escopo)</span></label>
+          <div v-if="seasons.length" class="season-list">
+            <label v-for="s in seasons" :key="s.id" class="season-opt">
+              <input type="checkbox" :value="s.id" v-model="form.mrSeasonIds" />
+              <span>{{ seasonLabel(s) }}</span>
+            </label>
+          </div>
+          <p v-else class="hint">Nenhuma temporada encontrada.</p>
+          <p class="hint">A fonte gera resumo só dos jogos encerrados destas temporadas. Sem escopo, não gera nada.</p>
+
+          <label>Blocos de dado na matéria</label>
+          <div class="block-grid">
+            <label v-for="b in BLOCK_DEFS" :key="b.key" class="block-opt" :title="b.hint">
+              <input type="checkbox" v-model="form.mrBlocks[b.key]" />
+              <span>{{ b.label }}</span>
+            </label>
+          </div>
+          <p class="hint">O objetivo da fonte = quais blocos + tom. Flash curto = só os primeiros; análise completa = todos. Crie várias fontes com objetivos diferentes sobre os mesmos jogos.</p>
+
+          <div class="mr-nums">
+            <div>
+              <label>Teto de lances notáveis</label>
+              <input v-model.number="form.mrNotableCap" type="number" min="0" max="20" class="input" />
+              <p class="hint">Quantas defesas/quase-gols nomear (trave/VAR entram sempre). Evita virar lista.</p>
+            </div>
+            <div>
+              <label>Atraso após o apito (min)</label>
+              <input v-model.number="form.mrDelayMinutes" type="number" min="0" max="1440" class="input" />
+              <p class="hint">Só gera X min após o jogo acabar — janela p/ dados atrasados (escalação/stats) chegarem.</p>
+            </div>
+          </div>
+        </template>
+
         <!-- API/Página: config JSON livre -->
         <template v-else-if="form.type !== 'RSS'">
           <label>Config (JSON)</label>
@@ -334,11 +434,16 @@ async function save() {
         <label>Intervalo de coleta (min)</label>
         <input v-model.number="form.fetchIntervalMin" type="number" min="1" max="1440" class="input" style="max-width: 140px" />
 
-        <label>Janela de frescor (horas)</label>
+        <label>{{ form.type === 'MATCH_REPORT' ? 'Retroatividade (horas)' : 'Janela de frescor (horas)' }}</label>
         <input v-model.number="form.maxAgeHours" type="number" min="1" max="8760" class="input" style="max-width: 140px" />
         <p class="hint">
-          Notícia mais antiga que isto é descartada (não vira matéria). Padrão <strong>48h</strong>.
-          <template v-if="form.type === 'TOPIC'"> Em pauta de tema mais "morno", aumente (ex.: 168 = 7 dias) p/ render mais.</template>
+          <template v-if="form.type === 'MATCH_REPORT'">
+            Ao ligar a fonte, cobre só jogos encerrados nas últimas <strong>{{ form.maxAgeHours }}h</strong> — evita gerar o histórico inteiro de uma vez. Padrão 48h.
+          </template>
+          <template v-else>
+            Notícia mais antiga que isto é descartada (não vira matéria). Padrão <strong>48h</strong>.
+            <template v-if="form.type === 'TOPIC'"> Em pauta de tema mais "morno", aumente (ex.: 168 = 7 dias) p/ render mais.</template>
+          </template>
         </p>
 
         <label class="check"><input type="checkbox" v-model="form.isActive" /> Ativa</label>
@@ -364,6 +469,16 @@ async function save() {
 .topic-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .topic-nums label { display: block; }
 @media (max-width: 560px) { .topic-nums { grid-template-columns: 1fr; } }
+.mr-intro { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 6px 0 4px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.season-list { display: flex; flex-direction: column; gap: 2px; max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; background: var(--bg-base); }
+.season-opt { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px; margin: 0 !important; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; padding: 3px 0; }
+.season-opt input { width: auto; }
+.block-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px 12px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--bg-base); }
+.block-opt { display: flex !important; flex-direction: row !important; align-items: center; gap: 8px; margin: 0 !important; font-size: 13px; font-weight: 600; color: var(--text); cursor: pointer; padding: 3px 0; }
+.block-opt input { width: auto; }
+.mr-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 4px; }
+.mr-nums label { display: block; }
+@media (max-width: 640px) { .block-grid { grid-template-columns: 1fr 1fr; } .mr-nums { grid-template-columns: 1fr; } }
 .cost-est { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--bg-base); }
 .ce-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 13px; padding: 3px 0; }
 .ce-row span { color: var(--muted); }
