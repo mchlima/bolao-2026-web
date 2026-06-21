@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CategoryNode } from '~/types/api';
 import type { MenuItem } from '~/components/KebabMenu.vue';
+import { emptyTermSeoForm, toTermSeoForm, fromTermSeoForm, type TermSeoForm } from '~/utils/termSeo';
 
 const ui = useUiStore();
 const MAX_DEPTH = 3;
@@ -17,6 +18,7 @@ async function load() {
 const showForm = ref(false);
 const editing = ref<CategoryNode | null>(null);
 const form = reactive({ name: '', description: '', parentId: '' });
+const seoForm = ref<TermSeoForm>(emptyTermSeoForm());
 const saving = ref(false);
 
 // Pais elegíveis: nós com profundidade < 3 (p/ filho não passar de 3). Na edição,
@@ -40,11 +42,13 @@ function err(e: unknown) {
 function openNew() {
   editing.value = null;
   form.name = ''; form.description = ''; form.parentId = '';
+  seoForm.value = emptyTermSeoForm();
   showForm.value = true;
 }
 function openEdit(c: CategoryNode) {
   editing.value = c;
   form.name = c.name; form.description = c.description ?? ''; form.parentId = c.parentId ?? '';
+  seoForm.value = toTermSeoForm(c.seo);
   showForm.value = true;
 }
 async function save() {
@@ -54,12 +58,12 @@ async function save() {
     if (editing.value) {
       await useApi()(`/admin/content/categories/${editing.value.id}`, {
         method: 'PATCH',
-        body: { name: form.name.trim(), description: form.description.trim() || null, parentId: form.parentId || null },
+        body: { name: form.name.trim(), description: form.description.trim() || null, parentId: form.parentId || null, seo: fromTermSeoForm(seoForm.value) },
       });
     } else {
       await useApi()('/admin/content/categories', {
         method: 'POST',
-        body: { name: form.name.trim(), description: form.description.trim() || undefined, parentId: form.parentId || undefined },
+        body: { name: form.name.trim(), description: form.description.trim() || undefined, parentId: form.parentId || undefined, seo: fromTermSeoForm(seoForm.value) },
       });
     }
     ui.toast('success', 'Salvo.');
@@ -128,9 +132,13 @@ onMounted(load);
         <option value="">— Raiz (1º nível) —</option>
         <option v-for="p in parentOptions" :key="p.id" :value="p.id">{{ p.pathLabel.join(' › ') }}</option>
       </select>
-      <label class="fl">Descrição <span class="opt">(opcional — aparece na página pública)</span></label>
+      <label class="fl">Descrição <span class="opt">(opcional — resumo curto, aparece na página pública)</span></label>
       <textarea v-model="form.description" class="input area" rows="2" />
       <p v-if="editing" class="slug-note">Slug: <code>{{ editing.slug }}</code> — fixo (não muda a URL).</p>
+
+      <div class="seo-sep"><span>SEO &amp; GEO da página</span></div>
+      <AdminTermSeoFields :model="seoForm" :name="form.name.trim() || 'Categoria'" kind="categoria" />
+
       <template #footer>
         <button class="btn" @click="showForm = false">Cancelar</button>
         <button class="btn btn-primary" :disabled="saving" @click="save">{{ saving ? 'Salvando…' : 'Salvar' }}</button>
@@ -157,4 +165,6 @@ onMounted(load);
 .area { resize: vertical; }
 .slug-note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
 .slug-note code { font-family: ui-monospace, monospace; }
+.seo-sep { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
+.seo-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 </style>

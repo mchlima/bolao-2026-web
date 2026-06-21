@@ -260,7 +260,7 @@ async function exportText() {
     </div>
 
     <!-- Categoria & assuntos: o admin seleciona as entidades (cria se não existir) -->
-    <section v-if="item.generatedText" class="card adm-panel">
+    <section v-if="item.generatedText" class="card adm-panel tax-card">
       <h3 class="ctitle">Categoria &amp; assuntos</h3>
       <p class="chint">Onde a matéria entra no site. A IA sugeriu a partir dos fatos — confirme ou ajuste. Categoria é hierárquica (até 3 níveis); tags novas são criadas e reaproveitadas.</p>
       <ItemTaxonomyPicker
@@ -393,6 +393,7 @@ async function exportText() {
 </template>
 
 <style scoped>
+.tax-card { margin-bottom: 16px; }
 .status-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .meta { font-size: 12px; color: var(--muted); font-weight: 600; }
 .verify-ok { color: var(--emerald); display: inline-flex; align-items: center; gap: 3px; }

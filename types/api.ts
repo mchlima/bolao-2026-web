@@ -200,10 +200,22 @@ export interface EntityRef extends TermRef {
   id: string;
 }
 
+/** Metadados SEO/GEO da página de uma categoria/tag (manuais do admin). */
+export interface TermSeo {
+  metaTitle?: string;
+  metaDescription?: string;
+  /** Override do H1 visível (default: o nome). */
+  heading?: string;
+  /** Parágrafo de introdução (resposta direta — GEO) no topo do hub. */
+  intro?: string;
+  faq?: { question: string; answer: string }[];
+}
+
 /** Cabeçalho de página de categoria/tag (nome + descrição + total publicado). */
 export interface TermPage extends TermRef {
   description: string | null;
   total: number;
+  seo: TermSeo | null;
   /** Categoria: caminho raiz→nó p/ breadcrumb (Futebol > Copa do Mundo > 2026). */
   path?: TermRef[];
 }
@@ -214,6 +226,7 @@ export interface Taxonomy {
   name: string;
   slug: string;
   description: string | null;
+  seo: TermSeo | null;
   createdAt: string;
   updatedAt: string;
   _count?: { items: number };
@@ -225,6 +238,7 @@ export interface CategoryNode {
   name: string;
   slug: string;
   description: string | null;
+  seo: TermSeo | null;
   parentId: string | null;
   depth: number;
   pathLabel: string[];

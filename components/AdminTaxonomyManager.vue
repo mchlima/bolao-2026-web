@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Taxonomy } from '~/types/api';
 import type { MenuItem } from '~/components/KebabMenu.vue';
+import { emptyTermSeoForm, toTermSeoForm, fromTermSeoForm, type TermSeoForm } from '~/utils/termSeo';
 
 const props = defineProps<{
   endpoint: string; // ex.: '/admin/content/tags'
@@ -22,6 +23,8 @@ const COLS: AdminColumn[] = [
 const showForm = ref(false);
 const editing = ref<Taxonomy | null>(null);
 const form = reactive({ name: '', description: '' });
+const seoForm = ref<TermSeoForm>(emptyTermSeoForm());
+const seoKind = computed<'categoria' | 'assunto'>(() => (props.singular === 'categoria' ? 'categoria' : 'assunto'));
 const saving = ref(false);
 
 function err(e: unknown) {
@@ -31,12 +34,14 @@ function openNew() {
   editing.value = null;
   form.name = '';
   form.description = '';
+  seoForm.value = emptyTermSeoForm();
   showForm.value = true;
 }
 function openEdit(t: Taxonomy) {
   editing.value = t;
   form.name = t.name;
   form.description = t.description ?? '';
+  seoForm.value = toTermSeoForm(t.seo);
   showForm.value = true;
 }
 async function save() {
@@ -46,13 +51,13 @@ async function save() {
     if (editing.value) {
       await useApi()(`${props.endpoint}/${editing.value.id}`, {
         method: 'PATCH',
-        body: { name: form.name.trim(), description: form.description.trim() || null },
+        body: { name: form.name.trim(), description: form.description.trim() || null, seo: fromTermSeoForm(seoForm.value) },
       });
       ui.toast('success', 'Salvo.');
     } else {
       await useApi()(props.endpoint, {
         method: 'POST',
-        body: { name: form.name.trim(), description: form.description.trim() || undefined },
+        body: { name: form.name.trim(), description: form.description.trim() || undefined, seo: fromTermSeoForm(seoForm.value) },
       });
       ui.toast('success', `${props.singular === 'categoria' ? 'Categoria criada' : 'Tag criada'}.`);
     }
@@ -121,9 +126,15 @@ onMounted(load);
     <AppModal v-if="showForm" :title="editing ? `Editar ${singular}` : `Nova ${singular}`" @close="showForm = false">
       <label class="fl">Nome</label>
       <input v-model="form.name" class="input" :placeholder="singular === 'categoria' ? 'Ex.: Copa do Mundo' : 'Ex.: Neymar'" @keyup.enter="save" />
-      <label class="fl">Descrição <span class="opt">(opcional — aparece na página pública)</span></label>
+      <label class="fl">Descrição <span class="opt">(opcional — resumo curto, aparece na página pública)</span></label>
       <textarea v-model="form.description" class="input area" rows="2" />
       <p v-if="editing" class="slug-note">Slug: <code>{{ editing.slug }}</code> — fixo (não muda a URL pública).</p>
+
+      <div class="seo-sep">
+        <span>SEO &amp; GEO da página</span>
+      </div>
+      <AdminTermSeoFields :model="seoForm" :name="form.name.trim() || (singular === 'categoria' ? 'Categoria' : 'Assunto')" :kind="seoKind" />
+
       <template #footer>
         <button class="btn" @click="showForm = false">Cancelar</button>
         <button class="btn btn-primary" :disabled="saving" @click="save">{{ saving ? 'Salvando…' : 'Salvar' }}</button>
@@ -145,4 +156,6 @@ onMounted(load);
 .area { resize: vertical; }
 .slug-note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
 .slug-note code { font-family: ui-monospace, monospace; }
+.seo-sep { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
+.seo-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 </style>
