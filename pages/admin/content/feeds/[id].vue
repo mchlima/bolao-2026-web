@@ -14,6 +14,11 @@ const form = reactive({
   url: '',
   type: 'RSS' as NewsFeedType,
   configText: '',
+  // Campos da Pauta (TOPIC) — viram config { query, allowedDomains, maxSearches, maxResults }.
+  topicQuery: '',
+  topicDomains: '',
+  topicMaxSearches: 2,
+  topicMaxResults: 12,
   focus: '',
   defaultToneId: '',
   fetchIntervalMin: 15,
@@ -60,7 +65,15 @@ onMounted(async () => {
       form.name = f.name;
       form.url = f.url;
       form.type = f.type;
-      form.configText = f.config ? JSON.stringify(f.config, null, 2) : '';
+      if (f.type === 'TOPIC') {
+        const c = (f.config ?? {}) as { query?: string; allowedDomains?: string[]; maxSearches?: number; maxResults?: number };
+        form.topicQuery = c.query ?? '';
+        form.topicDomains = (c.allowedDomains ?? []).join(', ');
+        form.topicMaxSearches = c.maxSearches ?? 2;
+        form.topicMaxResults = c.maxResults ?? 12;
+      } else {
+        form.configText = f.config ? JSON.stringify(f.config, null, 2) : '';
+      }
       form.focus = f.focus ?? '';
       form.defaultToneId = f.defaultToneId ?? '';
       form.fetchIntervalMin = f.fetchIntervalMin;
@@ -89,7 +102,8 @@ async function testUrl() {
 }
 
 function parseConfig(): Record<string, unknown> | null {
-  if (form.type === 'RSS' || !form.configText.trim()) return null;
+  // RSS não tem config; TOPIC monta a config a partir dos campos no save().
+  if (form.type === 'RSS' || form.type === 'TOPIC' || !form.configText.trim()) return null;
   return JSON.parse(form.configText) as Record<string, unknown>;
 }
 
@@ -110,14 +124,21 @@ async function save() {
     ui.toast('error', 'A config não é um JSON válido.');
     return;
   }
-  // Pauta não tem URL: usa um id sintético derivado do assunto.
+  // Pauta não tem URL: monta a config dos campos e usa um id sintético do assunto.
   let url = form.url.trim();
   if (form.type === 'TOPIC') {
-    const q = String((config?.query as string) || '').trim();
+    const q = form.topicQuery.trim();
     if (!q) {
-      ui.toast('error', 'Defina o assunto da pauta no campo "query" da config.');
+      ui.toast('error', 'Informe o assunto da pauta.');
       return;
     }
+    const domains = form.topicDomains.split(',').map((s) => s.trim()).filter(Boolean);
+    config = {
+      query: q,
+      ...(domains.length ? { allowedDomains: domains } : {}),
+      maxSearches: Number(form.topicMaxSearches) || 2,
+      maxResults: Number(form.topicMaxResults) || 12,
+    };
     url = 'pauta:' + slug(q);
   } else if (!url) {
     ui.toast('error', 'A URL é obrigatória.');
@@ -191,8 +212,42 @@ async function save() {
           </ul>
         </div>
 
-        <template v-if="form.type !== 'RSS'">
-          <label>{{ form.type === 'TOPIC' ? 'Pauta (JSON)' : 'Config (JSON)' }}</label>
+        <!-- Pauta: campos dedicados -->
+        <template v-if="form.type === 'TOPIC'">
+          <label>Assunto da pauta</label>
+          <textarea
+            v-model="form.topicQuery"
+            class="input"
+            rows="2"
+            maxlength="600"
+            placeholder="Ex.: Copa do Mundo 2026 — resultados, lesões e convocações da seleção brasileira"
+          />
+          <p class="hint">O robô pesquisa isto na web (busca ao vivo) e descobre artigos reais e datados. Quanto mais específico em <strong>notícia recente</strong>, melhor o resultado.</p>
+
+          <label>Domínios confiáveis <span class="opt">(opcional, separados por vírgula)</span></label>
+          <input
+            v-model="form.topicDomains"
+            class="input"
+            placeholder="ge.globo.com, espn.com.br, gazetaesportiva.com"
+          />
+          <p class="hint">Restringe a busca a estes veículos. Em branco, busca na web aberta (mais ruído: tabelas, estatísticas).</p>
+
+          <div class="topic-nums">
+            <div>
+              <label>Máx. buscas / rodada</label>
+              <input v-model.number="form.topicMaxSearches" type="number" min="1" max="10" class="input" />
+            </div>
+            <div>
+              <label>Máx. resultados / rodada</label>
+              <input v-model.number="form.topicMaxResults" type="number" min="1" max="30" class="input" />
+            </div>
+          </div>
+          <p class="hint">Controlam o custo: cada busca ~US$0,01 + tokens, somado ao teto de gasto. Frescor de 48h e dedup valem igual. Use um intervalo de coleta maior p/ não pesquisar com muita frequência.</p>
+        </template>
+
+        <!-- API/Página: config JSON livre -->
+        <template v-else-if="form.type !== 'RSS'">
+          <label>Config (JSON)</label>
           <textarea
             v-model="form.configText"
             class="input mono"
@@ -201,12 +256,9 @@ async function save() {
             spellcheck="false"
           />
           <p class="hint">
-            <template v-if="form.type === 'NEWS_API'">Mapeie a resposta da API: itemsPath (lista) + map (campos). apiKeyParam/apiKeyHeader p/ a chave. Funciona com APIs abertas ou pagas.</template>
-            <template v-else-if="form.type === 'TOPIC'">
-              <strong>query</strong> = o assunto que o robô vai pesquisar na web (busca ao vivo, artigos reais e datados).
-              <strong>allowedDomains</strong> (opcional) restringe a veículos confiáveis; <strong>maxSearches</strong> e <strong>maxResults</strong> controlam o custo (cada busca ~US$0,01, somado ao teto de gasto). Frescor de 48h e dedup valem igual. Use intervalos maiores p/ não pesquisar com muita frequência.
-            </template>
-            <template v-else>linkPattern (regex) define quais links são artigos; o corpo é buscado na hora de processar.</template>
+            {{ form.type === 'NEWS_API'
+              ? 'Mapeie a resposta da API: itemsPath (lista) + map (campos). apiKeyParam/apiKeyHeader p/ a chave. Funciona com APIs abertas ou pagas.'
+              : 'linkPattern (regex) define quais links são artigos; o corpo é buscado na hora de processar.' }}
           </p>
         </template>
 
@@ -252,6 +304,9 @@ async function save() {
 .url-row { display: flex; gap: 8px; }
 .url-row .input { flex: 1; }
 .mono { font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.5; resize: vertical; }
+.topic-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.topic-nums label { display: block; }
+@media (max-width: 560px) { .topic-nums { grid-template-columns: 1fr; } }
 .preview { margin-top: 8px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--bg-base); }
 .pv-title { font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 6px; color: var(--emerald); }
 .pv-list { margin: 8px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); display: flex; flex-direction: column; gap: 3px; }
