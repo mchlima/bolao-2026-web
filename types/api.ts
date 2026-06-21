@@ -828,3 +828,11 @@ export interface MatchStats {
   available: boolean;
   rows: StatRow[];
 }
+
+// Comentário do admin na narração ao vivo (vira fato pra geração).
+export interface MatchNote {
+  id: string;
+  text: string;
+  authorId: string | null;
+  createdAt: string;
+}

@@ -342,6 +342,10 @@ onMounted(async () => {
               <span class="chip status" :style="{ color: STATUS_COLOR[selected.status], borderColor: STATUS_COLOR[selected.status] }">
                 <span v-if="selected.status === 'LIVE'" class="ld" />{{ STATUS_LABEL[selected.status] }}
               </span>
+              <NuxtLink :to="`/admin/narracao/${selected.id}`" class="chip narr" title="Narrar a partida ao vivo (seus comentários viram fatos da matéria)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Narração
+              </NuxtLink>
               <div ref="settingsWrap" class="gearwrap">
                 <button class="gear" :class="{ on: settingsOpen }" title="Configurações" aria-label="Configurações" @click="settingsOpen = !settingsOpen">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
@@ -525,6 +529,8 @@ onMounted(async () => {
 .chip { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; color: var(--muted); white-space: nowrap; }
 .chip.ok { color: var(--emerald); border-color: color-mix(in srgb, var(--emerald) 45%, var(--border)); }
 .chip.no { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
+.chip.narr { color: var(--azure); border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); text-decoration: none; cursor: pointer; transition: background-color 0.13s; }
+.chip.narr:hover { background: color-mix(in srgb, var(--azure) 12%, transparent); }
 
 /* gear + settings popover */
 .gearwrap { position: relative; }
