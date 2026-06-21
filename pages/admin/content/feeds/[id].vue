@@ -440,6 +440,10 @@ async function save() {
 
         <label>Intervalo de coleta (min)</label>
         <input v-model.number="form.fetchIntervalMin" type="number" min="1" max="1440" class="input" style="max-width: 140px" />
+        <p class="hint">
+          De quanto em quanto tempo o robô consulta esta fonte. O robô verifica a cada minuto e respeita este intervalo — <strong>mínimo 1 min</strong>.
+          <template v-if="form.type === 'TOPIC'"> Em pauta, cada busca gasta US$ — prefira intervalos maiores.</template>
+        </p>
 
         <label>{{ form.type === 'MATCH_REPORT' ? 'Retroatividade (horas)' : 'Janela de frescor (horas)' }}</label>
         <input v-model.number="form.maxAgeHours" type="number" min="1" max="8760" class="input" style="max-width: 140px" />

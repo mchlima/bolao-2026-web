@@ -73,7 +73,7 @@ onMounted(load);
   <div>
     <AdminPageHeader
       title="Fontes"
-      subtitle="De onde vêm as notícias: RSS, API de notícias ou crawl de página. O robô lê cada fonte ativa automaticamente (varre a cada ~5 min, respeitando o intervalo de cada uma), descarta o que for antigo e joga as novas na Triagem. Pause uma fonte pelo toggle, sem excluí-la."
+      subtitle="De onde vêm as notícias: RSS, API, página, pauta ou resumo de jogo. O robô lê cada fonte ativa automaticamente (verifica a cada minuto, respeitando o intervalo de cada uma), descarta o que for antigo e joga as novas na Triagem. Pause uma fonte pelo toggle, sem excluí-la."
     >
       <template #actions>
         <NuxtLink to="/admin/content/feeds/new" class="btn btn-primary">
