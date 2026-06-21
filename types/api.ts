@@ -85,7 +85,7 @@ export interface NewsTone {
   _count?: { items: number };
 }
 
-export type NewsFeedType = 'RSS' | 'NEWS_API' | 'PAGE';
+export type NewsFeedType = 'RSS' | 'NEWS_API' | 'PAGE' | 'TOPIC';
 
 export interface NewsFeed {
   id: string;

@@ -17,7 +17,7 @@ const COLS: AdminColumn[] = [
   { key: 'actions', label: '', align: 'end' },
 ];
 
-const TYPE_LABEL: Record<string, string> = { RSS: 'RSS', NEWS_API: 'API', PAGE: 'Página' };
+const TYPE_LABEL: Record<string, string> = { RSS: 'RSS', NEWS_API: 'API', PAGE: 'Página', TOPIC: 'Pauta' };
 
 function err(e: unknown) {
   ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro');

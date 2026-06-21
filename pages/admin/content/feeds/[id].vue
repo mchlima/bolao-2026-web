@@ -24,17 +24,21 @@ const TYPES: { key: NewsFeedType; label: string }[] = [
   { key: 'RSS', label: 'RSS' },
   { key: 'NEWS_API', label: 'API de notícias' },
   { key: 'PAGE', label: 'Página (crawl)' },
+  { key: 'TOPIC', label: 'Pauta (busca)' },
 ];
 const URL_LABEL: Record<NewsFeedType, string> = {
   RSS: 'URL do RSS',
   NEWS_API: 'URL do endpoint da API',
   PAGE: 'URL da página/seção',
+  TOPIC: '',
 };
 const CONFIG_PLACEHOLDER: Record<NewsFeedType, string> = {
   RSS: '',
   NEWS_API:
     '{\n  "apiKeyParam": "apikey",\n  "apiKey": "SUA_CHAVE",\n  "itemsPath": "results",\n  "map": {\n    "title": "title", "url": "link", "publishedAt": "pubDate",\n    "summary": "description", "content": "content"\n  }\n}',
   PAGE: '{\n  "linkPattern": "/futebol/.+/noticia/",\n  "limit": 25\n}',
+  TOPIC:
+    '{\n  "query": "Copa do Mundo 2026: resultados, lesões, convocações",\n  "allowedDomains": ["ge.globo.com", "espn.com.br"],\n  "maxSearches": 2,\n  "maxResults": 12\n}',
 };
 
 const tones = ref<NewsTone[]>([]);
@@ -89,9 +93,14 @@ function parseConfig(): Record<string, unknown> | null {
   return JSON.parse(form.configText) as Record<string, unknown>;
 }
 
+function slug(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
+}
+
 async function save() {
-  if (!form.name.trim() || !form.url.trim()) {
-    ui.toast('error', 'Nome e URL são obrigatórios.');
+  if (!form.name.trim()) {
+    ui.toast('error', 'O nome é obrigatório.');
     return;
   }
   let config: Record<string, unknown> | null;
@@ -101,10 +110,23 @@ async function save() {
     ui.toast('error', 'A config não é um JSON válido.');
     return;
   }
+  // Pauta não tem URL: usa um id sintético derivado do assunto.
+  let url = form.url.trim();
+  if (form.type === 'TOPIC') {
+    const q = String((config?.query as string) || '').trim();
+    if (!q) {
+      ui.toast('error', 'Defina o assunto da pauta no campo "query" da config.');
+      return;
+    }
+    url = 'pauta:' + slug(q);
+  } else if (!url) {
+    ui.toast('error', 'A URL é obrigatória.');
+    return;
+  }
   saving.value = true;
   const body = {
     name: form.name.trim(),
-    url: form.url.trim(),
+    url,
     type: form.type,
     config,
     focus: form.focus.trim() || null,
@@ -127,7 +149,7 @@ async function save() {
 
 <template>
   <div>
-    <AdminPageHeader :title="isNew ? 'Nova fonte' : 'Editar fonte'" subtitle="De onde vêm as notícias: RSS, API de notícias ou crawl de página.">
+    <AdminPageHeader :title="isNew ? 'Nova fonte' : 'Editar fonte'" subtitle="De onde vêm as notícias: RSS, API de notícias, crawl de página ou pauta (busca por assunto).">
       <template #actions>
         <NuxtLink to="/admin/content/feeds" class="btn">Voltar</NuxtLink>
       </template>
@@ -152,13 +174,15 @@ async function save() {
         <label>Nome</label>
         <input v-model="form.name" class="input" maxlength="120" placeholder="Ex.: ge.globo — Futebol" />
 
-        <label>{{ URL_LABEL[form.type] }}</label>
-        <div class="url-row">
-          <input v-model="form.url" class="input" placeholder="https://…" />
-          <button v-if="form.type === 'RSS'" type="button" class="btn" :disabled="testing || !form.url" @click="testUrl">
-            <AppIcon name="refresh" :size="14" :stroke="2.2" /> {{ testing ? 'Testando…' : 'Testar' }}
-          </button>
-        </div>
+        <template v-if="form.type !== 'TOPIC'">
+          <label>{{ URL_LABEL[form.type] }}</label>
+          <div class="url-row">
+            <input v-model="form.url" class="input" placeholder="https://…" />
+            <button v-if="form.type === 'RSS'" type="button" class="btn" :disabled="testing || !form.url" @click="testUrl">
+              <AppIcon name="refresh" :size="14" :stroke="2.2" /> {{ testing ? 'Testando…' : 'Testar' }}
+            </button>
+          </div>
+        </template>
 
         <div v-if="preview" class="preview">
           <div class="pv-title"><AppIcon name="check" :size="14" :stroke="2.4" /> {{ preview.title }}</div>
@@ -168,7 +192,7 @@ async function save() {
         </div>
 
         <template v-if="form.type !== 'RSS'">
-          <label>Config (JSON)</label>
+          <label>{{ form.type === 'TOPIC' ? 'Pauta (JSON)' : 'Config (JSON)' }}</label>
           <textarea
             v-model="form.configText"
             class="input mono"
@@ -177,9 +201,12 @@ async function save() {
             spellcheck="false"
           />
           <p class="hint">
-            {{ form.type === 'NEWS_API'
-              ? 'Mapeie a resposta da API: itemsPath (lista) + map (campos). apiKeyParam/apiKeyHeader p/ a chave. Funciona com APIs abertas ou pagas.'
-              : 'linkPattern (regex) define quais links são artigos; o corpo é buscado na hora de processar.' }}
+            <template v-if="form.type === 'NEWS_API'">Mapeie a resposta da API: itemsPath (lista) + map (campos). apiKeyParam/apiKeyHeader p/ a chave. Funciona com APIs abertas ou pagas.</template>
+            <template v-else-if="form.type === 'TOPIC'">
+              <strong>query</strong> = o assunto que o robô vai pesquisar na web (busca ao vivo, artigos reais e datados).
+              <strong>allowedDomains</strong> (opcional) restringe a veículos confiáveis; <strong>maxSearches</strong> e <strong>maxResults</strong> controlam o custo (cada busca ~US$0,01, somado ao teto de gasto). Frescor de 48h e dedup valem igual. Use intervalos maiores p/ não pesquisar com muita frequência.
+            </template>
+            <template v-else>linkPattern (regex) define quais links são artigos; o corpo é buscado na hora de processar.</template>
           </p>
         </template>
 
