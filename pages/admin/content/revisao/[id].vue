@@ -13,6 +13,9 @@ const loading = ref(true);
 const busy = ref(false);
 const guidance = ref('');
 const toneOverride = ref('');
+const showFacts = ref(false);
+const expandedRev = ref<string | null>(null);
+const regenerating = ref(false);
 
 function err(e: unknown) {
   ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro');
@@ -54,6 +57,14 @@ function factValue(v: unknown): string {
   return String(v);
 }
 
+// Primeira linha do texto = manchete; resto = corpo.
+const genTitle = computed(() => (item.value?.generatedText ?? '').split('\n')[0]?.trim() ?? '');
+const genBody = computed(() => (item.value?.generatedText ?? '').split('\n').slice(1).join('\n').trim());
+function revWhen(iso: string): string {
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+}
+function toggleRev(id: string) { expandedRev.value = expandedRev.value === id ? null : id; }
+
 async function approve() {
   busy.value = true;
   try {
@@ -73,18 +84,21 @@ async function reject() {
   } catch (e) { err(e); } finally { busy.value = false; }
 }
 async function reprocess(force = false) {
+  regenerating.value = true;
   busy.value = true;
   try {
     await useApi()(`/admin/content/items/${itemId}/reprocess`, {
       method: 'POST',
       body: { guidance: guidance.value.trim() || undefined, toneId: toneOverride.value || undefined, force },
     });
-    ui.toast('success', 'Regerado com a orientação.');
-    guidance.value = '';
     await load();
+    expandedRev.value = null;
+    ui.toast('success', 'Nova versão gerada.');
+    guidance.value = '';
   } catch (e: unknown) {
     const ex = e as { data?: { code?: string; message?: string } };
     if (ex?.data?.code === 'CAP_EXCEEDED') {
+      regenerating.value = false;
       busy.value = false;
       if (await ui.confirm({ title: 'Limite do dia atingido', msg: ex.data.message ?? '', confirmLabel: 'Gerar mesmo assim', danger: true })) {
         await reprocess(true);
@@ -92,7 +106,7 @@ async function reprocess(force = false) {
       return;
     }
     err(e);
-  } finally { busy.value = false; }
+  } finally { regenerating.value = false; busy.value = false; }
 }
 async function exportText() {
   try {
@@ -126,17 +140,41 @@ async function exportText() {
       <p class="vw-hint">Confira esses pontos antes de aprovar — ou use <strong>Regerar</strong> pra corrigir.</p>
     </div>
 
-    <div class="cols">
-      <section class="card adm-panel col">
-        <h3 class="ctitle">Texto gerado</h3>
-        <p class="chint">A matéria reescrita no tom — pronta para publicar.</p>
-        <pre v-if="item.generatedText" class="gen">{{ item.generatedText }}</pre>
-        <p v-else class="muted-txt">Sem texto. {{ item.error ?? '' }}</p>
-      </section>
+    <!-- Texto gerado: protagonista, com manchete em destaque -->
+    <section class="card adm-panel gen-card" :class="{ generating: regenerating }">
+      <div v-if="regenerating" class="gen-overlay">
+        <AppIcon name="refresh" :size="18" :stroke="2.4" class="spin" /> Gerando nova versão…
+      </div>
+      <template v-if="item.generatedText">
+        <h2 class="gen-title">{{ genTitle }}</h2>
+        <div class="gen-body">{{ genBody }}</div>
+      </template>
+      <p v-else class="muted-txt">Sem texto. {{ item.error ?? '' }}</p>
 
-      <section class="card adm-panel col">
-        <h3 class="ctitle">Fatos extraídos</h3>
-        <p class="chint">O que o robô apurou da fonte — a ÚNICA base do texto (evita inventar).</p>
+      <!-- Origem como referência compacta (link/ref, não o conteúdo todo) -->
+      <div class="origin">
+        <template v-if="isGenerated">
+          <AppIcon name="check" :size="13" :stroke="2.4" />
+          <span>Gerada do <strong>nosso banco</strong> · {{ item.feed?.name ?? 'Resumo de jogo' }}</span>
+        </template>
+        <template v-else>
+          <span class="origin-label">Origem</span>
+          <a :href="item.sourceUrl" target="_blank" rel="noopener" class="origin-link">
+            {{ item.feed?.name ?? 'fonte' }} — {{ item.sourceTitle }}
+            <AppIcon name="externalLink" :size="12" :stroke="2" />
+          </a>
+        </template>
+      </div>
+    </section>
+
+    <!-- Fatos sob demanda (a base do texto; só quando o admin quer) -->
+    <section class="card adm-panel facts-card">
+      <button type="button" class="facts-toggle" @click="showFacts = !showFacts">
+        <AppIcon :name="showFacts ? 'chevronDown' : 'chevronRight'" :size="15" :stroke="2.4" />
+        Fatos extraídos <span class="facts-count">{{ factEntries.length }}</span>
+      </button>
+      <div v-if="showFacts" class="facts-wrap">
+        <p class="chint">A base do texto — {{ isGenerated ? 'montada do nosso banco' : 'apurada da fonte' }}. O gerador só usa isto (evita inventar).</p>
         <dl v-if="factEntries.length" class="facts">
           <template v-for="[k, v] in factEntries" :key="k">
             <dt>{{ k }}</dt>
@@ -144,25 +182,8 @@ async function exportText() {
           </template>
         </dl>
         <p v-else class="muted-txt">Sem fatos.</p>
-      </section>
-
-      <section class="card adm-panel col">
-        <h3 class="ctitle">{{ isGenerated ? 'Origem' : 'Fonte original' }}</h3>
-        <template v-if="isGenerated">
-          <p class="chint">Gerada a partir dos <strong>dados da partida no nosso banco</strong> — não há fonte de terceiro. Os fatos ao lado são a base.</p>
-          <p class="src-title">{{ item.sourceTitle }}</p>
-          <span class="gen-badge"><AppIcon name="check" :size="13" :stroke="2.4" /> Resumo de jogo · {{ item.feed?.name ?? 'banco' }}</span>
-        </template>
-        <template v-else>
-          <p class="chint">A notícia de origem. O texto NÃO é copiado — serve só para apurar os fatos.</p>
-          <p class="src-title">{{ item.sourceTitle }}</p>
-          <div class="src-body">{{ item.sourceText || item.sourceSummary || '—' }}</div>
-          <a :href="item.sourceUrl" target="_blank" rel="noopener" class="btn btn-sm">
-            <AppIcon name="externalLink" :size="14" :stroke="2" /> Abrir notícia
-          </a>
-        </template>
-      </section>
-    </div>
+      </div>
+    </section>
 
     <div class="card adm-panel actbar">
       <div class="reproc">
@@ -174,7 +195,7 @@ async function exportText() {
             <option v-for="t in tones" :key="t.id" :value="t.id">Trocar p/ {{ t.name }}</option>
           </select>
           <button class="btn" :disabled="busy" @click="reprocess()">
-            <AppIcon name="refresh" :size="14" :stroke="2.2" /> Regerar
+            <AppIcon name="refresh" :size="14" :stroke="2.2" :class="{ spin: regenerating }" /> {{ regenerating ? 'Gerando…' : 'Regerar' }}
           </button>
         </div>
       </div>
@@ -199,15 +220,20 @@ async function exportText() {
     </div>
 
     <div v-if="item.revisions && item.revisions.length > 1" class="card adm-panel">
-      <h3 class="ctitle">Histórico de gerações</h3>
-      <div v-for="r in item.revisions" :key="r.id" class="rev">
-        <div class="rev-head">
-          <strong>#{{ r.attempt }}</strong>
-          <span v-if="r.guidance" class="rev-guid">“{{ r.guidance }}”</span>
-          <span v-else class="muted-txt">geração inicial</span>
-        </div>
-        <pre class="rev-text">{{ r.generatedText }}</pre>
-      </div>
+      <h3 class="ctitle">Histórico de gerações ({{ item.revisions.length }})</h3>
+      <p class="chint">Cada tentativa e a orientação que a produziu. Clique para ver o texto.</p>
+      <ul class="rev-list">
+        <li v-for="r in [...item.revisions].reverse()" :key="r.id" class="rev-item">
+          <button type="button" class="rev-row" @click="toggleRev(r.id)">
+            <AppIcon :name="expandedRev === r.id ? 'chevronDown' : 'chevronRight'" :size="14" :stroke="2.4" />
+            <strong class="rev-n">#{{ r.attempt }}</strong>
+            <span v-if="r.guidance" class="rev-guid">orientação: “{{ r.guidance }}”</span>
+            <span v-else class="rev-init">geração inicial (sem orientação)</span>
+            <span class="rev-when">{{ revWhen(r.createdAt) }}</span>
+          </button>
+          <pre v-if="expandedRev === r.id" class="rev-text">{{ r.generatedText }}</pre>
+        </li>
+      </ul>
     </div>
   </div>
   <div v-else-if="!loading" class="muted-txt">Item não encontrado.</div>
@@ -221,18 +247,32 @@ async function exportText() {
 .vw-head { font-weight: 800; font-size: 13px; display: flex; align-items: center; gap: 6px; color: var(--gold); }
 .vw-list { margin: 8px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
 .vw-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
-.cols { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 16px; }
-@media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
-.col { min-height: 120px; }
 .ctitle { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 4px; }
 .chint { font-size: 11.5px; color: var(--muted); line-height: 1.45; margin: 0 0 12px; opacity: 0.85; }
-.gen { white-space: pre-wrap; font: inherit; font-size: 14px; line-height: 1.6; margin: 0; }
+
+/* Texto gerado — protagonista */
+.gen-card { position: relative; margin-bottom: 16px; }
+.gen-card.generating { opacity: 0.55; pointer-events: none; }
+.gen-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 14px; color: var(--text); background: color-mix(in srgb, var(--bg-surface) 70%, transparent); border-radius: inherit; z-index: 2; }
+.gen-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 22px; line-height: 1.2; margin: 0 0 12px; }
+.gen-body { white-space: pre-wrap; font-size: 14.5px; line-height: 1.65; }
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Origem como referência compacta */
+.origin { display: flex; align-items: center; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12.5px; color: var(--muted); }
+.origin-label { font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; }
+.origin-link { color: var(--azure); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.origin-link:hover { text-decoration: underline; }
+
+/* Fatos sob demanda */
+.facts-card { margin-bottom: 16px; }
+.facts-toggle { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; padding: 0; cursor: pointer; font-size: 13px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 0.04em; }
+.facts-count { background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 1px 8px; font-size: 11px; font-weight: 700; color: var(--muted); }
+.facts-wrap { margin-top: 12px; }
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; font-size: 13px; }
 .facts dt { font-weight: 700; color: var(--muted); }
-.facts dd { margin: 0; }
-.src-title { font-weight: 700; font-size: 14px; margin: 0 0 8px; }
-.gen-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--emerald); border: 1px solid var(--border); border-radius: 8px; padding: 5px 10px; }
-.src-body { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 12px; max-height: 360px; overflow-y: auto; white-space: pre-wrap; }
+.facts dd { margin: 0; word-break: break-word; }
 .muted-txt { font-size: 13px; color: var(--muted); }
 .actbar { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 18px; justify-content: space-between; align-items: flex-end; }
 .reproc { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 6px; }
@@ -243,11 +283,16 @@ async function exportText() {
 .decide { display: flex; gap: 8px; align-items: flex-end; }
 .reject-btn { color: var(--scarlet); }
 .btn-sm { padding: 6px 10px; font-size: 12px; }
-.rev { border-top: 1px solid var(--border); padding: 12px 0; }
-.rev:first-of-type { border-top: none; }
-.rev-head { font-size: 13px; margin-bottom: 6px; }
-.rev-guid { color: var(--azure); font-style: italic; margin-left: 6px; }
-.rev-text { white-space: pre-wrap; font: inherit; font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0; }
+.rev-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.rev-item { border-top: 1px solid var(--border); }
+.rev-item:first-child { border-top: none; }
+.rev-row { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; padding: 10px 0; cursor: pointer; font-size: 13px; color: var(--text); text-align: left; }
+.rev-row:hover { color: var(--azure); }
+.rev-n { flex-shrink: 0; }
+.rev-guid { color: var(--azure); font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rev-init { color: var(--muted); }
+.rev-when { margin-left: auto; flex-shrink: 0; font-size: 11.5px; color: var(--muted); }
+.rev-text { white-space: pre-wrap; font: inherit; font-size: 13px; color: var(--muted); line-height: 1.55; margin: 0 0 12px; padding: 10px 12px; background: var(--bg-base); border-radius: 8px; }
 .dups { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 .dup-src { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-right: 6px; }
 </style>
