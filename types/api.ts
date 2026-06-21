@@ -269,6 +269,8 @@ export interface PublicNewsArticle extends NewsCard {
   keyTakeaways: string[];
   faq: { question: string; answer: string }[];
   updatedAt: string;
+  /** Caminho raiz→folha da categoria (Futebol > Copa do Mundo > 2026), p/ breadcrumb. */
+  categoryPath: TermRef[];
 }
 
 export interface FeedPreview {

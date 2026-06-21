@@ -4,8 +4,8 @@ import { buildNewsTree, type MenuNode } from '~/utils/newsMenu';
 
 const route = useRoute();
 
-// Categorias com matéria publicada (rollup) — montam a árvore do menu. Falha
-// silenciosa: o menu ainda funciona com os links fixos (Todas/Categorias/Assuntos).
+// Categorias com matéria publicada (rollup) — montam a árvore do submenu. Falha
+// silenciosa: sem categorias, "Notícias" vira um link simples (sem dropdown).
 const { data } = await useAsyncData('news-menu-cats', () =>
   useApi()<TermPage[]>('/content/categories').catch(() => [] as TermPage[]),
 );
@@ -21,6 +21,7 @@ const hasCats = computed(() => tree.value.length > 0);
     <NuxtLink to="/noticias" class="nav-link nv-trigger" :class="{ active }">
       Notícias
       <svg
+        v-if="hasCats"
         class="nv-caret" width="13" height="13" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
       >
@@ -28,24 +29,11 @@ const hasCats = computed(() => tree.value.length > 0);
       </svg>
     </NuxtLink>
 
-    <div class="nv-panel">
+    <div v-if="hasCats" class="nv-panel">
       <div class="nv-card">
-        <NuxtLink to="/noticias" class="nv-all">
-          <AppIcon name="inbox" :size="15" :stroke="1.9" /> Todas as notícias
-        </NuxtLink>
-
-        <template v-if="hasCats">
-          <div class="nv-label">Categorias</div>
-          <ul class="nv-list">
-            <NewsNavMenuItem v-for="n in tree" :key="n.slug" :node="n" />
-          </ul>
-        </template>
-
-        <div class="nv-sep" />
-        <div class="nv-foot">
-          <NuxtLink to="/noticias/categoria" class="nv-foot-link">Ver categorias</NuxtLink>
-          <NuxtLink to="/noticias/assunto" class="nv-foot-link">Assuntos</NuxtLink>
-        </div>
+        <ul class="nv-list">
+          <NewsNavMenuItem v-for="n in tree" :key="n.slug" :node="n" />
+        </ul>
       </div>
     </div>
   </div>
@@ -93,41 +81,5 @@ const hasCats = computed(() => tree.value.length > 0);
   padding: 8px;
 }
 
-.nv-all {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text);
-  text-decoration: none;
-  transition: background-color 0.13s, color 0.13s;
-}
-.nv-all:hover { background: var(--bg-surface); color: var(--azure); }
-.nv-label {
-  font-size: 10.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  padding: 9px 10px 4px;
-}
 .nv-list { list-style: none; margin: 0; padding: 0; }
-.nv-sep { height: 1px; background: var(--border); margin: 7px 4px; }
-.nv-foot { display: flex; gap: 6px; padding: 0 4px 2px; }
-.nv-foot-link {
-  flex: 1;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--azure);
-  text-decoration: none;
-  padding: 6px 8px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  transition: border-color 0.13s, background-color 0.13s;
-}
-.nv-foot-link:hover { border-color: var(--azure); background: color-mix(in srgb, var(--azure) 8%, transparent); }
 </style>

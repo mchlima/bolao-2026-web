@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PublicNewsArticle } from '~/types/api';
+import type { PublicNewsArticle, TermRef } from '~/types/api';
 
 const route = useRoute();
 const slug = route.params.slug as string;
@@ -16,6 +16,8 @@ const a = article.value;
 const url = `${siteUrl}/noticias/${slug}`;
 const paragraphs = computed(() => a.body.split(/\n+/).map((s) => s.trim()).filter(Boolean));
 const readingMins = computed(() => Math.max(1, Math.round(a.body.split(/\s+/).filter(Boolean).length / 200)));
+// Caminho completo da categoria (Futebol > Copa do Mundo > 2026); fallback p/ a folha em itens antigos.
+const catPath = computed<TermRef[]>(() => (a.categoryPath?.length ? a.categoryPath : a.category ? [a.category] : []));
 
 const ui = useUiStore();
 function fmtDate(iso: string): string {
@@ -90,7 +92,13 @@ useHead({
             itemListElement: [
               { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
               { '@type': 'ListItem', position: 2, name: 'Notícias', item: `${siteUrl}/noticias` },
-              { '@type': 'ListItem', position: 3, name: a.title, item: url },
+              ...catPath.value.map((c, i) => ({
+                '@type': 'ListItem',
+                position: 3 + i,
+                name: c.name,
+                item: `${siteUrl}/noticias/categoria/${c.slug}`,
+              })),
+              { '@type': 'ListItem', position: 3 + catPath.value.length, name: a.title, item: url },
             ],
           },
         ],
@@ -104,8 +112,10 @@ useHead({
   <article v-if="a" class="art">
     <nav class="crumbs">
       <NuxtLink to="/noticias">Notícias</NuxtLink>
-      <span>›</span>
-      <NuxtLink v-if="a.category" :to="`/noticias/categoria/${a.category.slug}`">{{ a.category.name }}</NuxtLink>
+      <template v-for="c in catPath" :key="c.slug">
+        <span>›</span>
+        <NuxtLink :to="`/noticias/categoria/${c.slug}`">{{ c.name }}</NuxtLink>
+      </template>
     </nav>
 
     <NuxtLink v-if="a.category" :to="`/noticias/categoria/${a.category.slug}`" class="art-cat">{{ a.category.name }}</NuxtLink>

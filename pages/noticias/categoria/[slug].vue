@@ -46,10 +46,9 @@ useHead({
           itemListElement: [
             { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
             { '@type': 'ListItem', position: 2, name: 'Notícias', item: `${siteUrl}/noticias` },
-            { '@type': 'ListItem', position: 3, name: 'Categorias', item: `${siteUrl}/noticias/categoria` },
             ...(t.path ?? [{ name: t.name, slug: t.slug }]).map((p, i) => ({
               '@type': 'ListItem',
-              position: 4 + i,
+              position: 3 + i,
               name: p.name,
               item: `${siteUrl}/noticias/categoria/${p.slug}`,
             })),
@@ -82,8 +81,6 @@ useHead({
   <div class="term-page">
     <nav class="crumbs">
       <NuxtLink to="/noticias">Notícias</NuxtLink>
-      <span>›</span>
-      <NuxtLink to="/noticias/categoria">Categorias</NuxtLink>
       <template v-for="(p, i) in (t.path ?? [{ name: t.name, slug: t.slug }])" :key="p.slug">
         <span>›</span>
         <NuxtLink v-if="i < (t.path?.length ?? 1) - 1" :to="`/noticias/categoria/${p.slug}`">{{ p.name }}</NuxtLink>
