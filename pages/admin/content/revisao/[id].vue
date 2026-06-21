@@ -109,6 +109,15 @@ async function exportText() {
       <StatusPill :label="newsStatus(item.status).label" :tone="newsStatus(item.status).tone" dot />
       <span v-if="item.model" class="meta">{{ item.model }}</span>
       <span v-if="item.relevanceScore != null" class="meta">relevância {{ Math.round(item.relevanceScore * 100) }}%</span>
+      <span v-if="item.verifyOk === true" class="meta verify-ok"><AppIcon name="check" :size="13" :stroke="2.4" /> fidelidade ok</span>
+    </div>
+
+    <div v-if="item.verifyOk === false" class="card adm-panel verify-warn">
+      <div class="vw-head"><AppIcon name="shield" :size="16" :stroke="2.2" /> A verificação encontrou afirmações sem lastro nos fatos</div>
+      <ul class="vw-list">
+        <li v-for="(line, i) in (item.verifyNotes || '').split('\n').filter(Boolean)" :key="i">{{ line }}</li>
+      </ul>
+      <p class="vw-hint">Confira esses pontos antes de aprovar — ou use <strong>Regerar</strong> pra corrigir.</p>
     </div>
 
     <div class="cols">
@@ -194,6 +203,11 @@ async function exportText() {
 <style scoped>
 .status-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .meta { font-size: 12px; color: var(--muted); font-weight: 600; }
+.verify-ok { color: var(--emerald); display: inline-flex; align-items: center; gap: 3px; }
+.verify-warn { border-left: 4px solid var(--gold); margin-bottom: 16px; }
+.vw-head { font-weight: 800; font-size: 13px; display: flex; align-items: center; gap: 6px; color: var(--gold); }
+.vw-list { margin: 8px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
+.vw-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 .cols { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 16px; }
 @media (max-width: 1100px) { .cols { grid-template-columns: 1fr; } }
 .col { min-height: 120px; }

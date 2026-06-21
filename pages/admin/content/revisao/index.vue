@@ -66,7 +66,10 @@ onMounted(load);
       >
         <template #col-item="{ row }">
           <NuxtLink :to="`/admin/content/revisao/${row.id}`" class="iinfo">
-            <span class="ititle">{{ headline(row) }}</span>
+            <span class="ititle">
+              <AppIcon v-if="row.verifyOk === false" name="shield" :size="13" :stroke="2.4" class="iflag" title="Verificação encontrou alertas" />
+              {{ headline(row) }}
+            </span>
             <span class="isrc">{{ row.sourceTitle }}</span>
           </NuxtLink>
         </template>
@@ -85,7 +88,8 @@ onMounted(load);
 .seg-t.on { background: var(--grad-pitch); color: #fff; }
 .tab-help { font-size: 13px; color: var(--muted); line-height: 1.5; margin: -6px 0 16px; max-width: 780px; }
 .iinfo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ititle { font-weight: 700; font-size: 14px; }
+.ititle { font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 5px; }
+.iflag { color: var(--gold); flex: none; }
 .isrc { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .muted-txt { font-size: 12.5px; color: var(--muted); font-weight: 600; }
 </style>

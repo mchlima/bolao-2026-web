@@ -156,6 +156,8 @@ export interface NewsItem {
   toneVersion: number | null;
   generatedText: string | null;
   model: string | null;
+  verifyOk: boolean | null;
+  verifyNotes: string | null;
   error: string | null;
   reviewedById: string | null;
   reviewedAt: string | null;
