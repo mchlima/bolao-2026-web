@@ -276,8 +276,9 @@ async function exportText() {
 .gen-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 14px; color: var(--text); background: color-mix(in srgb, var(--bg-surface) 70%, transparent); border-radius: inherit; z-index: 2; }
 .copy-btn { position: absolute; top: 20px; right: 20px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); border-radius: 9px; cursor: pointer; z-index: 1; transition: color 0.15s, border-color 0.15s; }
 .copy-btn:hover { color: var(--azure); border-color: var(--azure); }
-/* Largura de leitura confortável (medida ~66 caracteres) */
-.gen-inner { max-width: 660px; }
+/* Largura de leitura confortável (medida ~66 caracteres), bloco centralizado no card
+   mas com o texto alinhado à esquerda */
+.gen-inner { max-width: 660px; margin: 0 auto; }
 .gen-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 26px; line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 8px; padding-right: 40px; }
 .gen-title::after { content: ''; display: block; width: 48px; height: 3px; border-radius: 3px; background: var(--grad-pitch); margin-top: 14px; }
 .gen-body { font-size: 16px; line-height: 1.75; color: var(--text); }
