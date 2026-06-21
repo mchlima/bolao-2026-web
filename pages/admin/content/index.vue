@@ -23,12 +23,6 @@ const data = ref<Dashboard | null>(null);
 const busy = ref(false);
 const cfg = reactive<Config>({ paused: false, dailyBudgetUsd: 1, maxPerDay: 50, generateModel: 'claude-sonnet-4-6', relevanceMin: 0.4 });
 
-const MODELS = [
-  { id: 'claude-haiku-4-5', label: 'Haiku 4.5 — mais barato (~$1/$5 por 1M)' },
-  { id: 'claude-sonnet-4-6', label: 'Sonnet 4.6 — equilíbrio (~$3/$15)' },
-  { id: 'claude-opus-4-8', label: 'Opus 4.8 — premium (~$5/$25)' },
-];
-
 function err(e: unknown) {
   ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro');
 }
@@ -49,12 +43,6 @@ async function patch(body: Partial<Config>, msg?: string) {
   } catch (e) { err(e); } finally { busy.value = false; }
 }
 const togglePaused = () => patch({ paused: !cfg.paused }, cfg.paused ? 'Robô religado.' : 'Robô pausado.');
-const saveLimits = () => patch({
-  dailyBudgetUsd: Number(cfg.dailyBudgetUsd) || 0,
-  maxPerDay: Number(cfg.maxPerDay) || 0,
-  generateModel: cfg.generateModel,
-  relevanceMin: Number(cfg.relevanceMin) || 0,
-}, 'Limites salvos.');
 
 function nStat(k: string) { return data.value?.status[k] ?? 0; }
 function usd(x: number) { return '$' + x.toFixed(x < 1 ? 3 : 2); }
@@ -138,23 +126,14 @@ onMounted(load);
         </p>
       </section>
 
-      <!-- Limites -->
-      <section class="card adm-panel">
-        <h3 class="ctitle">Limites de gasto</h3>
-        <div class="limits">
-          <label>Teto de gasto/dia (US$) <span class="lh">0 = sem teto</span></label>
-          <input v-model.number="cfg.dailyBudgetUsd" type="number" min="0" step="0.5" class="input" />
-          <label>Máx. matérias/dia <span class="lh">0 = sem limite</span></label>
-          <input v-model.number="cfg.maxPerDay" type="number" min="0" step="10" class="input" />
-          <label>Modelo de geração</label>
-          <select v-model="cfg.generateModel" class="input">
-            <option v-for="m in MODELS" :key="m.id" :value="m.id">{{ m.label }}</option>
-          </select>
-          <label>Relevância mínima <span class="lh">filtra mais = gera menos (0–1)</span></label>
-          <input v-model.number="cfg.relevanceMin" type="number" min="0" max="1" step="0.05" class="input" />
+      <!-- Atalho p/ configurações -->
+      <NuxtLink to="/admin/content/configuracoes" class="card adm-panel cfg-link">
+        <div>
+          <div class="cfg-title">Limites de gasto e volume</div>
+          <div class="cfg-sub">Teto de gasto/dia · máx. matérias/dia · modelo · relevância mínima</div>
         </div>
-        <div class="save-row"><button class="btn btn-primary" :disabled="busy" @click="saveLimits">Salvar limites</button></div>
-      </section>
+        <AppIcon name="chevronRight" :size="20" :stroke="2.4" />
+      </NuxtLink>
 
       <!-- Fluxo da esteira (em ordem) -->
       <section class="card adm-panel">
@@ -217,10 +196,11 @@ onMounted(load);
 .bar span.over { background: var(--scarlet); box-shadow: 0 0 8px var(--scarlet); }
 .over-badge { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--scarlet); }
 .hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
-.limits { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
-.limits label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 8px; }
-.limits .lh { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); opacity: 0.8; }
-.save-row { margin-top: 14px; display: flex; justify-content: flex-end; }
+.cfg-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text); }
+.cfg-link:hover { border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); }
+.cfg-link .cfg-title { font-weight: 700; font-size: 14px; }
+.cfg-link .cfg-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.cfg-link svg { color: var(--muted); flex: none; }
 .ctitle-sub { font-weight: 600; text-transform: none; letter-spacing: 0; opacity: 0.8; }
 .flow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .flow-step { flex: 1 1 0; min-width: 92px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); }
@@ -228,7 +208,7 @@ onMounted(load);
 .flow-arrow { color: var(--muted); flex: none; opacity: 0.7; }
 @media (max-width: 760px) { .flow-arrow { transform: rotate(90deg); } }
 .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-@media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, 1fr); } .limits { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
 .tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 18px 10px; text-align: center; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-base); }
 .tiles.side .tile:hover { border-color: color-mix(in srgb, var(--scarlet) 35%, var(--border)); }
 .tile-n { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 30px; line-height: 1; }
