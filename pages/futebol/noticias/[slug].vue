@@ -30,7 +30,7 @@ useSeoMeta({
   ogType: 'article',
   articlePublishedTime: a.publishedAt,
   articleModifiedTime: a.updatedAt,
-  articleSection: a.category || undefined,
+  articleSection: a.category?.name || undefined,
   twitterCard: 'summary_large_image',
   twitterTitle: a.metaTitle || a.title,
   twitterDescription: a.metaDescription || a.dek,
@@ -52,7 +52,7 @@ useHead({
             articleBody: a.body,
             datePublished: a.publishedAt,
             dateModified: a.updatedAt,
-            articleSection: a.category || undefined,
+            articleSection: a.category?.name || undefined,
             keywords: [a.focusKeyword, ...a.keywords].filter(Boolean),
             inLanguage: 'pt-BR',
             mainEntityOfPage: { '@type': 'WebPage', '@id': url },
@@ -92,10 +92,10 @@ useHead({
     <nav class="crumbs">
       <NuxtLink to="/futebol/noticias">Notícias</NuxtLink>
       <span>›</span>
-      <span v-if="a.category">{{ a.category }}</span>
+      <NuxtLink v-if="a.category" :to="`/futebol/noticias/categoria/${a.category.slug}`">{{ a.category.name }}</NuxtLink>
     </nav>
 
-    <span v-if="a.category" class="art-cat">{{ a.category }}</span>
+    <NuxtLink v-if="a.category" :to="`/futebol/noticias/categoria/${a.category.slug}`" class="art-cat">{{ a.category.name }}</NuxtLink>
     <h1 class="art-title">{{ a.title }}</h1>
     <p v-if="a.dek" class="art-dek">{{ a.dek }}</p>
     <div class="art-meta">
@@ -116,7 +116,7 @@ useHead({
     </section>
 
     <div v-if="a.tags.length" class="art-tags">
-      <span v-for="t in a.tags" :key="t" class="tag">{{ t }}</span>
+      <NuxtLink v-for="t in a.tags" :key="t.slug" :to="`/futebol/noticias/tag/${t.slug}`" class="tag">{{ t.name }}</NuxtLink>
     </div>
 
     <aside class="art-cta">
@@ -131,7 +131,9 @@ useHead({
 .crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
 .crumbs a { color: var(--azure); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
-.art-cat { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); margin-bottom: 8px; }
+.art-cat { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); margin-bottom: 8px; text-decoration: none; }
+.art-cat:hover { text-decoration: underline; }
+.crumbs a:hover { text-decoration: underline; }
 .art-title { font-family: 'Oswald', sans-serif; font-size: 34px; font-weight: 700; line-height: 1.18; letter-spacing: -0.01em; margin: 0 0 12px; }
 .art-dek { font-size: 18px; line-height: 1.5; color: var(--text); opacity: 0.9; margin: 0 0 14px; }
 .art-meta { font-size: 13px; color: var(--muted); display: flex; gap: 6px; padding-bottom: 18px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
@@ -143,7 +145,8 @@ useHead({
 .faq-item h3 { font-size: 16px; font-weight: 700; margin: 0 0 5px; }
 .faq-item p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
 .art-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
-.tag { font-size: 12px; font-weight: 600; color: var(--muted); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; }
+.tag { font-size: 12px; font-weight: 600; color: var(--muted); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; text-decoration: none; transition: border-color 0.15s, color 0.15s; }
+.tag:hover { color: var(--azure); border-color: var(--azure); }
 .art-cta { margin-top: 36px; padding: 22px 24px; border-radius: 14px; background: var(--bg-surface); border: 1px solid var(--border); text-align: center; }
 .art-cta p { font-size: 15px; margin: 0 0 14px; }
 @media (max-width: 600px) { .art-title { font-size: 27px; } .art-body { font-size: 16px; } }

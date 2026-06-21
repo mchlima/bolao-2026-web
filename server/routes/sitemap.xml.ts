@@ -121,6 +121,22 @@ export default defineEventHandler(async (event) => {
     /* keep what we have. */
   }
 
+  // Categorias e tags com matéria publicada → páginas de agregação (SEO).
+  try {
+    const [cats, tags] = await Promise.all([
+      $fetch<{ slug: string }[]>(`${api}/content/categories`),
+      $fetch<{ slug: string }[]>(`${api}/content/tags`),
+    ]);
+    for (const c of cats ?? []) {
+      if (c.slug) urls.push({ loc: `/futebol/noticias/categoria/${c.slug}`, priority: 0.5, changefreq: 'weekly' });
+    }
+    for (const t of tags ?? []) {
+      if (t.slug) urls.push({ loc: `/futebol/noticias/tag/${t.slug}`, priority: 0.4, changefreq: 'weekly' });
+    }
+  } catch {
+    /* keep what we have. */
+  }
+
   // De-dupe by loc and render.
   const seen = new Set<string>();
   const body = [

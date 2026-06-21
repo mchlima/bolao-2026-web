@@ -134,6 +134,16 @@ const groups: { title?: string; items: NavItem[] }[] = [
         icon: ['M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'],
       },
       {
+        to: '/admin/content/categorias',
+        label: 'Categorias',
+        icon: ['M3 7l9-4 9 4-9 4z', 'M3 7v10l9 4 9-4V7'],
+      },
+      {
+        to: '/admin/content/tags',
+        label: 'Tags',
+        icon: ['M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z', 'M7 7h.01'],
+      },
+      {
         to: '/admin/content/triagem',
         label: 'Triagem',
         icon: ['M3 4h18l-7 8v6l-4 2v-8z'],

@@ -187,13 +187,36 @@ export interface NewsItemSeo {
   imageAlt?: string;
 }
 
+/** Entidade leve (nome + slug) de categoria/tag, usada nos links. */
+export interface TermRef {
+  name: string;
+  slug: string;
+}
+
+/** Cabeçalho de página de categoria/tag (nome + descrição + total publicado). */
+export interface TermPage extends TermRef {
+  description: string | null;
+  total: number;
+}
+
+/** Tag/Categoria no admin (CRUD), com contagem de itens. */
+export interface Taxonomy {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { items: number };
+}
+
 /** Public news card (listing) — only approved, published articles. */
 export interface NewsCard {
   slug: string;
   title: string;
   dek: string;
-  category: string;
-  tags: string[];
+  category: TermRef | null;
+  tags: TermRef[];
   imageAlt: string;
   publishedAt: string;
   source: string | null;
