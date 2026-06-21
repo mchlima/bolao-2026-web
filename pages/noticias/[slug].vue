@@ -15,9 +15,22 @@ if (error.value || !article.value) {
 const a = article.value;
 const url = `${siteUrl}/noticias/${slug}`;
 const paragraphs = computed(() => a.body.split(/\n+/).map((s) => s.trim()).filter(Boolean));
+const readingMins = computed(() => Math.max(1, Math.round(a.body.split(/\s+/).filter(Boolean).length / 200)));
 
+const ui = useUiStore();
 function fmtDate(iso: string): string {
   return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(iso));
+}
+/** Compartilha via Web Share (mobile) ou copia o link (desktop). */
+async function share() {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      await navigator.share({ title: a.title, text: a.dek || a.title, url });
+      return;
+    }
+    await navigator.clipboard.writeText(url);
+    ui.toast('success', 'Link copiado!');
+  } catch { /* usuário cancelou */ }
 }
 
 useSeoMeta({
@@ -101,6 +114,10 @@ useHead({
     <div class="art-meta">
       <time :datetime="a.publishedAt">{{ fmtDate(a.publishedAt) }}</time>
       <span v-if="a.source">· {{ a.source }}</span>
+      <span>· {{ readingMins }} min de leitura</span>
+      <button class="share-btn" type="button" @click="share">
+        <AppIcon name="share" :size="14" :stroke="2" /> Compartilhar
+      </button>
     </div>
 
     <div class="art-body">
@@ -127,7 +144,7 @@ useHead({
 </template>
 
 <style scoped>
-.art { max-width: 680px; margin: 0 auto; padding: 8px 0 40px; }
+.art { max-width: 680px; margin: 0 auto; padding: 8px 16px 48px; }
 .crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
 .crumbs a { color: var(--azure); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
@@ -136,7 +153,9 @@ useHead({
 .crumbs a:hover { text-decoration: underline; }
 .art-title { font-family: 'Oswald', sans-serif; font-size: 34px; font-weight: 700; line-height: 1.18; letter-spacing: -0.01em; margin: 0 0 12px; }
 .art-dek { font-size: 18px; line-height: 1.5; color: var(--text); opacity: 0.9; margin: 0 0 14px; }
-.art-meta { font-size: 13px; color: var(--muted); display: flex; gap: 6px; padding-bottom: 18px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+.art-meta { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-bottom: 18px; border-bottom: 1px solid var(--border); margin-bottom: 22px; }
+.share-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--azure); background: none; border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; }
+.share-btn:hover { border-color: var(--azure); background: color-mix(in srgb, var(--azure) 10%, transparent); }
 .art-body { font-size: 17px; line-height: 1.8; color: var(--text); }
 .art-body p { margin: 0 0 18px; }
 .art-faq { margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--border); }

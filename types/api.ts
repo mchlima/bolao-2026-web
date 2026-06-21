@@ -216,6 +216,8 @@ export interface TermPage extends TermRef {
   description: string | null;
   total: number;
   seo: TermSeo | null;
+  /** Listagem de categorias: slug do pai na árvore (p/ montar o menu hierárquico). */
+  parentSlug?: string | null;
   /** Categoria: caminho raiz→nó p/ breadcrumb (Futebol > Copa do Mundo > 2026). */
   path?: TermRef[];
 }

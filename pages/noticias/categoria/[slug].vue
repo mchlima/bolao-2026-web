@@ -97,9 +97,11 @@ useHead({
       <p class="term-count">{{ t.total }} {{ t.total === 1 ? 'matéria' : 'matérias' }}</p>
     </header>
 
+    <NewsSectionNav />
+
     <p v-if="seo.intro" class="term-intro">{{ seo.intro }}</p>
 
-    <NewsCardList v-if="items.length" :items="items" />
+    <NewsCardList v-if="items.length" :items="items" featured />
     <div v-else class="term-empty"><p>Nenhuma matéria publicada nesta categoria ainda.</p></div>
 
     <section v-if="faq.length" class="term-faq">
@@ -113,13 +115,13 @@ useHead({
 </template>
 
 <style scoped>
-.term-page { max-width: 960px; margin: 0 auto; padding: 8px 0 32px; }
-.crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
+.term-page { max-width: 980px; margin: 0 auto; padding: 8px 16px 40px; }
+.crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
 .crumbs a { color: var(--azure); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }
-.term-hero { margin-bottom: 22px; }
+.term-hero { margin-bottom: 16px; }
 .term-kind { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
-.term-hero h1 { font-family: 'Oswald', sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -0.01em; margin: 2px 0 4px; }
+.term-hero h1 { font-family: 'Oswald', sans-serif; font-size: clamp(26px, 5vw, 32px); font-weight: 700; letter-spacing: -0.01em; margin: 2px 0 4px; }
 .term-hero p { color: var(--muted); font-size: 14.5px; margin: 0; }
 .term-count { font-size: 12.5px; margin-top: 6px !important; opacity: 0.8; }
 .term-intro { font-size: 15px; line-height: 1.65; color: var(--text); margin: 0 0 22px; max-width: 70ch; }

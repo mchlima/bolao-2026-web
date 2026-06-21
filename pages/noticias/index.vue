@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NewsCard, Paginated } from '~/types/api';
+import type { NewsCard, Paginated, TermPage } from '~/types/api';
 
 const siteUrl = String(useRuntimeConfig().public.siteUrl);
 const listUrl = `${siteUrl}/noticias`;
@@ -7,7 +7,12 @@ const listUrl = `${siteUrl}/noticias`;
 const { data } = await useAsyncData('public-news', () =>
   useApi()<Paginated<NewsCard>>('/content/news?pageSize=30'),
 );
+// categorias para os chips de descoberta (falha silenciosa: descoberta é secundária)
+const { data: cats } = await useAsyncData('public-news-cats', () =>
+  useApi()<TermPage[]>('/content/categories').catch(() => [] as TermPage[]),
+);
 const items = computed(() => data.value?.data ?? []);
+const topCats = computed(() => (cats.value ?? []).slice(0, 8));
 
 useSeoMeta({
   title: 'Notícias do futebol — Cravei',
@@ -46,21 +51,59 @@ useHead({
 <template>
   <div class="news-page">
     <header class="news-hero">
+      <span class="kicker">Cravei</span>
       <h1>Notícias</h1>
-      <p>Resumos de jogos, análises e o que rolou no futebol.</p>
+      <p>Resumos de jogos, análises e o que rolou no futebol — direto pra você palpitar.</p>
     </header>
 
-    <NewsCardList v-if="items.length" :items="items" />
+    <NewsSectionNav />
+
+    <div v-if="topCats.length" class="quick-cats">
+      <NuxtLink
+        v-for="c in topCats"
+        :key="c.slug"
+        :to="`/noticias/categoria/${c.slug}`"
+        class="qc"
+      >
+        {{ c.name }}<span class="qc-n">{{ c.total }}</span>
+      </NuxtLink>
+    </div>
+
+    <NewsCardList v-if="items.length" :items="items" featured />
+
     <div v-else class="news-empty">
-      <p>Ainda não há notícias publicadas. Volte em breve!</p>
+      <AppIcon name="inbox" :size="34" :stroke="1.6" />
+      <h2>Ainda não há notícias publicadas</h2>
+      <p>Estamos preparando os primeiros resumos e análises. Volte em breve.</p>
+      <NuxtLink to="/futebol/agenda" class="btn btn-primary">Ver a agenda de jogos</NuxtLink>
     </div>
   </div>
 </template>
 
 <style scoped>
-.news-page { max-width: 960px; margin: 0 auto; padding: 8px 0 32px; }
-.news-hero { margin-bottom: 22px; }
-.news-hero h1 { font-family: 'Oswald', sans-serif; font-size: 32px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 4px; }
-.news-hero p { color: var(--muted); font-size: 14.5px; margin: 0; }
-.news-empty { padding: 60px 20px; text-align: center; color: var(--muted); }
+.news-page { max-width: 980px; margin: 0 auto; padding: 8px 16px 40px; }
+.news-hero { margin-bottom: 18px; }
+.kicker { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--azure); }
+.news-hero h1 { font-family: 'Oswald', sans-serif; font-size: clamp(28px, 6vw, 38px); font-weight: 700; letter-spacing: -0.01em; margin: 2px 0 5px; }
+.news-hero p { color: var(--muted); font-size: 14.5px; line-height: 1.5; margin: 0; max-width: 60ch; }
+
+.quick-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.qc {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13px; font-weight: 700; color: var(--text);
+  text-decoration: none; padding: 6px 12px;
+  border: 1px solid var(--border); border-radius: 20px; background: var(--bg-surface);
+  transition: border-color 0.15s, color 0.15s;
+}
+.qc:hover { border-color: var(--azure); color: var(--azure); }
+.qc-n { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--bg-base); border-radius: 20px; padding: 0 7px; }
+
+.news-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 64px 24px; text-align: center; color: var(--muted);
+  border: 1px dashed var(--border); border-radius: 18px;
+}
+.news-empty h2 { font-family: 'Oswald', sans-serif; font-size: 21px; font-weight: 700; color: var(--text); margin: 4px 0 0; }
+.news-empty p { font-size: 14px; margin: 0; max-width: 42ch; }
+.news-empty .btn { margin-top: 8px; }
 </style>
