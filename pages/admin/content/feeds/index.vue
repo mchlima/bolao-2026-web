@@ -32,7 +32,9 @@ function fmtWhen(iso: string | null): string {
 async function fetchNow(f: NewsFeed) {
   try {
     const r = await useApi()<{ inserted: number }>(`/admin/content/feeds/${f.id}/fetch`, { method: 'POST' });
-    ui.toast('success', r.inserted ? `${r.inserted} novo(s) item(ns).` : 'Sem novidades agora.');
+    if (r.inserted) ui.toast('success', `${r.inserted} novo(s) item(ns).`);
+    else if (f.type === 'TOPIC') ui.toast('info', 'Busca feita, mas sem artigo novo/fresco — tente um assunto mais específico e domínios de notícia.');
+    else ui.toast('info', 'Sem novidades agora.');
     await load();
   } catch (e) { err(e); }
 }
