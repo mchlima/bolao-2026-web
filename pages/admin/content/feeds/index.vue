@@ -17,7 +17,8 @@ const COLS: AdminColumn[] = [
   { key: 'actions', label: '', align: 'end' },
 ];
 
-const TYPE_LABEL: Record<string, string> = { RSS: 'RSS', NEWS_API: 'API', PAGE: 'Página', TOPIC: 'Pauta', MATCH_REPORT: 'Resumo de jogo' };
+const TYPE_LABEL: Record<string, string> = { RSS: 'RSS', NEWS_API: 'API', PAGE: 'Página', TOPIC: 'Pauta', MATCH_REPORT: 'Jogo' };
+const TYPE_TITLE: Record<string, string> = { MATCH_REPORT: 'Resumo de jogo' };
 
 function err(e: unknown) {
   ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro');
@@ -97,7 +98,7 @@ onMounted(load);
           </div>
         </template>
         <template #col-type="{ row }">
-          <span class="type-badge">{{ TYPE_LABEL[row.type] ?? row.type }}</span>
+          <span class="type-badge" :title="TYPE_TITLE[row.type] ?? ''">{{ TYPE_LABEL[row.type] ?? row.type }}</span>
         </template>
         <template #col-tone="{ row }">
           <span class="muted-txt">{{ row.defaultTone?.name ?? '—' }}</span>
@@ -133,7 +134,7 @@ onMounted(load);
 .off { font-size: 11px; color: var(--muted); font-weight: 600; }
 .furl { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .muted-txt { font-size: 12.5px; color: var(--muted); font-weight: 600; }
-.type-badge { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; }
+.type-badge { display: inline-block; white-space: nowrap; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; }
 .health { display: flex; align-items: center; gap: 8px; }
 .hwhen { font-size: 11.5px; color: var(--muted); }
 .acts { display: flex; justify-content: flex-end; }
