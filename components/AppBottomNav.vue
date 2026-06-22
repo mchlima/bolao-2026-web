@@ -13,7 +13,7 @@ const items = computed(() => {
     return [
       { to: '/', label: 'Início', icon: 'home' },
       { to: '/noticias', label: 'Notícias', icon: 'news' },
-      { to: '/futebol/agenda', match: '/futebol', label: 'Jogos', icon: 'calendar' },
+      { to: '/futebol', match: '/futebol', label: 'Futebol', icon: 'calendar' },
       { to: '/bolao-da-copa-do-mundo-2026', label: 'Bolão', icon: 'trophy' },
       { to: '/entrar', label: 'Entrar', icon: 'login' },
     ];

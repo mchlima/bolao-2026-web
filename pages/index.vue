@@ -27,23 +27,12 @@ const { data: following, refresh: refreshMyMatches } = await useAsyncData('home-
     ? useApi()<FollowingView>('/me/matches/following')
     : Promise.resolve({ teams: [], others: [], followedTeamCount: 0 } as FollowingView),
 );
-const followTeams = computed(() => following.value?.teams ?? []);
-const followOthers = computed(() => following.value?.others ?? []);
-const followedTeamCount = computed(() => following.value?.followedTeamCount ?? 0);
-const hasFollowing = computed(() => followTeams.value.length > 0 || followOthers.value.length > 0);
+// Times seguidos alimentam só os canais de realtime (a seção "Seus jogos" saiu).
 const followMatches = computed<Match[]>(() => [
-  ...followTeams.value.flatMap((g) => g.matches),
-  ...followOthers.value,
+  ...(following.value?.teams ?? []).flatMap((g) => g.matches),
+  ...(following.value?.others ?? []),
 ]);
 
-// Logado: saudação + slider de posição (self-contido: busca /me/standings).
-const firstName = computed(() => (auth.user?.name ?? '').trim().split(/\s+/)[0] ?? '');
-const salute = computed(() => {
-  const h = Number(
-    new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false }),
-  );
-  return h >= 5 && h < 12 ? 'Bom dia' : h >= 12 && h < 18 ? 'Boa tarde' : 'Boa noite';
-});
 const primarySeason = computed(
   () => (torneios.value ?? []).find((t) => t.status === 'ONGOING') ?? (torneios.value ?? [])[0] ?? null,
 );
@@ -66,16 +55,6 @@ useRealtime(() => liveChannels.value, () => {
   refreshMyMatches();
 });
 
-function tBadge(name: string): string {
-  const w = name.split(/\s+/).filter((x) => x.length > 2 && !/^fifa$/i.test(x) && !/^\d+$/.test(x));
-  return ((w[0]?.[0] ?? '') + (w[1]?.[0] ?? '')).toUpperCase();
-}
-const TSTATUS: Record<string, { label: string; color: string }> = {
-  DRAFT: { label: 'Em breve', color: 'var(--muted)' },
-  UPCOMING: { label: 'Em breve', color: 'var(--azure)' },
-  ONGOING: { label: 'Em andamento', color: 'var(--emerald)' },
-  FINISHED: { label: 'Encerrado', color: 'var(--muted)' },
-};
 const now = useNow();
 const hubMatches = computed<Match[]>(() =>
   (hub.value?.days ?? [])
@@ -143,73 +122,14 @@ useHead({
   <div class="land-page">
     <InstallBanner />
 
-    <!-- logado: saudação + sua posição/pontos -->
-    <section v-if="auth.isAuthenticated" class="welcome">
-      <div class="greet">
-        <UserAvatar :name="auth.user?.name" :src="auth.user?.avatarUrl" :size="48" class="greet-av" />
-        <div class="greet-txt">
-          <span class="greet-hi">{{ salute }}</span>
-          <span class="greet-name">{{ firstName || 'Bem-vindo' }}</span>
-        </div>
-      </div>
-      <StandingHeroSlider />
-    </section>
-
-    <!-- SEUS JOGOS (logado): jogos dos times seguidos, ou CTA pra escolher times -->
-    <section v-if="auth.isAuthenticated" class="hubstrip mymatches">
-      <div class="hs-head">
-        <h2 class="font-display"><AppIcon name="bell" :size="18" :stroke="2.2" class="mm-ic" />Seus jogos</h2>
-        <NuxtLink v-if="hasFollowing" to="/meus-times" class="hs-all">Meus times <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
-      </div>
-
-      <template v-if="hasFollowing">
-        <div v-for="g in followTeams" :key="g.team.id" class="mm-group">
-          <div class="mm-team">
-            <TeamBadge :team="g.team" :size="22" />
-            <span class="mm-team-nm">{{ g.team.name }}</span>
-          </div>
-          <MatchCard :matches="g.matches" show-season />
-        </div>
-        <div v-if="followOthers.length" class="mm-group">
-          <div class="mm-team">
-            <AppIcon name="star" :size="17" class="mm-team-ic" />
-            <span class="mm-team-nm">Outros jogos que você segue</span>
-          </div>
-          <MatchCard :matches="followOthers" show-season />
-        </div>
-        <NuxtLink to="/boloes/palpites" class="mm-crave">Palpites pendentes <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
-      </template>
-
-      <NuxtLink v-else-if="!followedTeamCount" to="/meus-times" class="mm-cta">
-        <span class="mm-cta-ic"><AppIcon name="shield" :size="28" :stroke="2.1" /></span>
-        <div class="mm-cta-txt">
-          <b class="font-display">Siga os times do seu coração</b>
-          <span>Escolha seus times e a gente te avisa quando eles entram em campo — pra palpitar antes do apito e acompanhar ao vivo.</span>
-        </div>
-        <span class="mm-cta-go">Escolher meus times <AppIcon name="chevronRight" :size="16" :stroke="2.6" /></span>
-      </NuxtLink>
-
-      <div v-else class="mm-rest">
-        <span class="mm-rest-ic"><AppIcon name="shield" :size="20" :stroke="2.1" /></span>
-        <div class="mm-rest-txt">
-          <b>Seus times não têm jogos agendados</b>
-          <span>Assim que marcarem, eles aparecem aqui. Veja a <NuxtLink to="/futebol/agenda">agenda completa</NuxtLink> ou <NuxtLink to="/meus-times">ajuste seus times</NuxtLink>.</span>
-        </div>
-      </div>
+    <!-- FAIXA DE BOLÃO no topo (o convite recorrente; a ferramenta tem casa própria) -->
+    <section class="home-block">
+      <BolaoCtaBand />
     </section>
 
     <!-- DESTAQUE DO EVENTO (Copa, quando ONGOING) — ímã de tráfego -->
     <section v-if="spotlightSeason" class="home-block">
       <EventSpotlight :season="spotlightSeason" />
-    </section>
-
-    <!-- MANCHETES (anônimo: no topo da capa) -->
-    <section v-if="!auth.isAuthenticated && news.length" class="home-block manchetes">
-      <div class="hs-head">
-        <h2 class="font-display"><AppIcon name="news" :size="18" :stroke="2.1" class="mm-ic blue" />Últimas notícias</h2>
-        <NuxtLink to="/noticias" class="hs-all">Todas as notícias <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
-      </div>
-      <NewsCardList :items="news" featured />
     </section>
 
     <!-- PRÓXIMOS JOGOS -->
@@ -228,46 +148,28 @@ useHead({
     <section v-if="torneios?.length" class="hubnav-wrap">
       <div class="hubnav-head">
         <h2 class="font-display">Campeonatos</h2>
-        <NuxtLink to="/futebol/torneios" class="hubnav-all">Ver todos <AppIcon name="chevronRight" :size="13" :stroke="2.5" /></NuxtLink>
+        <NuxtLink to="/futebol/campeonato" class="hubnav-all">Ver todos <AppIcon name="chevronRight" :size="13" :stroke="2.5" /></NuxtLink>
       </div>
       <div class="hubnav">
-        <NuxtLink v-for="t in torneios.slice(0, 4)" :key="t.id" :to="`/futebol/torneios/${t.slug ?? t.id}`" class="hubtile">
-          <TournamentBadge :name="t.name" :logo-url="t.competition?.logoUrl" :logo-url-dark="t.competition?.logoUrlDark" :size="44" />
-          <span class="ht-txt">
-            <b>{{ t.name }}</b>
-            <small>
-              <span class="ht-stat" :style="{ color: (TSTATUS[t.status] ?? TSTATUS.UPCOMING).color }">{{ (TSTATUS[t.status] ?? TSTATUS.UPCOMING).label }}</span>
-              <span v-if="t.matchCount != null"> · {{ t.matchCount }} jogos</span>
-            </small>
+        <NuxtLink v-for="t in torneios.slice(0, 4)" :key="t.id" :to="competitionHref(t.competition) ?? '/futebol/campeonato'" class="hubtile">
+          <span class="ht-logo">
+            <TournamentBadge :name="t.competition?.name ?? t.name" :logo-url="t.competition?.logoUrl" :logo-url-dark="t.competition?.logoUrlDark" :size="40" />
           </span>
-          <AppIcon name="chevronRight" :size="16" :stroke="2.4" class="ht-go" />
+          <b class="ht-name">{{ t.competition?.name ?? t.name }}</b>
+          <AppIcon name="chevronRight" :size="18" :stroke="2.4" class="ht-go" />
         </NuxtLink>
       </div>
     </section>
 
-    <!-- MANCHETES (logado: notícias mais abaixo) -->
-    <section v-if="auth.isAuthenticated && news.length" class="home-block manchetes">
+    <!-- MANCHETES — últimas notícias, abaixo dos campeonatos -->
+    <section v-if="news.length" class="home-block manchetes">
       <div class="hs-head">
-        <h2 class="font-display"><AppIcon name="news" :size="18" :stroke="2.1" class="mm-ic blue" />Últimas notícias</h2>
+        <h2 class="font-display">Últimas notícias</h2>
         <NuxtLink to="/noticias" class="hs-all">Todas as notícias <AppIcon name="chevronRight" :size="14" :stroke="2.5" /></NuxtLink>
       </div>
       <NewsCardList :items="news" featured />
     </section>
 
-    <!-- FAIXA DE BOLÃO (o convite recorrente; a ferramenta tem casa própria) -->
-    <section class="home-block">
-      <BolaoCtaBand />
-    </section>
-
-    <footer class="lfoot">
-      <span class="lfoot-brand font-display">Cravei</span>
-      <span class="lfoot-tag">Notícias, jogos e o bolão da Copa do Mundo 2026</span>
-      <span class="lfoot-disc">
-        Plataforma independente. Sem qualquer vínculo, patrocínio ou endosso da FIFA
-        ou de entidades organizadoras. Marcas e nomes de competições citados pertencem
-        aos seus respectivos titulares.
-      </span>
-    </footer>
   </div>
 </template>
 
@@ -326,18 +228,12 @@ useHead({
 .hubnav-all { display: inline-flex; align-items: center; gap: 2px; flex: none; font-size: 13px; font-weight: 700; color: var(--azure); white-space: nowrap; }
 .hubnav { display: grid; grid-template-columns: 1fr; gap: 10px; }
 @media (min-width: 560px) { .hubnav { grid-template-columns: repeat(2, 1fr); } }
-.hubtile { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-surface); transition: border-color 0.14s, transform 0.14s; }
-.hubtile:hover { border-color: color-mix(in srgb, var(--azure) 40%, var(--border)); transform: translateY(-1px); }
-.ht-stat { font-weight: 700; }
-.ht-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ht-txt b { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ht-txt small { font-size: 11.5px; color: var(--muted); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ht-go { margin-left: auto; flex: none; color: var(--muted); }
-@media (max-width: 420px) { .hubnav { gap: 8px; } .hubtile { padding: 11px 12px; gap: 10px; } }
+.hubtile { display: flex; align-items: center; gap: 13px; padding: 14px 15px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-surface); transition: border-color 0.14s, transform 0.14s, box-shadow 0.14s; }
+.hubtile:hover { border-color: color-mix(in srgb, var(--azure) 40%, var(--border)); transform: translateY(-1px); box-shadow: var(--shadow); }
+.ht-logo { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 12px; background: var(--bg-base); border: 1px solid var(--border); }
+.ht-name { flex: 1; min-width: 0; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 17px; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ht-go { flex: none; color: var(--muted); }
+@media (max-width: 420px) { .hubnav { gap: 8px; } .hubtile { padding: 12px; gap: 11px; } }
 
 /* rodapé */
-.lfoot { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; color: var(--muted); padding: 28px 0 14px; margin-top: 12px; border-top: 1px solid var(--border); }
-.lfoot-brand { font-size: 18px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text); margin-top: 16px; }
-.lfoot-tag { font-size: 12.5px; font-weight: 600; }
-.lfoot-disc { max-width: 540px; margin-top: 8px; font-size: 11px; font-weight: 500; line-height: 1.5; opacity: 0.75; }
 </style>

@@ -14,8 +14,7 @@ useHead({ link: [{ rel: 'canonical', href: `${siteUrl}/boloes/ranking` }] });
 
 <template>
   <div class="page">
-    <BolaoSectionNav />
-    <PageHeader title="Ranking" subtitle="Sua posição no geral do torneio e em cada bolão." />
+    <PageHero pillar="Bolão" title="Ranking" subtitle="Sua posição no geral do torneio e em cada bolão." :crumbs="[{ name: 'Início', to: '/' }, { name: 'Bolão', to: '/boloes' }, { name: 'Ranking' }]" />
 
     <StandingHeroSlider />
 
@@ -24,7 +23,7 @@ useHead({ link: [{ rel: 'canonical', href: `${siteUrl}/boloes/ranking` }] });
       <div class="rk-grid">
         <NuxtLink v-for="p in (mine as PoolSummary[])" :key="p.id" :to="`/boloes/${p.id}/ranking`" class="rk-card">
           <span class="rk-name font-display">{{ p.name }}</span>
-          <span class="rk-meta">{{ p.tournament.name }} · {{ p.memberCount }} {{ p.memberCount === 1 ? 'membro' : 'membros' }}</span>
+          <span class="rk-meta">{{ p.tournament?.name ?? 'Sem temporada' }} · {{ p.memberCount }} {{ p.memberCount === 1 ? 'membro' : 'membros' }}</span>
           <AppIcon name="chevronRight" :size="16" :stroke="2.4" class="rk-go" />
         </NuxtLink>
       </div>

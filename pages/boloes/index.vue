@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Paginated, PoolSummary, Tournament } from '~/types/api';
+import type { PoolSummary } from '~/types/api';
 
 const pools = usePools();
 const ui = useUiStore();
@@ -26,44 +26,27 @@ function apiError(e: unknown): string {
 
 // (Joining a pool is link-only — open an invite link to join.)
 
-// ── Create modal ──
+// ── Create modal ── (o bolão nasce vazio; o torneio é escolhido na 1ª temporada)
 const createOpen = ref(false);
-const tournaments = ref<Tournament[]>([]);
 const form = reactive({
   name: '',
   description: '',
   inviteDescription: '',
-  seasonId: '',
 });
 const creating = ref(false);
 
-async function openCreate() {
+function openCreate() {
   createOpen.value = true;
-  if (!tournaments.value.length) {
-    try {
-      const list = await useApi()<Paginated<Tournament>>('/seasons?pageSize=100');
-      tournaments.value = list.data;
-      if (!form.seasonId) {
-        form.seasonId =
-          list.data.find((t) => t.status === 'ONGOING')?.id ??
-          list.data[0]?.id ??
-          '';
-      }
-    } catch (e) {
-      ui.toast('error', apiError(e));
-    }
-  }
 }
 
 async function submitCreate() {
-  if (!form.name.trim() || !form.seasonId) return;
+  if (!form.name.trim()) return;
   creating.value = true;
   try {
     const pool = await pools.create({
       name: form.name.trim(),
       description: form.description.trim() || undefined,
       inviteDescription: form.inviteDescription.trim() || undefined,
-      seasonId: form.seasonId,
     });
     ui.toast('success', 'Bolão criado!');
     createOpen.value = false;
@@ -82,12 +65,9 @@ async function submitCreate() {
 
 <template>
   <div class="page">
-    <BolaoSectionNav />
-    <PageHeader title="Meus bolões" subtitle="Dispute o ranking entre amigos.">
-      <template #actions>
-        <button class="btn btn-gold" @click="openCreate"><AppIcon name="plus" :size="16" :stroke="2.4" />Criar bolão</button>
-      </template>
-    </PageHeader>
+    <PageHero pillar="Bolão" title="Meus bolões" icon="trophy" tone="gold" :crumbs="[{ name: 'Início', to: '/' }, { name: 'Meus bolões' }]">
+      <template #actions><button class="btn btn-gold" @click="openCreate"><AppIcon name="plus" :size="16" :stroke="2.4" />Criar bolão</button></template>
+    </PageHero>
 
     <SkeletonList v-if="pending && !data" variant="card" :count="3" />
 
@@ -115,7 +95,7 @@ async function submitCreate() {
           </span>
           <div class="c-info">
             <div class="c-name font-display">{{ p.name }}</div>
-            <div class="c-tour">{{ p.tournament.name }}</div>
+            <div class="c-tour">{{ p.tournament?.name ?? 'Sem temporada' }}</div>
           </div>
         </div>
         <div class="c-foot">
@@ -154,16 +134,10 @@ async function submitCreate() {
             placeholder="Aparece para quem abrir o link de convite."
           />
         </label>
-        <label class="fld">
-          <span class="lbl">Torneio</span>
-          <select v-model="form.seasonId" class="inp" required>
-            <option value="" disabled>Selecione…</option>
-            <option v-for="t in tournaments" :key="t.id" :value="t.id">{{ t.name }}</option>
-          </select>
-        </label>
         <p class="hint muted">
-          O palpite é único e vale em todos os seus bolões deste torneio — aqui o
-          ranking conta só os membros.
+          O bolão começa vazio. Depois de criar, abra a <strong>Visão geral</strong>
+          e crie a <strong>1ª temporada</strong> — é nela que você escolhe o torneio
+          e o nome.
         </p>
       </form>
       <template #footer>

@@ -4,7 +4,7 @@ import type { Match, NewsCard, Paginated, Tournament } from '~/types/api';
 // Hub editorial da Copa — página-ímã de tráfego orgânico ("tudo sobre a Copa"):
 // agrega jogos de hoje, grupos, tabela, seleções, onde assistir e as últimas
 // notícias. Distinta da landing de bolão (conversão) e do hub de DADOS do torneio
-// (/futebol/torneios/...). Self-canonical, fortemente cross-linkada.
+// (/futebol/campeonato/...). Self-canonical, fortemente cross-linkada.
 const siteUrl = String(useRuntimeConfig().public.siteUrl);
 const url = `${siteUrl}/copa-do-mundo-2026`;
 
@@ -19,7 +19,8 @@ const { data: copa } = await useAsyncData('copa-hub-season', async () => {
   return list.find((t) => t.status === 'ONGOING') ?? list.find((t) => /copa/i.test(t.name)) ?? null;
 });
 const seasonId = computed(() => copa.value?.id ?? '');
-const slug = computed(() => copa.value?.slug ?? 'copa-do-mundo-2026');
+// Hub do campeonato pela COMPETIÇÃO (urlSlug persistido ou derivado do nome).
+const hubBase = computed(() => competitionHref(copa.value?.competition) ?? '/futebol/campeonato/copa-do-mundo');
 const cleanName = computed(() => (copa.value?.name ?? 'Copa do Mundo 2026').replace(/\bFIFA\b/gi, '').replace(/\s+/g, ' ').trim());
 const broadcasters = computed(() => copa.value?.broadcasters ?? []);
 
@@ -45,8 +46,8 @@ const games = computed<Match[]>(() => {
 
 const shortcuts = computed(() => [
   { label: 'Jogos de hoje', to: '/futebol/jogos-de-hoje' },
-  { label: 'Grupos', to: `/futebol/torneios/${slug.value}/grupos` },
-  { label: 'Tabela', to: `/futebol/torneios/${slug.value}/classificacao` },
+  { label: 'Jogos', to: `${hubBase.value}/jogos` },
+  { label: 'Tabela', to: `${hubBase.value}/tabela` },
   { label: 'Seleções', to: '/futebol/selecoes' },
 ]);
 

@@ -18,6 +18,14 @@ if (pool.value && !canManage.value) {
   await navigateTo(`/boloes/${id}/ranking`, { replace: true });
 }
 
+// Passos do "Como funcionam os convites" (bloco reutilizável HowItWorks).
+const HOWTO_STEPS = [
+  { n: 1, icon: 'plus', color: 'var(--azure)', title: 'Crie um link nomeado', desc: 'Dê um nome pro link só pra você identificar de onde veio quem entrou.', ex: 'Ex.: “WhatsApp da firma”.' },
+  { n: 2, icon: 'share', color: 'var(--emerald)', title: 'Compartilhe com a galera', desc: 'Mande o link no grupo — quem abrir <strong>entra direto</strong> no bolão.', ex: 'Pode criar vários links pra rastrear cada origem.' },
+  { n: 3, icon: 'shield', color: 'var(--scarlet)', title: 'Controle quando quiser', desc: '<strong>Revogue</strong> um link a qualquer momento (sem tirar quem já entrou) ou <strong>remova</strong> de vez.', ex: 'Vazou? Desative só aquele link — os outros seguem valendo.' },
+];
+
+const nameInput = ref<HTMLInputElement | null>(null);
 const newInvite = ref('');
 const adding = ref(false);
 async function addInvite() {
@@ -73,16 +81,31 @@ async function removeInvite(inv: PoolInviteView) {
 
 <template>
   <section class="invites">
+    <HowItWorks
+      title="Como funcionam os convites"
+      storage-key="convites-howto-open"
+      lead="Convide a galera por <strong>links nomeados</strong>. Cada link tem um nome só pra você saber de onde veio quem entrou — e você controla todos a qualquer momento."
+      :steps="HOWTO_STEPS"
+      example="<b>Na prática:</b> crie um link <strong>“WhatsApp”</strong> e mande no grupo; se ele vazar, é só <strong>revogar</strong> aquele link — quem já entrou continua, e os outros links seguem funcionando."
+    />
+
     <form class="add" @submit.prevent="addInvite">
-      <input v-model="newInvite" class="inp" maxlength="40" placeholder="Nome do link (ex.: WhatsApp)" />
+      <input ref="nameInput" v-model="newInvite" class="inp" maxlength="40" placeholder="Nome do link (ex.: WhatsApp)" />
       <button class="btn btn-gold" type="submit" :disabled="adding">
         {{ adding ? '…' : '+ Criar link' }}
       </button>
     </form>
 
-    <p v-if="!pool?.invites?.length" class="muted empty">
-      Nenhum link ainda. Crie um link nomeado e compartilhe com a galera.
-    </p>
+    <EmptyState
+      v-if="!pool?.invites?.length"
+      icon="share"
+      title="Nenhum link de convite ainda"
+      description="Crie um link nomeado e compartilhe com a galera — quem abrir entra direto no bolão."
+    >
+      <template #action>
+        <button class="btn btn-gold" @click="nameInput?.focus()">Criar primeiro link</button>
+      </template>
+    </EmptyState>
 
     <div v-for="inv in pool?.invites ?? []" :key="inv.id" class="irow" :class="{ off: !inv.isActive }">
       <div class="i-info">
@@ -125,11 +148,6 @@ async function removeInvite(inv: PoolInviteView) {
 .inp:focus {
   outline: none;
   border-color: var(--emerald);
-}
-.empty {
-  padding: 1.5rem 0;
-  text-align: center;
-  font-size: 13.5px;
 }
 .irow {
   display: flex;

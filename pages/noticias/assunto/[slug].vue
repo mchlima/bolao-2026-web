@@ -21,6 +21,13 @@ const seo = t.seo ?? {};
 const heading = seo.heading || t.name;
 const faq = seo.faq ?? [];
 
+const crumbs = [
+  { name: 'Início', to: '/' },
+  { name: 'Notícias', to: '/noticias' },
+  { name: 'Assuntos', to: '/noticias/assunto' },
+  { name: heading },
+];
+
 useSeoMeta({
   title: seo.metaTitle || `${t.name} — Notícias | Cravei`,
   description: seo.metaDescription || t.description || `Tudo sobre ${t.name}: notícias, resumos de jogos e análises. Acompanhe e palpite no bolão Cravei.`,
@@ -74,19 +81,7 @@ useHead({
 
 <template>
   <div class="term-page">
-    <nav class="crumbs">
-      <NuxtLink to="/noticias">Notícias</NuxtLink>
-      <span>›</span>
-      <span>#{{ t.name }}</span>
-    </nav>
-    <header class="term-hero">
-      <span class="term-kind">Assunto</span>
-      <h1>{{ heading }}</h1>
-      <p v-if="t.description">{{ t.description }}</p>
-      <p class="term-count">{{ t.total }} {{ t.total === 1 ? 'matéria' : 'matérias' }}</p>
-    </header>
-
-    <NewsSectionNav />
+    <PageHero pillar="Notícias" :title="heading" :subtitle="t.description" :crumbs="crumbs" />
 
     <p v-if="seo.intro" class="term-intro">{{ seo.intro }}</p>
 
@@ -105,14 +100,6 @@ useHead({
 
 <style scoped>
 .term-page { width: 100%; padding: 8px 16px 40px; }
-.crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
-.crumbs a { color: var(--azure); text-decoration: none; }
-.crumbs a:hover { text-decoration: underline; }
-.term-hero { margin-bottom: 16px; }
-.term-kind { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
-.term-hero h1 { font-family: 'Oswald', sans-serif; font-size: clamp(26px, 5vw, 32px); font-weight: 700; letter-spacing: -0.01em; margin: 2px 0 4px; }
-.term-hero p { color: var(--muted); font-size: 14.5px; margin: 0; }
-.term-count { font-size: 12.5px; margin-top: 6px !important; opacity: 0.8; }
 .term-intro { font-size: 15px; line-height: 1.65; color: var(--text); margin: 0 0 22px; max-width: 70ch; }
 .term-empty { padding: 60px 20px; text-align: center; color: var(--muted); }
 .term-faq { margin-top: 34px; border-top: 1px solid var(--border); padding-top: 22px; }

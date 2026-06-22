@@ -2,24 +2,32 @@
 // Faixa de CTA do Bolão — o convite recorrente que leva o leitor do conteúdo
 // (home, página de jogo, notícia) pra Área do Bolão (logado) ou pra landing de
 // conversão (anônimo). Fundo claro + acento dourado (sotaque do bolão).
-withDefaults(
+const props = withDefaults(
   defineProps<{
     headline?: string;
     sub?: string;
     /** 'home' = faixa larga; 'inline' = compacta (dentro de artigo/partida) */
     variant?: 'home' | 'inline';
+    /** Sobrescreve o destino anônimo (default: landing da Copa). */
+    to?: string;
+    /** Sobrescreve o texto do botão. */
+    ctaLabel?: string;
   }>(),
   { variant: 'home' },
 );
 const auth = useAuthStore();
-const target = computed(() => (auth.isAuthenticated ? '/boloes' : '/bolao-da-copa-do-mundo-2026'));
-const cta = computed(() => (auth.isAuthenticated ? 'Ir para meus bolões' : 'Criar bolão da Copa do Mundo 2026'));
+const target = computed(() =>
+  auth.isAuthenticated ? '/boloes' : (props.to ?? '/bolao-da-copa-do-mundo-2026'),
+);
+const cta = computed(
+  () => props.ctaLabel ?? (auth.isAuthenticated ? 'Ir para meus bolões' : 'Criar bolão da Copa do Mundo'),
+);
 </script>
 
 <template>
   <aside class="ctaband" :class="variant">
     <div class="cb-txt">
-      <strong class="cb-head font-display">{{ headline || 'Bolão da Copa do Mundo 2026 com a galera' }}</strong>
+      <strong class="cb-head font-display">{{ headline || 'Bolão da Copa do Mundo com a galera' }}</strong>
       <span class="cb-sub">{{ sub || 'Crave os placares, dispute o ranking com os amigos e acompanhe ao vivo. Grátis.' }}</span>
     </div>
     <NuxtLink :to="target" class="btn btn-gold cb-btn">{{ cta }}</NuxtLink>

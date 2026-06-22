@@ -36,46 +36,39 @@ export default defineEventHandler(async (event) => {
     { loc: '/copa-do-mundo-2026', priority: 0.9, changefreq: 'daily' },
     { loc: '/bolao-da-copa-do-mundo-2026', priority: 0.9, changefreq: 'weekly' },
     { loc: '/como-funciona', priority: 0.8, changefreq: 'monthly' },
+    { loc: '/futebol', priority: 0.8, changefreq: 'daily' },
     { loc: '/futebol/jogos-de-hoje', priority: 0.8, changefreq: 'daily' },
     { loc: '/futebol/agenda', priority: 0.8, changefreq: 'hourly' },
-    { loc: '/futebol/torneios', priority: 0.7, changefreq: 'daily' },
+    { loc: '/futebol/campeonato', priority: 0.7, changefreq: 'daily' },
     { loc: '/futebol/selecoes', priority: 0.7, changefreq: 'weekly' },
     { loc: '/noticias', priority: 0.8, changefreq: 'daily' },
     { loc: '/noticias/categoria', priority: 0.6, changefreq: 'weekly' },
     { loc: '/noticias/assunto', priority: 0.5, changefreq: 'weekly' },
   ];
 
-  // Tournaments → each public hub + its standings / matches / ranking tabs.
+  // Campeonatos → cada hub (Jogos = base) + Tabela, pelo slug público da competição.
   try {
-    const seasons = await $fetch<{
+    const comps = await $fetch<{
       data: {
-        id: string;
-        slug?: string | null;
-        updatedAt?: string;
+        urlSlug?: string | null;
         logoUrl?: string | null;
-        format?: string | null;
-        competition?: { logoUrl?: string | null } | null;
+        updatedAt?: string;
+        activeSeason?: { slug?: string | null } | null;
       }[];
-    }>(`${api}/seasons?pageSize=100`);
-    for (const s of seasons.data ?? []) {
-      const logo = s.competition?.logoUrl ?? s.logoUrl ?? null;
-      const seg = s.slug ?? s.id;
+    }>(`${api}/competitions?pageSize=100`);
+    for (const c of comps.data ?? []) {
+      if (!c.urlSlug || !c.activeSeason) continue;
       urls.push(
         {
-          loc: `/futebol/torneios/${seg}`,
-          priority: 0.7,
+          loc: `/futebol/campeonato/${c.urlSlug}`,
+          priority: 0.8,
           changefreq: 'daily',
-          lastmod: s.updatedAt,
-          images: logo ? [logo] : undefined,
+          lastmod: c.updatedAt,
+          images: c.logoUrl ? [c.logoUrl] : undefined,
         },
-        { loc: `/futebol/torneios/${seg}/classificacao`, priority: 0.6, changefreq: 'daily', lastmod: s.updatedAt },
-        { loc: `/futebol/torneios/${seg}/jogos`, priority: 0.6, changefreq: 'daily', lastmod: s.updatedAt },
-        { loc: `/futebol/torneios/${seg}/ranking`, priority: 0.5, changefreq: 'daily', lastmod: s.updatedAt },
+        { loc: `/futebol/campeonato/${c.urlSlug}/jogos`, priority: 0.7, changefreq: 'daily', lastmod: c.updatedAt },
+        { loc: `/futebol/campeonato/${c.urlSlug}/tabela`, priority: 0.6, changefreq: 'daily', lastmod: c.updatedAt },
       );
-      // Hub "grupos" só p/ torneios com fase de grupos (evita página fina em ligas).
-      if ((s.format ?? '').includes('GROUP')) {
-        urls.push({ loc: `/futebol/torneios/${seg}/grupos`, priority: 0.6, changefreq: 'daily', lastmod: s.updatedAt });
-      }
     }
   } catch {
     /* API down — keep the static URLs above. */
@@ -107,9 +100,7 @@ export default defineEventHandler(async (event) => {
         if (m.homeTeam?.slug) teamSlugs.add(m.homeTeam.slug);
         if (m.awayTeam?.slug) teamSlugs.add(m.awayTeam.slug);
         urls.push({
-          loc: m.season?.slug
-            ? `/futebol/torneios/${m.season.slug}/jogos/${m.id}`
-            : `/futebol/agenda/${m.id}`,
+          loc: `/futebol/agenda/${m.id}`,
           priority: 0.5,
           changefreq: 'hourly',
           lastmod: m.updatedAt,

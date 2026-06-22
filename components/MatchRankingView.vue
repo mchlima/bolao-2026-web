@@ -59,7 +59,7 @@ const canonicalUrl = computed(() => {
   const m = match.value;
   if (!m) return siteUrl;
   return m.season?.slug
-    ? `${siteUrl}/futebol/torneios/${m.season.slug}/jogos/${m.id}`
+    ? `${siteUrl}/futebol/agenda/${m.id}`
     : `${siteUrl}/futebol/agenda/${m.id}`;
 });
 // ── Conteúdo SEO/GEO da partida ──────────────────────────────────────────────
@@ -278,7 +278,10 @@ const matchJsonLd = computed(() => {
   const s = m.season;
   if (s?.name && s.startDate) {
     const host = s.location ?? s.competition?.country ?? null;
-    const seasonUrl = m.season?.slug ? `${siteUrl}/futebol/torneios/${m.season.slug}` : siteUrl;
+    // URL DIRETA do campeonato (slug da competição), sem depender de redirect.
+    const cSlug =
+      s.competition?.urlSlug || (s.competition?.name ? competitionUrlSlug(s.competition.name) : s.slug);
+    const seasonUrl = cSlug ? `${siteUrl}/futebol/campeonato/${cSlug}` : siteUrl;
     const superEvent: Record<string, unknown> = {
       '@type': 'SportsEvent',
       name: s.name,
@@ -311,11 +314,14 @@ const matchJsonLd = computed(() => {
     { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
   ];
   if (m.season?.slug && m.season?.name) {
+    const cSlug =
+      m.season.competition?.urlSlug ||
+      (m.season.competition?.name ? competitionUrlSlug(m.season.competition.name) : m.season.slug);
     crumbs.push({
       '@type': 'ListItem',
       position: 2,
       name: m.season.name,
-      item: `${siteUrl}/futebol/torneios/${m.season.slug}`,
+      item: `${siteUrl}/futebol/campeonato/${cSlug}`,
     });
   }
   crumbs.push({
@@ -399,8 +405,8 @@ useHead({
         </div>
 
         <nav class="ms-links">
-          <NuxtLink v-if="match.season?.slug" :to="`/futebol/torneios/${match.season.slug}`">Ver o torneio</NuxtLink>
-          <NuxtLink v-if="match.season?.slug && match.groupName" :to="`/futebol/torneios/${match.season.slug}/grupos`">Grupos</NuxtLink>
+          <NuxtLink v-if="match.season?.slug" :to="`/futebol/campeonato/${match.season.competition?.urlSlug || competitionUrlSlug(match.season.competition?.name || match.season.name)}`">Ver o campeonato</NuxtLink>
+          <NuxtLink v-if="match.season?.slug && match.groupName" :to="`/futebol/campeonato/${match.season.competition?.urlSlug || competitionUrlSlug(match.season.competition?.name || match.season.name)}/tabela`">Tabela</NuxtLink>
           <NuxtLink to="/futebol/agenda">Agenda de jogos</NuxtLink>
           <NuxtLink to="/bolao-da-copa-do-mundo-2026">Como criar um bolão</NuxtLink>
         </nav>

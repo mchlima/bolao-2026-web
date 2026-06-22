@@ -20,9 +20,7 @@ export function usePools() {
       name: string;
       description?: string;
       inviteDescription?: string;
-      seasonId: string;
       visibility?: PoolVisibility;
-      start?: boolean;
     }) => api<PoolDetail>('/pools', { method: 'POST', body }),
     update: (
       id: string,

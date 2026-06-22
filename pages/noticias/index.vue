@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NewsCard, Paginated, TermPage } from '~/types/api';
+import type { NewsCard, Paginated } from '~/types/api';
 
 // Capa editorial de notícias (tipográfica — o pipeline não tem imagem): manchete +
 // chamadas, faixas por categoria (só com volume — degradação graciosa) e a grade
@@ -10,11 +10,7 @@ const listUrl = `${siteUrl}/noticias`;
 const { data } = await useAsyncData('public-news', () =>
   useApi()<Paginated<NewsCard>>('/content/news?pageSize=40'),
 );
-const { data: cats } = await useAsyncData('public-news-cats', () =>
-  useApi()<TermPage[]>('/content/categories').catch(() => [] as TermPage[]),
-);
 const items = computed<NewsCard[]>(() => data.value?.data ?? []);
-const topCats = computed(() => (cats.value ?? []).slice(0, 8));
 
 // Manchete (1ª — featured-first vindo da API) + chamadas (próximas 4).
 const lead = computed<NewsCard | null>(() => items.value[0] ?? null);
@@ -116,20 +112,6 @@ useHead({
 
 <template>
   <div class="news-page">
-    <header class="news-hero">
-      <span class="kicker">Cravei</span>
-      <h1>Notícias</h1>
-      <p>Resumos de jogos, análises e o que rolou no futebol — direto pra você palpitar.</p>
-    </header>
-
-    <NewsSectionNav />
-
-    <div v-if="topCats.length" class="quick-cats">
-      <NuxtLink v-for="c in topCats" :key="c.slug" :to="`/noticias/categoria/${c.slug}`" class="qc">
-        {{ c.name }}<span class="qc-n">{{ c.total }}</span>
-      </NuxtLink>
-    </div>
-
     <!-- MANCHETE + CHAMADAS -->
     <section v-if="lead" class="lead" :class="{ solo: !secondary.length }">
       <NuxtLink :to="`/noticias/${lead.slug}`" class="lead-main" :class="{ 'has-img': lead.coverUrl }" :style="{ '--c': catColor(lead.category?.slug) }">
@@ -217,15 +199,6 @@ useHead({
 
 <style scoped>
 .news-page { width: 100%; padding: 8px 16px 48px; }
-.news-hero { margin-bottom: 16px; }
-.kicker { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--azure); }
-.news-hero h1 { font-family: 'Oswald', sans-serif; font-size: clamp(28px, 6vw, 40px); font-weight: 700; letter-spacing: -0.01em; margin: 2px 0 5px; }
-.news-hero p { color: var(--muted); font-size: 14.5px; line-height: 1.5; margin: 0; max-width: 60ch; }
-
-.quick-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
-.qc { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: var(--text); text-decoration: none; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--bg-surface); transition: border-color 0.15s, color 0.15s; }
-.qc:hover { border-color: var(--azure); color: var(--azure); }
-.qc-n { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--bg-base); border-radius: 20px; padding: 0 7px; }
 
 /* etiqueta de categoria (acento por --c) e badge destaque */
 .ncat { align-self: flex-start; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--c, var(--azure)); }

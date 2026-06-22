@@ -29,7 +29,6 @@ const { data, pending, refresh } = await useAsyncData('jogos-hoje', () =>
 const matches = computed<Match[]>(() => (data.value?.days ?? []).flatMap((d) => d.matches));
 const now = useNow();
 const sorted = computed(() => [...matches.value].sort(listingComparator(now.value)));
-const liveCount = computed(() => matches.value.filter((m) => m.status === 'LIVE').length);
 
 // Realtime: re-fetch quando o robô emite gol/status nos torneios em jogo hoje.
 const liveChannels = computed(() =>
@@ -75,21 +74,12 @@ useHead({
 <template>
   <div class="jh">
     <FutebolSectionNav />
-    <nav class="crumbs">
-      <NuxtLink to="/">Início</NuxtLink>
-      <span>›</span>
-      <NuxtLink to="/futebol/agenda">Futebol</NuxtLink>
-      <span>›</span>
-      <span>Jogos de hoje</span>
-    </nav>
-
-    <header class="jh-head">
-      <h1 class="font-display">Jogos de hoje</h1>
-      <p class="jh-date">
-        {{ todayLong }}
-        <NuxtLink v-if="liveCount" to="/futebol/agenda?scope=live" class="jh-live"><span class="d" />{{ liveCount }} ao vivo</NuxtLink>
-      </p>
-    </header>
+    <PageHero
+      pillar="Futebol"
+      title="Jogos de hoje"
+      :subtitle="todayLong"
+      :crumbs="[{ name: 'Início', to: '/' }, { name: 'Futebol', to: '/futebol' }, { name: 'Jogos de hoje' }]"
+    />
 
     <SkeletonList v-if="pending && !data" variant="match" :count="4" />
     <div v-else-if="!matches.length" class="jh-empty">
@@ -106,7 +96,7 @@ useHead({
       <MatchCard :matches="sorted" show-season />
       <div class="jh-more">
         <NuxtLink to="/futebol/agenda">Agenda completa</NuxtLink>
-        <NuxtLink to="/futebol/torneios">Torneios</NuxtLink>
+        <NuxtLink to="/futebol/campeonato">Torneios</NuxtLink>
       </div>
     </template>
   </div>
@@ -114,14 +104,6 @@ useHead({
 
 <style scoped>
 .jh { padding: 10px; }
-.crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
-.crumbs a { color: var(--azure); text-decoration: none; }
-.crumbs a:hover { text-decoration: underline; }
-.jh-head { margin-bottom: 16px; }
-.jh-head h1 { font-weight: 700; font-size: clamp(26px, 5vw, 36px); text-transform: uppercase; letter-spacing: -0.01em; margin: 0 0 4px; }
-.jh-date { font-size: 14px; color: var(--muted); font-weight: 600; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.jh-live { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--scarlet); border: 1px solid var(--scarlet); border-radius: 999px; padding: 3px 9px; }
-.jh-live .d { width: 6px; height: 6px; border-radius: 50%; background: var(--scarlet); animation: liveDot 1.1s ease-in-out infinite; }
 .jh-intro { font-size: 15px; line-height: 1.6; color: var(--text); margin: 0 0 16px; }
 .jh-intro a { color: var(--azure); text-decoration: none; font-weight: 600; }
 .jh-intro a:hover { text-decoration: underline; }

@@ -40,7 +40,6 @@ const competition = computed(() => {
   if (names.length !== 1) return '';
   return names[0].replace(/\bFIFA\b/gi, '').replace(/\s{2,}/g, ' ').trim();
 });
-const typeLabel = computed(() => (t.type === 'NATIONAL_TEAM' ? 'Seleção' : 'Time'));
 
 // Realtime nos torneios dos jogos do time.
 const liveChannels = computed(() =>
@@ -100,21 +99,11 @@ useHead({
 
 <template>
   <div class="sel">
-    <nav class="crumbs">
-      <NuxtLink to="/">Início</NuxtLink>
-      <span>›</span>
-      <NuxtLink to="/futebol/agenda">Futebol</NuxtLink>
-      <span>›</span>
-      <span>{{ t.name }}</span>
-    </nav>
-
-    <header class="sel-head">
-      <TeamBadge :team="t" :size="52" />
-      <div class="sel-h-txt">
-        <span class="sel-kicker">{{ typeLabel }}<template v-if="competition"> · {{ competition }}</template></span>
-        <h1 class="font-display">{{ t.name }}</h1>
-      </div>
-    </header>
+    <PageHero
+      pillar="Futebol"
+      :title="t.name"
+      :crumbs="[{ name: 'Início', to: '/' }, { name: 'Futebol', to: '/futebol' }, { name: 'Seleções', to: '/futebol/selecoes' }, { name: t.name }]"
+    />
 
     <p class="sel-intro">
       Próximos jogos, resultados e horários (de Brasília) de <strong>{{ t.name }}</strong>.
@@ -140,20 +129,13 @@ useHead({
     <nav class="sel-links">
       <NuxtLink to="/futebol/jogos-de-hoje">Jogos de hoje</NuxtLink>
       <NuxtLink to="/futebol/agenda">Agenda completa</NuxtLink>
-      <NuxtLink to="/futebol/torneios">Torneios</NuxtLink>
+      <NuxtLink to="/futebol/campeonato">Torneios</NuxtLink>
     </nav>
   </div>
 </template>
 
 <style scoped>
 .sel { padding: 10px; }
-.crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
-.crumbs a { color: var(--azure); text-decoration: none; }
-.crumbs a:hover { text-decoration: underline; }
-.sel-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
-.sel-h-txt { min-width: 0; }
-.sel-kicker { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--azure); }
-.sel-head h1 { font-weight: 700; font-size: clamp(24px, 5vw, 34px); text-transform: uppercase; letter-spacing: -0.01em; margin: 2px 0 0; }
 .sel-intro { font-size: 15px; line-height: 1.6; color: var(--text); margin: 0 0 22px; }
 .sel-intro a { color: var(--azure); text-decoration: none; font-weight: 600; }
 .sel-intro a:hover { text-decoration: underline; }

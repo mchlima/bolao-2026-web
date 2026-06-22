@@ -24,18 +24,15 @@ const section = computed<string>(() => {
   if (p.includes(`/boloes/${id}/jogos`)) return 'jogos';
   return 'overview';
 });
-// Tabs are peers now (Resumo included), so back just leaves the pool.
-const backTo = '/boloes';
-
 // The match-detail route renders the full-bleed board, so it opts out of the
 // standardized page gutter (mirrors the tournament shell).
 const isMatchDetail = computed(() => !!route.params.matchId);
 
 const tabs = computed(() => {
   const t = [
-    { key: 'overview', label: 'Resumo', to: `/boloes/${id}` },
+    { key: 'overview', label: 'Visão geral', to: `/boloes/${id}` },
     { key: 'ranking', label: 'Ranking', to: `/boloes/${id}/ranking` },
-    { key: 'jogos', label: 'Resultados', to: `/boloes/${id}/jogos` },
+    { key: 'jogos', label: 'Jogos', to: `/boloes/${id}/jogos` },
     { key: 'temporadas', label: 'Temporadas', to: `/boloes/${id}/temporadas` },
     { key: 'membros', label: 'Membros', to: `/boloes/${id}/membros` },
   ];
@@ -75,15 +72,18 @@ const unavailable = computed(() => {
     <template v-else>
       <!-- Match-detail opens outside the pool shell: the full-bleed board owns the
            screen (and its own back to Resultados), so hide the shell chrome here. -->
-      <header v-if="!isMatchDetail" class="thead">
-        <div class="trow">
-          <NuxtLink :to="backTo" class="back" aria-label="Voltar">
-            <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
-          </NuxtLink>
-          <div class="htitle">
-            <span class="ht-main font-display">{{ pool.name }}</span>
-          </div>
-        </div>
+      <template v-if="!isMatchDetail">
+        <PageHero
+          pillar="Bolão"
+          :title="pool.name"
+          icon="trophy"
+          tone="gold"
+          :crumbs="[
+            { name: 'Início', to: '/' },
+            { name: 'Meus bolões', to: '/boloes' },
+            { name: pool.name },
+          ]"
+        />
 
         <!-- Section tabs: route-based pill tags; clicking swaps only <NuxtPage>. -->
         <nav class="tabs" aria-label="Seções do bolão">
@@ -98,7 +98,7 @@ const unavailable = computed(() => {
             {{ t.label }}
           </NuxtLink>
         </nav>
-      </header>
+      </template>
 
       <NuxtPage />
     </template>
@@ -145,51 +145,6 @@ const unavailable = computed(() => {
   margin-bottom: 6px;
 }
 
-/* Slim header (matches the tournament shell). */
-.thead {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 6px 0 16px;
-}
-.trow {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  min-width: 0;
-}
-.back {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  margin-left: -8px;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 0.13s;
-}
-.back:hover {
-  color: var(--text);
-}
-.htitle {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.ht-main {
-  font-weight: 700;
-  font-size: clamp(17px, 4.4vw, 24px);
-  text-transform: uppercase;
-  line-height: 1.05;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* Section tabs — small pill tags. Single row that scrolls sideways (full-bleed
    to the screen edges) when it overflows the container, instead of wrapping. */
 .tabs {
@@ -198,6 +153,7 @@ const unavailable = computed(() => {
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  margin-bottom: 18px;
   /* Side gutter comes from .page; tags scroll within it. */
 }
 .tabs::-webkit-scrollbar {

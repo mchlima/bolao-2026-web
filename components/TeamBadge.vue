@@ -2,15 +2,22 @@
 import type { Team } from '~/types/api';
 
 const props = withDefaults(
-  defineProps<{ team?: Team | null; placeholder?: string | null; size?: number }>(),
-  { size: 50 },
+  defineProps<{
+    team?: Team | null;
+    placeholder?: string | null;
+    size?: number;
+    /** Força a variante escura do escudo (p/ uso sobre fundo escuro, ex.: cards
+     *  quadrados da home). O app é light-only, então sem isto nunca pegaria o dark. */
+    dark?: boolean;
+  }>(),
+  { size: 50, dark: false },
 );
 
 const colorMode = useColorMode();
-// Prefer the team's crest image (dark variant on dark themes) for everyone —
-// clubs and national teams alike. A national team without a crest falls back to
-// its vector flag; anything else to a colored abbreviation emblem.
-const logo = computed(() => teamLogo(props.team, colorMode.value === 'dark'));
+// Prefer the team's crest image (dark variant on dark themes / dark surfaces) for
+// everyone — clubs and national teams alike. A national team without a crest falls
+// back to its vector flag; anything else to a colored abbreviation emblem.
+const logo = computed(() => teamLogo(props.team, props.dark || colorMode.value === 'dark'));
 const flag = computed(() => (logo.value ? null : teamFlag(props.team)));
 const abbr = computed(() => teamAbbr(props.team, props.placeholder));
 const color = computed(() => teamColor(props.team));

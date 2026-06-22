@@ -1,40 +1,15 @@
 <script setup lang="ts">
-// Drawer lateral = a árvore de navegação COMPLETA, aninhada. É a fonte única da
-// estrutura (os 3 pilares + categorias de notícia + conta + secundários). No
-// desktop substitui os antigos dropdowns de hover; no mobile resolve o submenu
-// sem depender de hover. Abre por cima de tudo (Teleport), em qualquer tamanho.
-import type { TermPage } from '~/types/api';
-import { buildNewsTree, type MenuNode } from '~/utils/newsMenu';
-
+// Drawer lateral = a árvore de navegação COMPLETA, aninhada. No mobile é a
+// navegação principal (hambúrguer); resolve o submenu sem depender de hover. Abre
+// por cima de tudo (Teleport). A estrutura (os 3 pilares + categorias de notícia
+// + campeonatos + sub-bolão) vem de useNavTree — a MESMA fonte do menu da topbar
+// (desktop), pra os dois nunca divergirem.
 const { open, closeDrawer } = useNavDrawer();
 const auth = useAuthStore();
 const route = useRoute();
 const authLink = useAuthLink();
 
-// Categorias (rollup) pra montar a árvore de Notícias. Falha silenciosa.
-const { data: cats } = await useAsyncData('nav-drawer-cats', () =>
-  useApi()<TermPage[]>('/content/categories').catch(() => [] as TermPage[]),
-);
-const newsTree = computed<MenuNode[]>(() => buildNewsTree(cats.value ?? []).slice(0, 8));
-
-// Sub-destinos de Jogos (mesma lista dos chips de FutebolSectionNav).
-const jogos = [
-  { label: 'Jogos de hoje', to: '/futebol/jogos-de-hoje' },
-  { label: 'Ao vivo', to: '/futebol/agenda?scope=live' },
-  { label: 'Agenda completa', to: '/futebol/agenda' },
-  { label: 'Campeonatos', to: '/futebol/torneios' },
-  { label: 'Seleções', to: '/futebol/selecoes' },
-];
-const bolaoChildren = computed(() =>
-  auth.isAuthenticated
-    ? [
-        { label: 'Meus bolões', to: '/boloes' },
-        { label: 'Palpites pendentes', to: '/boloes/palpites' },
-        { label: 'Ranking', to: '/boloes/ranking' },
-      ]
-    : [],
-);
-const bolaoRoot = computed(() => (auth.isAuthenticated ? '/boloes' : '/bolao-da-copa-do-mundo-2026'));
+const { newsTree, championships, bolaoChildren, bolaoRoot } = useNavTree();
 
 // Acordeão: cada pilar abre/fecha; o pilar da rota atual começa aberto.
 const section = computed(() => {
@@ -50,6 +25,21 @@ watchEffect(() => {
 });
 function togglePillar(k: string) {
   expanded[k] = !expanded[k];
+}
+
+// "Campeonatos" é o grupo pai (começa aberto); cada campeonato filho expande/recolhe
+// individualmente (submenu Jogos/Tabela).
+const campOpen = ref(true);
+const compOpen = reactive<Record<string, boolean>>({});
+function toggleComp(id: string) {
+  compOpen[id] = !compOpen[id];
+}
+
+// Notícias: cada categoria com subcategorias expande/recolhe individualmente
+// (mesmo padrão dos campeonatos no Futebol).
+const newsOpen = reactive<Record<string, boolean>>({});
+function toggleNews(slug: string) {
+  newsOpen[slug] = !newsOpen[slug];
 }
 
 // Fecha ao navegar (clicar num link muda a rota).
@@ -91,6 +81,13 @@ onUnmounted(() => {
                 <AppIcon name="chevronRight" :size="16" :stroke="2.4" class="dcopa-go" />
               </NuxtLink>
 
+              <!-- INÍCIO -->
+              <div class="pillar">
+                <div class="prow">
+                  <NuxtLink to="/" class="plink"><AppIcon name="home" :size="18" :stroke="2" /> Início</NuxtLink>
+                </div>
+              </div>
+
               <!-- NOTÍCIAS -->
               <div class="pillar">
                 <div class="prow">
@@ -100,9 +97,16 @@ onUnmounted(() => {
                   </button>
                 </div>
                 <ul v-if="expanded.noticias && newsTree.length" class="psub">
-                  <li v-for="n in newsTree" :key="n.slug">
-                    <NuxtLink :to="`/noticias/categoria/${n.slug}`" class="slink">{{ n.name }}</NuxtLink>
-                    <ul v-if="n.children.length" class="psub2">
+                  <li v-for="n in newsTree" :key="n.slug" class="comp-block">
+                    <div class="comp-row">
+                      <NuxtLink :to="`/noticias/categoria/${n.slug}`" class="comp-head">
+                        <span class="comp-name">{{ n.name }}</span>
+                      </NuxtLink>
+                      <button v-if="n.children.length" class="pexp" :class="{ on: newsOpen[n.slug] }" aria-label="Expandir" @click="toggleNews(n.slug)">
+                        <AppIcon name="chevronDown" :size="15" :stroke="2.4" />
+                      </button>
+                    </div>
+                    <ul v-if="n.children.length && newsOpen[n.slug]" class="comp-sub">
                       <li v-for="c in n.children" :key="c.slug">
                         <NuxtLink :to="`/noticias/categoria/${c.slug}`" class="slink sm">{{ c.name }}</NuxtLink>
                       </li>
@@ -111,16 +115,40 @@ onUnmounted(() => {
                 </ul>
               </div>
 
-              <!-- JOGOS -->
+              <!-- FUTEBOL -->
               <div class="pillar">
                 <div class="prow">
-                  <NuxtLink to="/futebol/agenda" class="plink"><AppIcon name="calendar" :size="18" :stroke="2" /> Jogos</NuxtLink>
+                  <NuxtLink to="/futebol" class="plink"><AppIcon name="calendar" :size="18" :stroke="2" /> Futebol</NuxtLink>
                   <button class="pexp" :class="{ on: expanded.jogos }" aria-label="Expandir" @click="togglePillar('jogos')">
                     <AppIcon name="chevronDown" :size="16" :stroke="2.4" />
                   </button>
                 </div>
                 <ul v-if="expanded.jogos" class="psub">
-                  <li v-for="j in jogos" :key="j.to"><NuxtLink :to="j.to" class="slink">{{ j.label }}</NuxtLink></li>
+                  <!-- CAMPEONATOS: grupo pai; os campeonatos são filhos dele -->
+                  <li v-if="championships.length" class="camp-group">
+                    <div class="comp-row">
+                      <NuxtLink to="/futebol/campeonato" class="camp-head">Campeonatos</NuxtLink>
+                      <button class="pexp" :class="{ on: campOpen }" aria-label="Expandir" @click="campOpen = !campOpen">
+                        <AppIcon name="chevronDown" :size="16" :stroke="2.4" />
+                      </button>
+                    </div>
+                    <ul v-if="campOpen" class="camp-sub">
+                      <li v-for="c in championships" :key="c.id" class="comp-block">
+                        <div class="comp-row">
+                          <NuxtLink :to="`/futebol/campeonato/${c.urlSlug}`" class="comp-head">
+                            <span class="comp-name">{{ c.name }}</span>
+                          </NuxtLink>
+                          <button class="pexp" :class="{ on: compOpen[c.id] }" aria-label="Expandir" @click="toggleComp(c.id)">
+                            <AppIcon name="chevronDown" :size="15" :stroke="2.4" />
+                          </button>
+                        </div>
+                        <ul v-if="compOpen[c.id]" class="comp-sub">
+                          <li><NuxtLink :to="`/futebol/campeonato/${c.urlSlug}/jogos`" class="slink sm">Jogos</NuxtLink></li>
+                          <li><NuxtLink :to="`/futebol/campeonato/${c.urlSlug}/tabela`" class="slink sm">Tabela</NuxtLink></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
                 </ul>
               </div>
 
@@ -137,11 +165,12 @@ onUnmounted(() => {
                 </ul>
               </div>
 
-              <div class="dsep" />
+            </nav>
 
-              <!-- CONTA -->
+            <!-- CONTA: fixa no rodapé do drawer (avatar abre o menu suspenso). -->
+            <footer class="dfoot">
               <template v-if="auth.isAuthenticated">
-                <AccountMenu @close="closeDrawer" />
+                <AccountMenu dropup @close="closeDrawer" />
               </template>
               <template v-else>
                 <div class="dcta">
@@ -149,12 +178,7 @@ onUnmounted(() => {
                   <NuxtLink :to="authLink('/entrar')" class="btn" @click="closeDrawer">Entrar</NuxtLink>
                 </div>
               </template>
-
-              <div class="dsep" />
-
-              <!-- SECUNDÁRIOS -->
-              <NuxtLink to="/como-funciona" class="slink2" @click="closeDrawer">Como funciona</NuxtLink>
-            </nav>
+            </footer>
           </aside>
         </div>
       </Transition>
@@ -172,17 +196,17 @@ onUnmounted(() => {
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow: hidden;
 }
-.dhead { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--bg-elevated); z-index: 1; }
+.dhead { flex: none; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--bg-elevated); }
 .dbrand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .dlogo { width: 34px; height: 34px; border-radius: 10px; background: var(--grad-trophy); display: grid; place-items: center; }
 .dname { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 17px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--text); }
 .dclose { display: grid; place-items: center; width: 36px; height: 36px; border: 0; background: transparent; color: var(--muted); border-radius: 9px; cursor: pointer; }
 .dclose:hover { color: var(--text); background: var(--bg-surface); }
 
-.dnav { padding: 10px 12px 24px; display: flex; flex-direction: column; }
+.dnav { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px 12px 16px; display: flex; flex-direction: column; }
+.dfoot { flex: none; padding: 10px 12px; border-top: 1px solid var(--border); background: var(--bg-elevated); }
 .dcopa { display: flex; align-items: center; gap: 11px; padding: 13px 14px; margin-bottom: 8px; border-radius: 13px; background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 20%, var(--bg-surface)), var(--bg-surface) 75%); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border)); color: var(--text); text-decoration: none; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 15px; text-transform: uppercase; letter-spacing: 0.01em; }
 .dcopa:hover { border-color: var(--gold); }
 .dcopa-go { margin-left: auto; color: var(--muted); }
@@ -191,20 +215,33 @@ onUnmounted(() => {
 .plink { flex: 1; display: flex; align-items: center; gap: 11px; padding: 12px 12px; border-radius: 11px; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 16px; text-transform: uppercase; letter-spacing: 0.01em; color: var(--text); text-decoration: none; }
 .plink:hover { background: var(--bg-surface); }
 .pillar.bolao .plink { color: var(--gold); }
+/* Filhos de Bolão na mesma cor/peso dos filhos de Futebol (campeonatos). */
+.pillar.bolao .slink { color: var(--text); font-weight: 700; }
+.pillar.bolao .slink.router-link-active { color: var(--azure); }
 .pexp { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border: 0; background: transparent; color: var(--muted); border-radius: 9px; cursor: pointer; transition: transform 0.16s, color 0.13s; }
 .pexp:hover { color: var(--text); background: var(--bg-surface); }
 .pexp.on { transform: rotate(180deg); }
 .psub { list-style: none; margin: 2px 0 8px; padding: 0 0 0 12px; display: flex; flex-direction: column; gap: 1px; border-left: 2px solid var(--border); margin-left: 18px; }
-.psub2 { list-style: none; margin: 0; padding-left: 10px; }
-.slink { display: block; padding: 9px 12px; border-radius: 9px; font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; }
+.slink { display: block; padding: 9px 12px; border-radius: 9px; font-size: 16px; font-weight: 600; color: var(--muted); text-decoration: none; }
 .slink:hover { color: var(--text); background: var(--bg-surface); }
-.slink.sm { font-size: 13px; opacity: 0.9; }
+.slink.sm { font-size: 16px; opacity: 0.9; }
 .slink.router-link-active { color: var(--azure); }
+/* CAMPEONATOS = grupo pai (header tipo rótulo de seção). */
+.camp-group { margin: 6px 0 2px; }
+.camp-head { flex: 1; min-width: 0; padding: 8px 12px; font-size: 16px; font-weight: 700; text-transform: capitalize; color: var(--text); text-decoration: none; border-radius: 7px; }
+.camp-head:hover { color: var(--text); background: var(--bg-surface); }
+.camp-head.router-link-active { color: var(--azure); }
+/* Filhos de CAMPEONATOS, indentados sob o grupo. */
+.camp-sub { list-style: none; margin: 1px 0 2px; padding: 0; border-left: 2px solid var(--border); margin-left: 12px; padding-left: 6px; }
+.comp-block { margin: 1px 0; }
+.comp-row { display: flex; align-items: center; gap: 4px; }
+.comp-head { flex: 1; min-width: 0; display: flex; align-items: center; padding: 8px 12px; border-radius: 9px; text-decoration: none; }
+.comp-head:hover { background: var(--bg-surface); }
+.comp-name { min-width: 0; font-size: 16px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.comp-sub { list-style: none; margin: 0 0 4px; padding: 0 0 0 14px; display: flex; flex-direction: column; gap: 1px; }
 .dsep { height: 1px; background: var(--border); margin: 12px 6px; }
 .dcta { display: flex; flex-direction: column; gap: 8px; padding: 0 6px; }
 .dcta .btn { width: 100%; }
-.slink2 { display: block; width: 100%; text-align: left; padding: 10px 12px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 13.5px; font-weight: 600; border-radius: 9px; cursor: pointer; text-decoration: none; }
-.slink2:hover { color: var(--text); background: var(--bg-surface); }
 
 .drawer-enter-active, .drawer-leave-active { transition: opacity 0.2s ease; }
 .drawer-enter-from, .drawer-leave-to { opacity: 0; }

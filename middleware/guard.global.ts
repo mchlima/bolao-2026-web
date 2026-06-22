@@ -39,6 +39,17 @@ export default defineNuxtRouteMiddleware((to) => {
       redirectCode: 301,
     });
   }
+  // "Torneios" (slug de temporada) virou "Campeonato" (slug de competição). O detalhe
+  // de partida (id) ainda mapeia direto pra agenda. O hub antigo era keyed por slug de
+  // TEMPORADA e não resolve mais (sem fallback de redirect) — manda pra lista de
+  // campeonatos em vez de 404, já que não dá pra mapear temporada→competição no client.
+  if (to.path === '/futebol/torneios' || to.path.startsWith('/futebol/torneios/')) {
+    const md = to.path.match(/^\/futebol\/torneios\/[^/]+\/(?:jogos|matches)\/([^/]+)\/?$/);
+    if (md) {
+      return navigateTo({ path: `/futebol/agenda/${md[1]}`, query: to.query }, { redirectCode: 301 });
+    }
+    return navigateTo({ path: '/futebol/campeonato', query: to.query }, { redirectCode: 301 });
+  }
   // English routes translated to Portuguese — keep old links, bookmarks and
   // already-shared invite links working. Preserve the query (e.g. ?redirect=).
   const PT_ALIAS: Record<string, string> = {
@@ -59,13 +70,6 @@ export default defineNuxtRouteMiddleware((to) => {
       .replace(/\/invites(?=\/|$)/, '/convites')
       .replace(/\/matches(?=\/|$)/, '/jogos');
     return navigateTo({ path, query: to.query }, { redirectCode: 301 });
-  }
-  // Tournament match detail moved from .../matches/<id> to .../jogos/<id>.
-  if (to.path.startsWith('/futebol/torneios/') && to.path.includes('/matches/')) {
-    return navigateTo(
-      { path: to.path.replace('/matches/', '/jogos/'), query: to.query },
-      { redirectCode: 301 },
-    );
   }
   // Personal home merged into the portal home — keep old links/bookmarks working.
   if (to.path === '/home') return navigateTo('/');

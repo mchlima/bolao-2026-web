@@ -51,7 +51,7 @@ function rowTo(r: PredRow): string | null {
   const m = r.match;
   if (!m.homeTeam || !m.awayTeam) return null;
   if (props.poolId) return `/boloes/${props.poolId}/jogos/${m.id}`;
-  if (m.season?.slug) return `/futebol/torneios/${m.season.slug}/jogos/${m.id}`;
+  if (m.season?.slug) return `/futebol/agenda/${m.id}`;
   return `/futebol/agenda/${m.id}`;
 }
 

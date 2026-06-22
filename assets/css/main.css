@@ -64,7 +64,8 @@ html[data-theme='light'] {
 @media (max-width: 720px) {
   :root {
     --header-h: 0px;
-    --nav-h: calc(66px + env(safe-area-inset-bottom));
+    /* Sem bottom nav (removido) — nada a reservar na base. */
+    --nav-h: 0px;
   }
 }
 

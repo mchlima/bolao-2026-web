@@ -44,7 +44,7 @@ async function confirmJoin() {
         <div class="ic"><AppIcon name="trophy" :size="30" /></div>
         <span class="cap">Convite para o bolão</span>
         <h1 class="font-display title">{{ data.name }}</h1>
-        <p class="tour">{{ data.tournament.name }}</p>
+        <p v-if="data.tournament" class="tour">{{ data.tournament.name }}</p>
         <p v-if="data.description" class="desc">{{ data.description }}</p>
         <p class="muted members">
           {{ data.memberCount }} {{ data.memberCount === 1 ? 'membro' : 'membros' }}

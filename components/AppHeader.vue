@@ -1,20 +1,17 @@
 <script setup lang="ts">
-const auth = useAuthStore();
-const route = useRoute();
-// On the auth screens the page already offers Entrar/Criar conta, so the header
-// CTA is redundant noise — hide it there.
-const onAuthPage = computed(() => route.path === '/entrar' || route.path === '/cadastro');
-const authLink = useAuthLink();
-const menuOpen = ref(false);
-const notifications = useNotificationsStore();
 const { toggleDrawer } = useNavDrawer();
-// Pilar Bolão: logado vai pros seus bolões; anônimo cai na landing de conversão.
-const bolaoTarget = computed(() => (auth.isAuthenticated ? '/boloes' : '/bolao-da-copa-do-mundo-2026'));
+const auth = useAuthStore();
+const authLink = useAuthLink();
+// Jogos acontecendo agora — dot vermelho pulsa quando há ao vivo; some o pulso
+// e fica acinzentado (0) quando não há nenhum.
+const { count: liveCount } = useLiveCount();
 </script>
 
 <template>
   <header class="header">
     <div class="container bar">
+      <!-- Hambúrguer: só no mobile (≤720px). No desktop a navegação vive no
+           AppTopNav (menu horizontal com dropdowns). -->
       <button class="burger" aria-label="Abrir menu" @click="toggleDrawer">
         <AppIcon name="menu" :size="22" :stroke="2.2" />
       </button>
@@ -25,38 +22,35 @@ const bolaoTarget = computed(() => (auth.isAuthenticated ? '/boloes' : '/bolao-d
         </span>
         <span class="title">
           <span class="name">Cravei</span>
-          <span class="sub">Copa 2026</span>
         </span>
       </NuxtLink>
 
-      <!-- Atalho dos 3 pilares (desktop). A árvore completa fica no drawer. -->
-      <nav class="topnav">
-        <NuxtLink to="/noticias" class="nav-link">Notícias</NuxtLink>
-        <NuxtLink to="/futebol/agenda" class="nav-link">Jogos</NuxtLink>
-        <NuxtLink :to="bolaoTarget" class="nav-link">Bolão</NuxtLink>
-      </nav>
+      <!-- Navegação principal — só desktop. -->
+      <AppTopNav class="topnav" />
 
-      <div class="actions">
-        <template v-if="auth.isAuthenticated">
-          <div class="menu">
-            <button class="avatar" @click="menuOpen = !menuOpen" aria-label="Conta">
-              <UserAvatar :name="auth.user?.name" :src="auth.user?.avatarUrl" :size="38" />
-              <span v-if="notifications.unread" class="av-badge">
-                {{ notifications.unread > 9 ? '9+' : notifications.unread }}
-              </span>
-            </button>
-            <div v-if="menuOpen" class="dropdown" @click.stop>
-              <AccountMenu @close="menuOpen = false" />
-            </div>
-          </div>
-        </template>
-        <template v-else-if="!onAuthPage">
-          <div class="auth-cta">
-            <NuxtLink :to="authLink('/cadastro')" class="btn btn-gold">Criar conta</NuxtLink>
+      <!-- Indicador de jogos ao vivo. Pulsa em vermelho quando há jogos agora;
+           acinzentado e estático (0) quando não há nenhum. -->
+      <NuxtLink
+        to="/futebol/agenda?scope=live"
+        class="live"
+        :class="{ off: liveCount === 0 }"
+        :aria-label="liveCount === 1 ? '1 jogo ao vivo' : `${liveCount} jogos ao vivo`"
+      >
+        <span class="live-dot" />
+        <span class="live-num">{{ liveCount }}</span>
+      </NuxtLink>
+
+      <!-- Conta — só desktop (no mobile fica no rodapé do drawer). Avatar abre um
+           dropdown (logado) ou CTAs de entrar/cadastrar (deslogado). -->
+      <ClientOnly>
+        <div class="acct-slot">
+          <AccountMenu v-if="auth.isAuthenticated" down @close="() => {}" />
+          <div v-else class="auth-cta">
             <NuxtLink :to="authLink('/entrar')" class="btn">Entrar</NuxtLink>
+            <NuxtLink :to="authLink('/cadastro')" class="btn btn-gold">Criar conta</NuxtLink>
           </div>
-        </template>
-      </div>
+        </div>
+      </ClientOnly>
     </div>
   </header>
 </template>
@@ -94,6 +88,36 @@ const bolaoTarget = computed(() => (auth.isAuthenticated ? '/boloes' : '/bolao-d
   background: var(--bg-surface);
   border-color: var(--border);
 }
+/* Menu horizontal e área de conta vivem só no desktop (ver media query abaixo). */
+.topnav {
+  display: none;
+}
+.acct-slot {
+  display: none;
+  flex: none;
+}
+.auth-cta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.auth-cta .btn {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+/* Gatilho de conta no header = só avatar + chevron (nome/e-mail ficam no menu). */
+.acct-slot :deep(.who.as-btn) {
+  padding: 4px 6px;
+  gap: 6px;
+  border-radius: 999px;
+}
+.acct-slot :deep(.who-txt) {
+  display: none;
+}
+/* Sem a setinha no gatilho do avatar (o próprio avatar já indica o menu). */
+.acct-slot :deep(.who-go) {
+  display: none;
+}
 .brand {
   display: flex;
   align-items: center;
@@ -115,130 +139,75 @@ const bolaoTarget = computed(() => (auth.isAuthenticated ? '/boloes' : '/bolao-d
   display: block;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 22px;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   white-space: nowrap;
 }
-.sub {
-  display: block;
-  font-size: 10.5px;
-  color: var(--muted);
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  margin-top: 2px;
-}
-.actions {
+/* Indicador de jogos ao vivo (dot pulsante + número). */
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  padding: 7px 13px 7px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--scarlet) 35%, var(--border));
+  background: color-mix(in srgb, var(--scarlet) 9%, var(--bg-surface));
+  text-decoration: none;
+  transition: border-color 0.15s, background 0.15s;
 }
-.auth-cta {
-  display: flex;
-  align-items: center;
-  gap: 9px;
+.live:hover {
+  border-color: var(--scarlet);
 }
-.tgl {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface);
-  color: var(--muted);
-  cursor: pointer;
-  flex: none;
-  transition: color 0.15s, border-color 0.15s;
-}
-.tgl:hover {
-  color: var(--gold);
-  border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
-}
-/* On phones the bottom nav carries "Entrar" and the hero carries "Criar conta",
-   so the header auth buttons are redundant noise — keep just brand + theme. */
-@media (max-width: 560px) {
-  .auth-cta {
-    display: none;
-  }
-}
-.topnav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left: 8px;
-}
-.nav-link {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--muted);
-  padding: 7px 11px;
-  border-radius: 9px;
-  transition: color 0.13s, background 0.13s;
-}
-.nav-link:hover {
-  color: var(--text);
-  background: var(--bg-surface);
-}
-.nav-link.router-link-active {
-  color: var(--text);
-  background: var(--bg-surface);
-}
-@media (max-width: 640px) {
-  .topnav {
-    display: none;
-  }
-}
-.menu {
-  position: relative;
-}
-.avatar {
-  position: relative;
-  padding: 0;
-  border: none;
-  background: none;
+.live-dot {
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  cursor: pointer;
-  display: block;
+  background: var(--scarlet);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--scarlet) 70%, transparent);
+  animation: live-pulse 1.5s ease-out infinite;
 }
-.av-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  box-sizing: border-box;
-  min-width: 17px;
-  height: 17px;
-  padding: 0 4px;
-  border-radius: 9px;
-  background: var(--scarlet, #e8362b);
-  color: #fff;
-  font-size: 10px;
+.live-num {
+  font-size: 13.5px;
   font-weight: 800;
+  color: var(--scarlet);
   font-variant-numeric: tabular-nums;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--bg-surface);
-  pointer-events: none;
+  line-height: 1;
 }
-.dropdown {
-  position: absolute;
-  right: 0;
-  top: 46px;
-  width: 224px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  padding: 8px;
-  z-index: 60;
+/* Sem jogos: para de pulsar, fica acinzentado. */
+.live.off {
+  border-color: var(--border);
+  background: var(--bg-surface);
 }
-/* On mobile the bottom nav carries the fast loop and the drawer (hambúrguer) holds
-   the full tree. The header becomes a SLIM, NON-STICKY bar (logo + hambúrguer +
-   avatar/CTA) — non-sticky on purpose so it doesn't collide with the page
-   sub-headers that stick at top:0 inside <main> (tournament .thead, match board). */
+.live.off .live-dot {
+  background: var(--muted);
+  box-shadow: none;
+  animation: none;
+}
+.live.off .live-num {
+  color: var(--muted);
+}
+@keyframes live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--scarlet) 65%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--scarlet) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--scarlet) 0%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-dot {
+    animation: none;
+  }
+}
+/* On mobile the drawer (hambúrguer) holds the full tree. The header becomes a SLIM,
+   NON-STICKY bar (logo + hambúrguer) — non-sticky on purpose so it doesn't collide
+   with the page sub-headers that stick at top:0 inside <main> (tournament .thead,
+   match board). */
 @media (max-width: 720px) {
   .header {
     position: static;
@@ -250,6 +219,19 @@ const bolaoTarget = computed(() => (auth.isAuthenticated ? '/boloes' : '/bolao-d
   /* On the immersive match screen, drop the bar entirely (the "Voltar" is the way out). */
   body.match-screen .header {
     display: none;
+  }
+}
+/* Desktop: o hambúrguer some e a navegação vira o menu horizontal + conta. */
+@media (min-width: 721px) {
+  .burger {
+    display: none;
+  }
+  .topnav {
+    display: flex;
+    margin-left: 6px;
+  }
+  .acct-slot {
+    display: block;
   }
 }
 </style>

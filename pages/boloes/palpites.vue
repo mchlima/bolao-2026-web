@@ -38,18 +38,17 @@ const liveChannels = computed(() =>
 );
 useRealtime(() => liveChannels.value, () => refresh());
 
-useSeoMeta({ title: 'Palpites pendentes — Cravei', robots: 'noindex' });
+useSeoMeta({ title: 'Palpites — Cravei', robots: 'noindex' });
 useHead({ link: [{ rel: 'canonical', href: `${siteUrl}/boloes/palpites` }] });
 </script>
 
 <template>
   <div class="page">
-    <BolaoSectionNav />
-    <PageHeader title="Palpites pendentes" subtitle="Crave os placares dos próximos jogos. Um palpite vale em todos os seus bolões.">
+    <PageHero pillar="Bolão" title="Palpites" subtitle="Crave os placares dos próximos jogos. Um palpite vale em todos os seus bolões." :crumbs="[{ name: 'Início', to: '/' }, { name: 'Bolão', to: '/boloes' }, { name: 'Palpites' }]">
       <template v-if="pendingCount" #actions>
         <span class="pend-chip">{{ pendingCount }} {{ pendingCount === 1 ? 'jogo sem palpite' : 'jogos sem palpite' }}</span>
       </template>
-    </PageHeader>
+    </PageHero>
 
     <SkeletonList v-if="pending && !data" variant="card" :count="4" />
 

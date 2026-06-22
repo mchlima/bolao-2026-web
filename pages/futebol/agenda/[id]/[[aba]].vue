@@ -18,7 +18,8 @@ const id = route.params.id as string;
 <style scoped>
 .page {
   padding: 18px 0 40px;
-  max-width: 660px;
-  margin: 0 auto;
+  /* O board é full-bleed (immersivo): ocupa 100% da largura do container em vez
+     de ficar travado numa coluna estreita centralizada. */
+  width: 100%;
 }
 </style>

@@ -7,7 +7,7 @@ const links = [
   { to: '/futebol/jogos-de-hoje', label: 'Hoje', match: (p: string) => p.startsWith('/futebol/jogos-de-hoje') },
   { to: '/futebol/agenda?scope=live', label: 'Ao vivo', match: (p: string) => p.startsWith('/futebol/agenda') && route.query.scope === 'live' },
   { to: '/futebol/agenda', label: 'Agenda', match: (p: string) => p.startsWith('/futebol/agenda') && route.query.scope !== 'live' },
-  { to: '/futebol/torneios', label: 'Campeonatos', match: (p: string) => p.startsWith('/futebol/torneios') },
+  { to: '/futebol/campeonato', label: 'Campeonatos', match: (p: string) => p.startsWith('/futebol/campeonato') },
   { to: '/futebol/selecoes', label: 'Seleções', match: (p: string) => p.startsWith('/futebol/selecoes') },
 ];
 </script>

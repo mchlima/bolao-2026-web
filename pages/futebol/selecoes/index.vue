@@ -50,11 +50,12 @@ useHead({
   <div class="sel-page">
     <FutebolSectionNav />
 
-    <header class="sel-hero">
-      <span class="kicker">Futebol</span>
-      <h1>Seleções</h1>
-      <p>Escolha uma seleção para ver próximos jogos, resultados e palpitar no bolão.</p>
-    </header>
+    <PageHero
+      pillar="Futebol"
+      title="Seleções"
+      subtitle="Escolha uma seleção para ver próximos jogos, resultados e palpitar no bolão."
+      :crumbs="[{ name: 'Início', to: '/' }, { name: 'Futebol', to: '/futebol' }, { name: 'Seleções' }]"
+    />
 
     <div v-if="teams?.length" class="sel-grid">
       <NuxtLink v-for="t in teams" :key="t.id" :to="`/futebol/selecoes/${t.slug}`" class="sel-card">
@@ -75,10 +76,6 @@ useHead({
 
 <style scoped>
 .sel-page { width: 100%; padding: 8px 16px 40px; }
-.sel-hero { margin-bottom: 22px; }
-.kicker { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--azure); }
-.sel-hero h1 { font-family: 'Oswald', sans-serif; font-size: clamp(28px, 6vw, 38px); font-weight: 700; letter-spacing: -0.01em; margin: 2px 0 5px; }
-.sel-hero p { color: var(--muted); font-size: 14.5px; line-height: 1.5; margin: 0; max-width: 60ch; }
 
 .sel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
 .sel-card {

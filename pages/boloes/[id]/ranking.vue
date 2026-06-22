@@ -17,7 +17,10 @@ const { data: ranking, refresh } = await useAsyncData(
 
 // Live updates only matter for the current temporada (past ones are frozen).
 useRealtime(
-  () => (pool.value && !viewingPast.value ? [`tournament:${pool.value.tournament.id}`] : []),
+  () => {
+    const t = pool.value?.tournament;
+    return t && !viewingPast.value ? [`tournament:${t.id}`] : [];
+  },
   () => refresh(),
 );
 </script>

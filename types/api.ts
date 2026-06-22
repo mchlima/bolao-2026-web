@@ -411,6 +411,17 @@ export interface Sport {
   iconUrl?: string | null;
 }
 
+// Edição pública vigente de uma competição (deep link da nav/hub p/ a temporada
+// atual). Resolvida no backend: ONGOING → próxima UPCOMING → FINISHED mais recente.
+export interface ActiveSeason {
+  id: string;
+  slug: string;
+  name: string;
+  seasonLabel: string | null;
+  status: TournamentStatus;
+  logoUrl: string | null;
+}
+
 export interface Competition {
   id: string;
   sportId: string;
@@ -423,6 +434,11 @@ export interface Competition {
   logoUrl: string | null;
   logoUrlDark: string | null;
   externalIds: ExternalIds | null;
+  // Slug público de URL (/futebol/campeonato/:urlSlug). Stored ou derivado do nome.
+  urlSlug?: string;
+  // Presentes na listagem (GET /competitions).
+  seasonCount?: number;
+  activeSeason?: ActiveSeason | null;
 }
 
 // "Tournament" in the UI = a Season (one edition) on the API. The name is kept
@@ -562,7 +578,12 @@ export interface Match {
     logoUrl?: string | null;
     // Emissoras curadas ("onde assistir") da edição — display-only.
     broadcasters?: { name: string; url?: string | null }[] | null;
-    competition?: { country: string | null; confederation?: string | null } | null;
+    competition?: {
+      name?: string;
+      urlSlug?: string | null;
+      country: string | null;
+      confederation?: string | null;
+    } | null;
     // Participating teams of the season (present on GET /matches/:id) — feeds the
     // tournament's `performer` in structured data.
     teams?: { name: string; logoUrl: string | null }[];
@@ -671,6 +692,7 @@ export interface MyStandingsTournament {
   slug?: string | null;
   name: string;
   status: TournamentStatus;
+  competition?: { name: string; urlSlug?: string | null } | null;
   general: MyStanding;
   pools: MyPoolStanding[];
 }
@@ -707,6 +729,8 @@ export interface PoolTournamentSummary {
   name: string;
   logoUrl: string | null;
   status: TournamentStatus;
+  // Competição-dona — p/ linkar o hub por /futebol/campeonato/:urlSlug.
+  competition?: { name: string; urlSlug?: string | null } | null;
 }
 
 export type PoolRunStatus = 'DRAFT' | 'ACTIVE' | 'ENDED';
@@ -750,7 +774,7 @@ export interface PoolSummary {
   description: string | null; // internal (members)
   inviteDescription: string | null; // shown on the invite page
   visibility: PoolVisibility;
-  tournament: PoolTournamentSummary; // the current temporada's season
+  tournament: PoolTournamentSummary | null; // a temporada atual define o torneio; null se o bolão ainda não tem temporada
   currentRun: PoolRunView | null; // the open (or latest) temporada
   myRole: PoolMemberRole;
   memberCount: number;
@@ -767,7 +791,7 @@ export interface PoolJoinPreview {
   name: string;
   description: string | null;
   visibility: PoolVisibility;
-  tournament: PoolTournamentSummary;
+  tournament: PoolTournamentSummary | null; // null se o bolão ainda não tem temporada
   memberCount: number;
   alreadyMember: boolean;
 }
@@ -821,6 +845,9 @@ export interface TimelineEvent {
   player: string | null;
   related: string | null;
   detail: string | null; // goal method, VAR decision, delay reason, penalty miss/save
+  goalY?: number | null; // onde a bola cruzou a linha do gol (0–100 lateral)
+  fieldX?: number | null; // origem do chute no campo (0–100)
+  fieldY?: number | null;
 }
 export interface TimelinePeriod {
   period: number;

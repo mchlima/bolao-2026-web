@@ -7,6 +7,14 @@ const props = defineProps<{
   poolId: string;
   run: PoolRunView | null;
   canManage: boolean;
+  /** Só os botões de gestão (sem o card de status) — usado quando o status já é
+   *  mostrado em outro card (ex.: card da temporada atual em /temporadas). */
+  actionsOnly?: boolean;
+  /** Quais ações renderizar:
+   *  - 'all' (padrão): comportamento original (1 botão pelo status).
+   *  - 'lifecycle': só Iniciar (DRAFT) / Encerrar (ACTIVE); nada se encerrada.
+   *  - 'new': só "Nova temporada", sempre visível, habilitada só se ENCERRADA. */
+  scope?: 'all' | 'lifecycle' | 'new';
 }>();
 const emit = defineEmits<{ changed: [] }>();
 
@@ -107,9 +115,9 @@ async function submitNew() {
 </script>
 
 <template>
-  <div class="run" :class="status?.toLowerCase()">
+  <div class="run" :class="[status?.toLowerCase(), { bare: actionsOnly }]">
     <div class="run-row">
-      <div class="run-info">
+      <div v-if="!actionsOnly" class="run-info">
         <div class="run-head">
           <span class="run-name">{{ run?.label ?? 'Temporada' }}</span>
           <span class="run-badge" :class="status?.toLowerCase()">
@@ -130,14 +138,24 @@ async function submitNew() {
       </div>
 
       <div v-if="canManage" class="run-actions">
-        <button v-if="status === 'DRAFT'" class="btn btn-gold" :disabled="busy" @click="start">
-          Iniciar temporada
-        </button>
-        <button v-else-if="status === 'ACTIVE'" class="btn danger" :disabled="busy" @click="end">
-          Encerrar
-        </button>
-        <button v-else-if="status === 'ENDED'" class="btn btn-gold" :disabled="busy" @click="openNew">
-          Nova temporada
+        <!-- ciclo de vida: iniciar (rascunho) / encerrar (em andamento) -->
+        <template v-if="(scope ?? 'all') !== 'new'">
+          <button v-if="status === 'DRAFT'" class="btn btn-gold" :disabled="busy" @click="start">
+            Iniciar temporada
+          </button>
+          <button v-else-if="status === 'ACTIVE'" class="btn danger" :disabled="busy" @click="end">
+            Encerrar
+          </button>
+        </template>
+        <!-- nova/1ª temporada: escopo 'new' sempre visível; habilitada quando não há
+             temporada (run null) ou a atual está encerrada -->
+        <button
+          v-if="scope === 'new' || ((scope ?? 'all') === 'all' && (status === 'ENDED' || !run))"
+          class="btn btn-gold"
+          :disabled="busy || !(run === null || status === 'ENDED')"
+          @click="openNew"
+        >
+          {{ run ? 'Nova temporada' : 'Criar temporada' }}
         </button>
       </div>
     </div>
@@ -180,6 +198,15 @@ async function submitNew() {
 .run.draft {
   border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
   background: color-mix(in srgb, var(--gold) 8%, var(--bg-surface));
+}
+/* Só botões (status já mostrado em outro card). */
+.run.bare {
+  border: none;
+  background: none;
+  padding: 0;
+}
+.run.bare .run-actions {
+  flex: 1;
 }
 .run-row {
   display: flex;

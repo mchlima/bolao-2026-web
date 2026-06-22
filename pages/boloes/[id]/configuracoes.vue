@@ -20,10 +20,6 @@ watchEffect(() => {
   if (pool.value && !canManage.value) navigateTo(`/boloes/${id}`);
 });
 
-async function onRunChanged() {
-  await refreshPoolData(id);
-}
-
 // ── Edit ──
 const name = ref(pool.value?.name ?? '');
 const description = ref(pool.value?.description ?? '');
@@ -82,69 +78,49 @@ async function del() {
 
 <template>
   <section v-if="pool && canManage" class="cfg">
-    <!-- Temporada -->
-    <div class="block">
-      <div class="b-head">
-        <span class="b-ic"><AppIcon name="trophy" :size="18" :stroke="2" /></span>
-        <div>
-          <h2 class="b-title">Temporada</h2>
-          <p class="b-desc">
-            A temporada é a disputa atual do bolão. Ao <b>iniciar</b>, todos
-            começam do zero e a pontuação conta a partir do <b>próximo jogo que
-            ainda não começou</b> — quem já vinha pontuando no torneio não leva
-            vantagem. Ao <b>encerrar</b>, o ranking é congelado e o campeão fica
-            registrado; depois você pode abrir uma <b>nova temporada</b> (o
-            returno, outro torneio…) sem precisar criar outro bolão.
-          </p>
-        </div>
-      </div>
-      <PoolRunControls
-        :pool-id="id"
-        :run="pool.currentRun"
-        :can-manage="true"
-        @changed="onRunChanged"
-      />
-    </div>
-
     <!-- Editar -->
     <div class="block">
       <div class="b-head">
         <span class="b-ic"><AppIcon name="edit" :size="18" :stroke="2" /></span>
         <div>
           <h2 class="b-title">Editar bolão</h2>
-          <p class="b-desc">
-            O nome aparece para todos. A descrição interna é vista só pelos
-            membros, dentro do bolão. A mensagem de convite aparece para quem
-            abre o link antes de entrar.
-          </p>
+          <p class="b-desc">Atualize o nome e os textos do bolão — cada um aparece em um lugar diferente.</p>
         </div>
       </div>
 
       <form class="form" @submit.prevent="save">
         <label class="fld">
           <span class="lbl">Nome do bolão</span>
-          <input v-model="name" class="inp" maxlength="60" required />
+          <span class="hint">Aparece para todos — no topo do bolão e na sua lista de bolões.</span>
+          <input v-model="name" class="inp" maxlength="60" required placeholder="Ex.: Galera da firma" />
         </label>
+
         <label class="fld">
-          <span class="lbl">Descrição interna (membros)</span>
+          <span class="lbl">Descrição interna</span>
+          <span class="hint">Visível só para os membros, dentro do bolão. Use para combinar regras, prêmio e o que mais quiser.</span>
           <textarea
             v-model="description"
             class="inp area"
             maxlength="500"
-            rows="2"
-            placeholder="Regras combinadas, prêmio…"
+            rows="4"
+            placeholder="Ex.: Quem ganhar leva o churrasco. Cravar o placar vale mais pontos."
           />
+          <span class="count">{{ description.length }}/500</span>
         </label>
+
         <label class="fld">
           <span class="lbl">Mensagem do convite</span>
+          <span class="hint">Aparece na tela do convite, para quem abre o link antes de entrar no bolão.</span>
           <textarea
             v-model="inviteDescription"
             class="inp area"
             maxlength="500"
-            rows="2"
-            placeholder="Aparece para quem abre o link de convite."
+            rows="4"
+            placeholder="Ex.: Bora cravar os jogos da Copa com a gente! É só entrar."
           />
+          <span class="count">{{ inviteDescription.length }}/500</span>
         </label>
+
         <div class="form-foot">
           <button class="btn btn-gold" type="submit" :disabled="!dirty || saving">
             {{ saving ? 'Salvando…' : 'Salvar alterações' }}
@@ -182,12 +158,13 @@ async function del() {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 620px;
+  max-width: 640px;
+  margin: 0 auto;
 }
 .block {
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 16px;
+  padding: 18px 18px 20px;
   background: var(--bg-surface);
 }
 .block.danger {
@@ -229,16 +206,26 @@ async function del() {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
+}
+.fld {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 .lbl {
-  display: block;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  color: var(--text);
+}
+/* Texto de apoio (muted) explicando o campo. */
+.hint {
+  font-size: 12.5px;
+  line-height: 1.45;
   color: var(--muted);
-  margin-bottom: 6px;
+  margin-top: -2px;
 }
 .inp {
   width: 100%;
@@ -256,18 +243,33 @@ async function del() {
 }
 .area {
   resize: vertical;
-  min-height: 64px;
+  min-height: 104px;
+  line-height: 1.5;
   font-family: inherit;
+}
+/* Contador de caracteres das descrições. */
+.count {
+  align-self: flex-end;
+  margin-top: -2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 .form-foot {
   display: flex;
   justify-content: flex-end;
+  margin-top: 4px;
 }
 .danger-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--scarlet) 22%, var(--border));
 }
 .dr-txt {
   display: flex;

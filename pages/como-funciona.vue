@@ -175,7 +175,7 @@ const phases = [
     </div>
 
     <div class="cta-wrap">
-      <NuxtLink to="/futebol/torneios" class="btn btn-primary">Ir palpitar</NuxtLink>
+      <NuxtLink to="/futebol/campeonato" class="btn btn-primary">Ir palpitar</NuxtLink>
     </div>
   </div>
 </template>
