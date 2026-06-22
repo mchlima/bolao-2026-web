@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import type { Match, Paginated, Prediction, Tournament } from '~/types/api';
+import type { Match, Paginated, Tournament } from '~/types/api';
 
 const route = useRoute();
-const auth = useAuthStore();
 const tz = useTz();
 // A rota é por slug; o seasonId real sai da lista que o shell já carregou
 // ('tournaments-list'), populada antes deste filho renderizar.
@@ -11,7 +10,7 @@ const { data: tlist } = useNuxtData<Tournament[]>('tournaments-list');
 const id = (tlist.value ?? []).find((t) => t.slug === slug)?.id ?? '';
 
 // The tournament header + tabs live in the layout (tournaments/[id].vue); this
-// page only loads the matches + the user's predictions.
+// page só carrega os jogos (vitrine read-only — cravar é na aba Bolão da partida).
 const { data, pending, error, refresh } = await useAsyncData(
   `tournament-matches-${id}`,
   async () => {
@@ -20,25 +19,10 @@ const { data, pending, error, refresh } = await useAsyncData(
       api<Paginated<Match>>(`/matches?seasonId=${id}&page=1&pageSize=100`),
       api<Paginated<Match>>(`/matches?seasonId=${id}&page=2&pageSize=100`),
     ]);
-    const matches = [...p1.data, ...p2.data];
-    let predictions: Prediction[] = [];
-    if (auth.token) {
-      predictions = await api<Prediction[]>(`/predictions/me?seasonId=${id}`);
-    }
-    return { matches, predictions };
+    return { matches: [...p1.data, ...p2.data] };
   },
   { getCachedData: cachedPayload },
 );
-
-const predMap = ref<Record<string, Prediction>>({});
-watchEffect(() => {
-  const m: Record<string, Prediction> = {};
-  for (const p of data.value?.predictions ?? []) m[p.matchId] = p;
-  predMap.value = m;
-});
-function onSaved(p: Prediction) {
-  predMap.value = { ...predMap.value, [p.matchId]: p };
-}
 
 useRealtime(() => [`tournament:${id}`], () => refresh());
 
@@ -183,7 +167,7 @@ function clearFilters() {
 
       <div v-for="sec in sections" :key="sec.title" class="section">
         <h2 class="font-display section-title">{{ sec.title }}</h2>
-        <MatchList :matches="sec.matches" :predictions="predMap" @saved="onSaved" />
+        <MatchCard :matches="sec.matches" />
       </div>
     </template>
   </div>

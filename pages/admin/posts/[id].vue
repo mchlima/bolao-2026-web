@@ -112,6 +112,28 @@ async function archive() {
   try { post.value = await useApi()<PostView>(`/admin/posts/${postId}/archive`, { method: 'POST' }); fill(post.value); ui.toast('info', 'Arquivado.'); }
   catch (e) { err(e); } finally { busy.value = false; }
 }
+// Destaque = manchete (hero) da home + topo de /noticias. Grava a coluna direto
+// (fora do overlay draft), então não mexe no formulário/edições pendentes.
+async function toggleFeatured() {
+  if (!post.value) return;
+  busy.value = true;
+  try {
+    const updated = await useApi()<PostView>(`/admin/posts/${postId}/featured`, { method: 'PATCH', body: { featured: !post.value.featured } });
+    post.value = { ...post.value, featured: updated.featured };
+    ui.toast('success', updated.featured ? 'Definido como manchete (destaque).' : 'Destaque removido.');
+  } catch (e) { err(e); } finally { busy.value = false; }
+}
+// (Re)gera a capa do jogo (escudos + placar). Só funciona em matéria vinculada a
+// um jogo (da esteira MATCH_REPORT). Não mexe no formulário.
+async function regenCover() {
+  if (!post.value) return;
+  busy.value = true;
+  try {
+    const updated = await useApi()<PostView>(`/admin/posts/${postId}/cover`, { method: 'POST' });
+    post.value = { ...post.value, coverUrl: updated.coverUrl };
+    ui.toast('success', 'Capa gerada!');
+  } catch (e) { err(e); } finally { busy.value = false; }
+}
 async function discardDraft() {
   const ok = await ui.confirm({ title: 'Descartar alterações', msg: 'Voltar a exibir a versão publicada e descartar as edições não publicadas?', confirmLabel: 'Descartar', danger: true });
   if (!ok) return;
@@ -133,6 +155,7 @@ const publicUrl = computed(() => (post.value?.publishedSlug ? `${siteUrl}/notici
 const secondary = computed<MenuItem[]>(() => {
   const items: MenuItem[] = [];
   if (publicUrl.value) items.push({ key: 'view', label: 'Ver no site', icon: 'externalLink', onSelect: () => window.open(publicUrl.value!, '_blank') });
+  if (post.value?.fromEngine) items.push({ key: 'cover', label: 'Gerar capa do jogo', icon: 'refresh', onSelect: regenCover });
   if (post.value?.hasPendingChanges) items.push({ key: 'discard', label: 'Descartar alterações', icon: 'refresh', tone: 'azure', onSelect: discardDraft });
   if (post.value?.status === 'PUBLISHED') items.push({ key: 'archive', label: 'Arquivar (tirar do ar)', icon: 'inbox', onSelect: archive });
   items.push({ key: 'del', label: 'Excluir', icon: 'trash', tone: 'danger', onSelect: remove });
@@ -157,10 +180,24 @@ const secondary = computed<MenuItem[]>(() => {
 
     <div class="status-row">
       <StatusPill :label="postStatus(post.status).label" :tone="postStatus(post.status).tone" dot />
+      <button
+        v-if="post.status === 'PUBLISHED'"
+        class="feat-toggle"
+        :class="{ on: post.featured }"
+        :disabled="busy"
+        :title="post.featured ? 'É a manchete em destaque — clique para remover' : 'Destacar como manchete da home e topo das notícias'"
+        @click="toggleFeatured"
+      >
+        <AppIcon name="star" :size="13" :stroke="2.2" /> {{ post.featured ? 'Manchete' : 'Destacar' }}
+      </button>
       <span v-if="post.hasPendingChanges" class="pend"><AppIcon name="edit" :size="13" :stroke="2.2" /> alterações não publicadas</span>
       <span v-if="post.fromEngine" class="meta">origem: esteira</span>
       <a v-if="publicUrl" :href="publicUrl" target="_blank" rel="noopener" class="meta vlink">ver no site <AppIcon name="externalLink" :size="12" :stroke="2" /></a>
     </div>
+
+    <figure v-if="post.coverUrl" class="cover-prev">
+      <img :src="post.coverUrl" alt="Capa do jogo" />
+    </figure>
 
     <div v-if="post.status === 'PUBLISHED'" class="iso-note">
       <AppIcon name="shield" :size="15" :stroke="2.2" /> Editar e <strong>Salvar</strong> não muda o que está no ar. Só <strong>Publicar alterações</strong> aplica.
@@ -253,6 +290,12 @@ const secondary = computed<MenuItem[]>(() => {
 .status-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
 .meta { font-size: 12px; color: var(--muted); font-weight: 600; }
 .pend { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: var(--gold); }
+.feat-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--muted); background: var(--bg-surface); border: 1px solid var(--border); border-radius: 999px; padding: 4px 11px; cursor: pointer; transition: color 0.15s, border-color 0.15s, background 0.15s; }
+.feat-toggle:hover:not(:disabled) { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, var(--border)); }
+.feat-toggle.on { color: #0a0e14; background: var(--gold); border-color: var(--gold); }
+.feat-toggle:disabled { opacity: 0.55; cursor: not-allowed; }
+.cover-prev { margin: 0 0 16px; max-width: 480px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; border: 1px solid var(--border); }
+.cover-prev img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .vlink { color: var(--azure); text-decoration: none; display: inline-flex; align-items: center; gap: 3px; }
 .vlink:hover { text-decoration: underline; }
 .iso-note { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text); background: color-mix(in srgb, var(--azure) 8%, transparent); border: 1px solid color-mix(in srgb, var(--azure) 30%, var(--border)); border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; }

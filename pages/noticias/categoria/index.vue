@@ -50,7 +50,7 @@ useHead({ link: [{ rel: 'canonical', href: url }] });
 </template>
 
 <style scoped>
-.hub { max-width: 820px; margin: 0 auto; padding: 8px 16px 40px; }
+.hub { width: 100%; padding: 8px 16px 40px; }
 .crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
 .crumbs a { color: var(--azure); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }

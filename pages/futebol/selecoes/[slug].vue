@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, Paginated, Prediction, Team } from '~/types/api';
+import type { Match, Paginated, Team } from '~/types/api';
 
 // Hub de SEO por seleção/time: próximos jogos + resultados de um time, resolvido
 // por slug (/futebol/selecoes/brasil). Mira "jogos do brasil na copa", "quando o
@@ -48,20 +48,6 @@ const liveChannels = computed(() =>
 );
 useRealtime(() => liveChannels.value, () => refresh());
 
-// Palpites do usuário p/ semear os cards.
-const auth = useAuthStore();
-const { data: preds } = await useAsyncData(`team-preds-${t.id}`, () =>
-  auth.token ? useApi()<Prediction[]>('/predictions/me') : Promise.resolve([] as Prediction[]),
-);
-const predMap = ref<Record<string, Prediction>>({});
-watchEffect(() => {
-  const m: Record<string, Prediction> = {};
-  for (const p of preds.value ?? []) m[p.matchId] = p;
-  predMap.value = m;
-});
-function onSaved(p: Prediction) {
-  predMap.value = { ...predMap.value, [p.matchId]: p };
-}
 
 const seoTitle = computed(
   () => `${t.name}: próximos jogos, resultados e palpites${competition.value ? ` — ${competition.value}` : ''} | Cravei`,
@@ -138,12 +124,12 @@ useHead({
 
     <section v-if="upcoming.length" class="sel-sec">
       <h2 class="font-display">Próximos jogos</h2>
-      <MatchList :matches="upcoming" :predictions="predMap" show-season @saved="onSaved" />
+      <MatchCard :matches="upcoming" show-season />
     </section>
 
     <section v-if="results.length" class="sel-sec">
       <h2 class="font-display">Resultados</h2>
-      <MatchList :matches="results" :predictions="predMap" show-season @saved="onSaved" />
+      <MatchCard :matches="results" show-season />
     </section>
 
     <p v-if="!allMatches.length" class="muted sel-empty">
@@ -160,7 +146,7 @@ useHead({
 </template>
 
 <style scoped>
-.sel { padding: 10px; max-width: 760px; margin: 0 auto; }
+.sel { padding: 10px; }
 .crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
 .crumbs a { color: var(--azure); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }

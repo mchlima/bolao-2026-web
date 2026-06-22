@@ -37,9 +37,10 @@ const { data, pending } = await useAsyncData('tournaments', async () => {
 
 <template>
   <div class="page">
+    <FutebolSectionNav />
     <PageHeader
-      title="Torneios"
-      subtitle="Escolha um torneio para palpitar e acompanhar o ranking."
+      title="Campeonatos"
+      subtitle="Escolha um campeonato para acompanhar jogos, tabela e o bolão."
     />
     <SkeletonList v-if="pending && !data" variant="card" :count="3" />
     <EmptyState

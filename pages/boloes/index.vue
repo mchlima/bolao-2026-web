@@ -82,6 +82,7 @@ async function submitCreate() {
 
 <template>
   <div class="page">
+    <BolaoSectionNav />
     <PageHeader title="Meus bolões" subtitle="Dispute o ranking entre amigos.">
       <template #actions>
         <button class="btn btn-gold" @click="openCreate"><AppIcon name="plus" :size="16" :stroke="2.4" />Criar bolão</button>

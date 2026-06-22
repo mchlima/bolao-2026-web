@@ -404,6 +404,8 @@ useHead({
           <NuxtLink to="/futebol/agenda">Agenda de jogos</NuxtLink>
           <NuxtLink to="/bolao-da-copa-do-mundo-2026">Como criar um bolão</NuxtLink>
         </nav>
+
+        <BolaoCtaBand variant="inline" class="ms-cta" />
       </div>
     </section>
   </div>
@@ -411,6 +413,7 @@ useHead({
 
 <style scoped>
 .load { padding: 2rem 0; }
+.ms-cta { margin-top: 24px; }
 
 /* Bloco SEO/GEO abaixo do board. Surface neutra, largura de leitura confortável. */
 .match-seo { border-top: 1px solid var(--border); background: var(--bg-base); padding: 28px 16px 40px; }

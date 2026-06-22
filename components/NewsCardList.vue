@@ -16,7 +16,8 @@ function fmtDate(iso: string): string {
 <template>
   <div class="news-list">
     <!-- Destaque (matéria mais recente) -->
-    <NuxtLink v-if="hero" :to="`/noticias/${hero.slug}`" class="ncard hero">
+    <NuxtLink v-if="hero" :to="`/noticias/${hero.slug}`" class="ncard hero" :class="{ 'has-img': hero.coverUrl }">
+      <div v-if="hero.coverUrl" class="nimg hero-img"><img :src="hero.coverUrl" :alt="hero.imageAlt || hero.title" /></div>
       <div class="hero-body">
         <div class="ntop">
           <span v-if="hero.category" class="ncat">{{ hero.category.name }}</span>
@@ -39,6 +40,7 @@ function fmtDate(iso: string): string {
     <!-- Grade -->
     <div v-if="rest.length" class="news-grid">
       <NuxtLink v-for="n in rest" :key="n.slug" :to="`/noticias/${n.slug}`" class="ncard">
+        <div v-if="n.coverUrl" class="nimg"><img :src="n.coverUrl" :alt="n.imageAlt || n.title" loading="lazy" /></div>
         <span v-if="n.category" class="ncat">{{ n.category.name }}</span>
         <h2 class="ntitle">{{ n.title }}</h2>
         <p v-if="n.dek" class="ndek">{{ n.dek }}</p>
@@ -87,6 +89,10 @@ function fmtDate(iso: string): string {
 }
 .ncard:hover { border-color: var(--azure); transform: translateY(-2px); box-shadow: var(--shadow); }
 .ncard:hover::before { transform: scaleY(1); }
+.nimg { margin: -20px -22px 12px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 15px 15px 0 0; background: var(--bg-base); }
+.nimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ncard.has-img, .ncard.hero.has-img { padding-top: 0; }
+.hero-img { margin: 0 -28px 16px; border-radius: 15px 15px 0 0; }
 
 .ncat {
   align-self: flex-start;

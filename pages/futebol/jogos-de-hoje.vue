@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, Prediction } from '~/types/api';
+import type { Match } from '~/types/api';
 
 // Hub de SEO "jogos de hoje" — captura a busca diária genérica ("jogos de hoje",
 // "que jogos tem hoje na copa") com conteúdo + lista do dia (todos os torneios) e
@@ -36,21 +36,6 @@ const liveChannels = computed(() =>
   [...new Set(matches.value.map((m) => m.seasonId).filter(Boolean))].map((s) => `tournament:${s}`),
 );
 useRealtime(() => liveChannels.value, () => refresh());
-
-// Palpites do usuário (todas as seasons) p/ semear os cards.
-const auth = useAuthStore();
-const { data: preds } = await useAsyncData('jogos-hoje-preds', () =>
-  auth.token ? useApi()<Prediction[]>('/predictions/me') : Promise.resolve([] as Prediction[]),
-);
-const predMap = ref<Record<string, Prediction>>({});
-watchEffect(() => {
-  const m: Record<string, Prediction> = {};
-  for (const p of preds.value ?? []) m[p.matchId] = p;
-  predMap.value = m;
-});
-function onSaved(p: Prediction) {
-  predMap.value = { ...predMap.value, [p.matchId]: p };
-}
 
 const seoTitle = 'Jogos de hoje: horários, placar ao vivo e palpites | Cravei';
 const seoDesc = computed(
@@ -89,6 +74,7 @@ useHead({
 
 <template>
   <div class="jh">
+    <FutebolSectionNav />
     <nav class="crumbs">
       <NuxtLink to="/">Início</NuxtLink>
       <span>›</span>
@@ -117,7 +103,7 @@ useHead({
         <strong>crave seu palpite</strong> em cada partida — vale pro ranking do seu
         <NuxtLink to="/bolao-da-copa-do-mundo-2026">bolão da Copa do Mundo 2026</NuxtLink>.
       </p>
-      <MatchList :matches="sorted" :predictions="predMap" show-season @saved="onSaved" />
+      <MatchCard :matches="sorted" show-season />
       <div class="jh-more">
         <NuxtLink to="/futebol/agenda">Agenda completa</NuxtLink>
         <NuxtLink to="/futebol/torneios">Torneios</NuxtLink>
@@ -127,7 +113,7 @@ useHead({
 </template>
 
 <style scoped>
-.jh { padding: 10px; max-width: 760px; margin: 0 auto; }
+.jh { padding: 10px; }
 .crumbs { display: flex; gap: 8px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 14px; }
 .crumbs a { color: var(--azure); text-decoration: none; }
 .crumbs a:hover { text-decoration: underline; }

@@ -112,7 +112,7 @@ useHead({
         <StandingsTable :rows="g.rows" compact />
         <div v-if="g.matches.length" class="grp-games">
           <h3 class="grp-sub">Jogos do {{ groupLabel(g.name).toLowerCase() }}</h3>
-          <MatchList :matches="g.matches" />
+          <MatchCard :matches="g.matches" />
         </div>
       </section>
 

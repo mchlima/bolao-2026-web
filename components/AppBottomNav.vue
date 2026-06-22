@@ -5,35 +5,39 @@ const authLink = useAuthLink();
 const notifications = useNotificationsStore();
 const sheetOpen = ref(false);
 
+// Loop rápido (os 3 pilares + Início). A árvore profunda (categorias, campeonatos,
+// seleções, sub-bolão) fica no drawer (hambúrguer no header). `match` = prefixo
+// de rota que acende a aba (Jogos cobre todo /futebol).
 const items = computed(() => {
-  // Portal nav for logged-out visitors: Início (portal) + Agenda (cross-tournament
-  // agenda) + Torneios (→ each tournament's own hub) + login.
   if (!auth.isAuthenticated)
     return [
       { to: '/', label: 'Início', icon: 'home' },
-      { to: '/futebol/agenda', label: 'Agenda', icon: 'calendar' },
-      { to: '/futebol/torneios', label: 'Torneios', icon: 'trophy' },
+      { to: '/noticias', label: 'Notícias', icon: 'news' },
+      { to: '/futebol/agenda', match: '/futebol', label: 'Jogos', icon: 'calendar' },
+      { to: '/bolao-da-copa-do-mundo-2026', label: 'Bolão', icon: 'trophy' },
       { to: '/entrar', label: 'Entrar', icon: 'login' },
     ];
-  // Logged in: app nav + the avatar (account sheet) as the last item.
+  // Logado: pilares + o avatar (account sheet) como último item.
   return [
     { to: '/', label: 'Início', icon: 'home' },
-    { to: '/futebol/agenda', label: 'Agenda', icon: 'calendar' },
-    { to: '/futebol/torneios', label: 'Torneios', icon: 'trophy' },
-    { to: '/boloes', label: 'Bolões', icon: 'users' },
+    { to: '/noticias', label: 'Notícias', icon: 'news' },
+    { to: '/futebol/agenda', match: '/futebol', label: 'Jogos', icon: 'calendar' },
+    { to: '/boloes', label: 'Bolões', icon: 'trophy' },
   ];
 });
 
 const ICONS: Record<string, string> = {
   home: '<path d="M3 10.5 12 3l9 7.5M5 9.5V20h14V9.5"/>',
+  news: '<path d="M4 5h13v14H5a1 1 0 0 1-1-1z"/><path d="M17 8h3v9a2 2 0 0 1-2 2"/><path d="M7 8h7"/><path d="M7 12h7"/><path d="M7 16h4"/>',
   calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
   trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
   login: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/>',
 };
 
-function active(to: string) {
-  return to === '/' ? route.path === '/' : route.path.startsWith(to);
+function active(it: { to: string; match?: string }) {
+  const m = it.match ?? it.to;
+  return m === '/' ? route.path === '/' : route.path.startsWith(m);
 }
 </script>
 
@@ -44,7 +48,7 @@ function active(to: string) {
       :key="it.to"
       :to="it.to === '/entrar' ? authLink('/entrar') : it.to"
       class="item"
-      :style="{ color: active(it.to) ? 'var(--emerald)' : 'var(--muted)' }"
+      :style="{ color: active(it) ? 'var(--emerald)' : 'var(--muted)' }"
     >
       <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS[it.icon]" />
       <span>{{ it.label }}</span>

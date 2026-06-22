@@ -1,18 +1,11 @@
 <script setup lang="ts">
 import { DEFAULT_TZ } from '~/utils/format';
 
-// Conta → Configurações: tema (preferência local) + fuso horário de exibição.
+// Conta → Configurações: fuso horário de exibição + push. (Sem tema — só claro.)
 const auth = useAuthStore();
 const ui = useUiStore();
-const colorMode = useColorMode();
 
 useSeoMeta({ title: 'Configurações — Cravei' });
-
-const themes = [
-  { key: 'system', title: 'Sistema' },
-  { key: 'light', title: 'Claro' },
-  { key: 'dark', title: 'Escuro' },
-] as const;
 
 const savingTz = ref(false);
 
@@ -41,28 +34,6 @@ async function onTimezone(tz: string) {
     <h1 class="page-title">Configurações</h1>
 
     <div class="card pad">
-      <div class="field">
-        <span class="field-lbl">Tema</span>
-        <ClientOnly>
-          <div class="seg">
-            <button
-              v-for="t in themes"
-              :key="t.key"
-              class="seg-btn"
-              :class="{ on: colorMode.preference === t.key }"
-              @click="colorMode.preference = t.key"
-            >
-              {{ t.title }}
-            </button>
-          </div>
-          <template #fallback>
-            <div class="seg" />
-          </template>
-        </ClientOnly>
-      </div>
-
-      <div class="sep" />
-
       <div class="field">
         <span class="field-lbl">Fuso horário</span>
         <p class="hint">Define em que horário os jogos são exibidos.</p>

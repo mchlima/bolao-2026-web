@@ -255,6 +255,7 @@ export interface NewsCard {
   category: TermRef | null;
   tags: TermRef[];
   imageAlt: string;
+  coverUrl: string | null;
   publishedAt: string;
   updatedAt: string;
   source: string | null;
@@ -299,6 +300,8 @@ export interface PostListRow {
   title: string;
   slug: string;
   status: PostStatus;
+  featured: boolean;
+  coverUrl: string | null;
   publishedAt: string | null;
   hasPendingChanges: boolean;
   category: { name: string; slug: string } | null;
@@ -312,6 +315,8 @@ export interface PostListRow {
 export interface PostView {
   id: string;
   status: PostStatus;
+  featured: boolean;
+  coverUrl: string | null;
   title: string;
   slug: string;
   dek: string | null;

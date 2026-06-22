@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Competition, Match, Paginated, Prediction } from '~/types/api';
+import type { Competition, Match, Paginated } from '~/types/api';
 
 const seoTitle = 'Agenda de jogos — Cravei';
 const seoDesc =
@@ -118,24 +118,6 @@ useRealtime(
   },
 );
 
-// The user's predictions (all seasons) so each card shows the saved palpite
-// instead of an empty editor. Loaded once — independent of the day/competition.
-const auth = useAuthStore();
-const { data: preds } = await useAsyncData('agenda-preds', () =>
-  auth.token
-    ? useApi()<Prediction[]>('/predictions/me')
-    : Promise.resolve([] as Prediction[]),
-);
-const predMap = ref<Record<string, Prediction>>({});
-watchEffect(() => {
-  const m: Record<string, Prediction> = {};
-  for (const p of preds.value ?? []) m[p.matchId] = p;
-  predMap.value = m;
-});
-function onSaved(p: Prediction) {
-  predMap.value = { ...predMap.value, [p.matchId]: p };
-}
-
 const isToday = computed(() => day.value === brtToday());
 // Jump straight to a given day (used by the arrows with the server's adjacent
 // game days). No-op when there's no such day (arrow is disabled then anyway).
@@ -163,6 +145,7 @@ function fmtDayLabel(date: string): string {
 
 <template>
   <div class="agenda">
+    <FutebolSectionNav />
     <PageHeader title="Agenda" subtitle="Os jogos de cada dia, de todos os torneios." />
 
     <div class="ag-comp">
@@ -227,10 +210,10 @@ function fmtDayLabel(date: string): string {
     <div v-else class="ag-list">
       <template v-if="liveMatches.length">
         <span class="ag-live-lbl"><span class="lvdot" />Ao vivo</span>
-        <MatchList :matches="liveMatches" :predictions="predMap" show-season @saved="onSaved" />
+        <MatchCard :matches="liveMatches" show-season />
         <span v-if="restMatches.length" class="ag-live-lbl rest">Mais jogos do dia</span>
       </template>
-      <MatchList :matches="restMatches" :predictions="predMap" show-season @saved="onSaved" />
+      <MatchCard :matches="restMatches" show-season />
     </div>
   </div>
 </template>

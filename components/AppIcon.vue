@@ -50,6 +50,8 @@ const ICONS: Record<string, string[]> = {
   bell: ['M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9', 'M13.7 21a2 2 0 0 1-3.4 0'],
   // three vertical dots — zero-length segments rendered as dots by round linecap
   moreVertical: ['M12 5h0', 'M12 12h0', 'M12 19h0'],
+  menu: ['M3 6h18', 'M3 12h18', 'M3 18h18'],
+  news: ['M4 5h13v14H5a1 1 0 0 1-1-1z', 'M17 8h3v9a2 2 0 0 1-2 2', 'M7 8h7', 'M7 12h7', 'M7 16h4'],
 };
 
 const paths = computed(() => ICONS[props.name] ?? []);

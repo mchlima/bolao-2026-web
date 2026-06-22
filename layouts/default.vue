@@ -1,6 +1,7 @@
 <template>
   <div class="app">
     <AppHeader />
+    <AppNavDrawer />
     <main class="container main">
       <slot />
     </main>

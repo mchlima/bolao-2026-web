@@ -86,12 +86,13 @@ export default defineNuxtConfig({
 
   // dark / light / system theme — writes <html data-theme="..."> so the design
   // system's html[data-theme] selectors apply (Claude Design handoff).
+  // Só tema claro (sem modo dark). Trava em 'light' — sem alternância no app.
   colorMode: {
-    preference: 'system',
+    preference: 'light',
     fallback: 'light',
     dataValue: 'theme',
     classSuffix: '',
-    storageKey: 'bolao-color-mode',
+    storageKey: 'bolao-color-mode-light',
   },
 
   runtimeConfig: {
