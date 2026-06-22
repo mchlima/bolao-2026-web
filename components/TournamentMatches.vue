@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import type { Match, Paginated, Prediction } from '~/types/api';
+import type { Match, Paginated, Prediction, Tournament } from '~/types/api';
 
 const route = useRoute();
 const auth = useAuthStore();
 const tz = useTz();
-const id = route.params.id as string;
+// A rota é por slug; o seasonId real sai da lista que o shell já carregou
+// ('tournaments-list'), populada antes deste filho renderizar.
+const slug = route.params.slug as string;
+const { data: tlist } = useNuxtData<Tournament[]>('tournaments-list');
+const id = (tlist.value ?? []).find((t) => t.slug === slug)?.id ?? '';
 
 // The tournament header + tabs live in the layout (tournaments/[id].vue); this
 // page only loads the matches + the user's predictions.

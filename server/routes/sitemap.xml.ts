@@ -35,6 +35,7 @@ export default defineEventHandler(async (event) => {
     { loc: '/', priority: 1.0, changefreq: 'daily' },
     { loc: '/bolao-da-copa-do-mundo-2026', priority: 0.9, changefreq: 'weekly' },
     { loc: '/como-funciona', priority: 0.8, changefreq: 'monthly' },
+    { loc: '/futebol/jogos-de-hoje', priority: 0.8, changefreq: 'daily' },
     { loc: '/futebol/agenda', priority: 0.8, changefreq: 'hourly' },
     { loc: '/futebol/torneios', priority: 0.7, changefreq: 'daily' },
     { loc: '/noticias', priority: 0.8, changefreq: 'daily' },
@@ -47,25 +48,32 @@ export default defineEventHandler(async (event) => {
     const seasons = await $fetch<{
       data: {
         id: string;
+        slug?: string | null;
         updatedAt?: string;
         logoUrl?: string | null;
+        format?: string | null;
         competition?: { logoUrl?: string | null } | null;
       }[];
     }>(`${api}/seasons?pageSize=100`);
     for (const s of seasons.data ?? []) {
       const logo = s.competition?.logoUrl ?? s.logoUrl ?? null;
+      const seg = s.slug ?? s.id;
       urls.push(
         {
-          loc: `/futebol/torneios/${s.id}`,
+          loc: `/futebol/torneios/${seg}`,
           priority: 0.7,
           changefreq: 'daily',
           lastmod: s.updatedAt,
           images: logo ? [logo] : undefined,
         },
-        { loc: `/futebol/torneios/${s.id}/classificacao`, priority: 0.6, changefreq: 'daily', lastmod: s.updatedAt },
-        { loc: `/futebol/torneios/${s.id}/jogos`, priority: 0.6, changefreq: 'daily', lastmod: s.updatedAt },
-        { loc: `/futebol/torneios/${s.id}/ranking`, priority: 0.5, changefreq: 'daily', lastmod: s.updatedAt },
+        { loc: `/futebol/torneios/${seg}/classificacao`, priority: 0.6, changefreq: 'daily', lastmod: s.updatedAt },
+        { loc: `/futebol/torneios/${seg}/jogos`, priority: 0.6, changefreq: 'daily', lastmod: s.updatedAt },
+        { loc: `/futebol/torneios/${seg}/ranking`, priority: 0.5, changefreq: 'daily', lastmod: s.updatedAt },
       );
+      // Hub "grupos" só p/ torneios com fase de grupos (evita página fina em ligas).
+      if ((s.format ?? '').includes('GROUP')) {
+        urls.push({ loc: `/futebol/torneios/${seg}/grupos`, priority: 0.6, changefreq: 'daily', lastmod: s.updatedAt });
+      }
     }
   } catch {
     /* API down — keep the static URLs above. */
@@ -79,21 +87,26 @@ export default defineEventHandler(async (event) => {
         matches: {
           id: string;
           seasonId?: string | null;
+          season?: { slug?: string | null } | null;
           updatedAt?: string;
-          homeTeam?: { logoUrl?: string | null } | null;
-          awayTeam?: { logoUrl?: string | null } | null;
+          homeTeam?: { logoUrl?: string | null; slug?: string | null } | null;
+          awayTeam?: { logoUrl?: string | null; slug?: string | null } | null;
           stadium?: { photoUrl?: string | null } | null;
         }[];
       }[];
     }>(`${api}/agenda?scope=all`);
+    // Slugs de times que têm jogo → cada um vira uma página de seleção/time.
+    const teamSlugs = new Set<string>();
     for (const day of agenda.days ?? []) {
       for (const m of day.matches ?? []) {
         const images = [m.homeTeam?.logoUrl, m.awayTeam?.logoUrl, m.stadium?.photoUrl].filter(
           (u): u is string => !!u,
         );
+        if (m.homeTeam?.slug) teamSlugs.add(m.homeTeam.slug);
+        if (m.awayTeam?.slug) teamSlugs.add(m.awayTeam.slug);
         urls.push({
-          loc: m.seasonId
-            ? `/futebol/torneios/${m.seasonId}/jogos/${m.id}`
+          loc: m.season?.slug
+            ? `/futebol/torneios/${m.season.slug}/jogos/${m.id}`
             : `/futebol/agenda/${m.id}`,
           priority: 0.5,
           changefreq: 'hourly',
@@ -101,6 +114,9 @@ export default defineEventHandler(async (event) => {
           images: images.length ? images : undefined,
         });
       }
+    }
+    for (const s of teamSlugs) {
+      urls.push({ loc: `/futebol/selecoes/${s}`, priority: 0.6, changefreq: 'daily' });
     }
   } catch {
     /* keep what we have. */

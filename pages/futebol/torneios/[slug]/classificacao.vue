@@ -2,11 +2,13 @@
 import type { BracketStage, StageStandings, Tournament } from '~/types/api';
 
 const route = useRoute();
-const id = route.params.id as string;
+const slug = route.params.slug as string;
 
-// Tournament name for a tab-specific title — reuse the shell's cached list.
+// Nome + seasonId vêm da lista que o shell já carregou ('tournaments-list').
 const { data: seoTournaments } = useNuxtData<Tournament[]>('tournaments-list');
-const seoName = computed(() => seoTournaments.value?.find((t) => t.id === id)?.name ?? null);
+const season = computed(() => seoTournaments.value?.find((t) => t.slug === slug) ?? null);
+const id = season.value?.id ?? '';
+const seoName = computed(() => season.value?.name ?? null);
 useSeoMeta({
   title: () => (seoName.value ? `Classificação · ${seoName.value} — Cravei` : 'Classificação do torneio — Cravei'),
   description: () =>
@@ -39,6 +41,10 @@ const hasData = computed(() => {
     d.bracket.some((s) => s.rounds.some((r) => r.ties.length))
   );
 });
+// Há fase de grupos? → mostra o atalho pro hub /grupos (jogos por grupo).
+const hasGroups = computed(() =>
+  (data.value?.standings ?? []).some((s) => s.format === 'GROUP' && s.groups.some((g) => g.rows.length)),
+);
 </script>
 
 <template>
@@ -47,18 +53,38 @@ const hasData = computed(() => {
     <p v-else-if="error || !hasData" class="muted load">
       Estrutura do torneio indisponível.
     </p>
-    <TournamentPhasesView
-      v-else
-      :standings="data!.standings"
-      :bracket-stages="data!.bracket"
-      :matches="data!.matches"
-      :season-id="id"
-    />
+    <template v-else>
+      <NuxtLink v-if="hasGroups" :to="`/futebol/torneios/${slug}/grupos`" class="grp-link">
+        Jogos por grupo <AppIcon name="arrowRight" :size="14" :stroke="2.4" />
+      </NuxtLink>
+      <TournamentPhasesView
+        :standings="data!.standings"
+        :bracket-stages="data!.bracket"
+        :matches="data!.matches"
+        :season-id="id"
+      />
+    </template>
   </div>
 </template>
 
 <style scoped>
 .load {
   padding: 2rem 0;
+}
+.grp-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--azure);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
+  transition: border-color 0.14s;
+}
+.grp-link:hover {
+  border-color: color-mix(in srgb, var(--azure) 45%, var(--border));
 }
 </style>

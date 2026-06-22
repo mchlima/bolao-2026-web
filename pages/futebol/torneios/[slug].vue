@@ -7,17 +7,21 @@
 import type { Paginated, Tournament } from '~/types/api';
 
 const route = useRoute();
-const id = route.params.id as string;
+const slug = route.params.slug as string;
 
 const { data: tournaments } = await useAsyncData('tournaments-list', () =>
   useApi()<Paginated<Tournament>>('/seasons?pageSize=100').then((r) => r.data),
   { getCachedData: cachedPayload },
 );
 const current = computed(
-  () => (tournaments.value ?? []).find((t) => t.id === id) ?? null,
+  () => (tournaments.value ?? []).find((t) => t.slug === slug) ?? null,
 );
+// Slug-only: uma URL antiga por id (ou slug inexistente) não resolve → 404 limpo.
+if (!current.value) {
+  throw createError({ statusCode: 404, statusMessage: 'Torneio não encontrado', fatal: true });
+}
 const siteUrl = String(useRuntimeConfig().public.siteUrl);
-const hubUrl = `${siteUrl}/futebol/torneios/${id}`;
+const hubUrl = `${siteUrl}/futebol/torneios/${slug}`;
 useSeoMeta({
   title: () => (current.value ? `${current.value.name} — Cravei` : 'Torneio — Cravei'),
   description: () =>
@@ -63,6 +67,7 @@ const section = computed<string>(() => {
   const p = route.path;
   if (/\/jogos\/[^/]+/.test(p)) return 'match';
   if (p.endsWith('/classificacao')) return 'classificacao';
+  if (p.endsWith('/grupos')) return 'grupos';
   if (p.endsWith('/ranking')) return 'ranking';
   return 'jogos';
 });
@@ -72,9 +77,9 @@ const isMatch = computed(() => section.value === 'match');
 // gate (a conversion prompt). The data itself is members-only: the route shows
 // the gate and the API requires auth (see ranking.vue + rankings.controller).
 const tabs = computed(() => [
-  { key: 'jogos', label: 'Jogos', to: `/futebol/torneios/${id}` },
-  { key: 'classificacao', label: 'Tabela', to: `/futebol/torneios/${id}/classificacao` },
-  { key: 'ranking', label: 'Bolão', to: `/futebol/torneios/${id}/ranking` },
+  { key: 'jogos', label: 'Jogos', to: `/futebol/torneios/${slug}` },
+  { key: 'classificacao', label: 'Tabela', to: `/futebol/torneios/${slug}/classificacao` },
+  { key: 'ranking', label: 'Bolão', to: `/futebol/torneios/${slug}/ranking` },
 ]);
 
 function badge(name: string): string {
@@ -87,7 +92,7 @@ function badge(name: string): string {
   <div class="page" :class="{ 'page--flush': isMatch }">
     <header v-if="!isMatch" class="thead">
       <div class="trow">
-        <NuxtLink :to="isMatch ? `/futebol/torneios/${id}` : '/futebol/torneios'" class="back" aria-label="Voltar">
+        <NuxtLink :to="isMatch ? `/futebol/torneios/${slug}` : '/futebol/torneios'" class="back" aria-label="Voltar">
           <AppIcon name="arrowLeft" :size="18" :stroke="2.4" />
         </NuxtLink>
         <TournamentBadge

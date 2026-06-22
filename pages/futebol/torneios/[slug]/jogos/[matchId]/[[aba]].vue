@@ -1,19 +1,23 @@
 <script setup lang="ts">
 // Tournament-scoped match view. The shell's slim header is hidden on match
-// routes (tournaments/[id].vue), so the board shows its own back — at the
+// routes (tournaments/[slug].vue), so the board shows its own back — at the
 // top-left of the score. Back goes to the previous page (this match is reachable
 // from many entry points), falling back to the tournament home if there's none.
 // Key by matchId (not the full path) so switching the tab segment
 // (…/escalacao, …/tempo) reuses this page instead of remounting it.
+import type { Tournament } from '~/types/api';
 definePageMeta({ key: (route) => route.params.matchId as string });
 const route = useRoute();
 const router = useRouter();
-const id = route.params.id as string;
+const slug = route.params.slug as string;
 const matchId = route.params.matchId as string;
+// seasonId real (p/ o MatchPhaseContext) sai da lista que o shell já carregou.
+const { data: tlist } = useNuxtData<Tournament[]>('tournaments-list');
+const seasonId = computed(() => (tlist.value ?? []).find((t) => t.slug === slug)?.id ?? '');
 
 function goBack() {
   if (router.options.history.state.back) router.back();
-  else navigateTo(`/futebol/torneios/${id}`);
+  else navigateTo(`/futebol/torneios/${slug}`);
 }
 </script>
 
@@ -24,7 +28,7 @@ function goBack() {
     <MatchRankingView :match-id="matchId" @back="goBack">
       <template #classificacao>
         <MatchPhaseContext
-          :season-id="id"
+          :season-id="seasonId"
           :match-id="matchId"
           :active="route.params.aba === 'classificacao'"
         />

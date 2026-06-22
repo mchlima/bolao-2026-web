@@ -25,7 +25,8 @@ interface Slide {
 const slides = computed<Slide[]>(() => {
   const out: Slide[] = [];
   for (const t of data.value?.tournaments ?? []) {
-    const ctaTo = `/futebol/torneios/${t.id}`;
+    const seg = t.slug ?? t.id;
+    const ctaTo = `/futebol/torneios/${seg}`;
     out.push({
       key: `gen-${t.id}`,
       title: 'GERAL',
@@ -33,7 +34,7 @@ const slides = computed<Slide[]>(() => {
       me: t.general.me,
       total: t.general.total,
       ctaTo,
-      linkTo: `/futebol/torneios/${t.id}/ranking`,
+      linkTo: `/futebol/torneios/${seg}/ranking`,
     });
     for (const p of t.pools)
       out.push({

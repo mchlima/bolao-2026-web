@@ -4,11 +4,13 @@ import type { RankingResponse, Tournament } from '~/types/api';
 const auth = useAuthStore();
 const route = useRoute();
 const authLink = useAuthLink();
-const id = route.params.id as string;
+const slug = route.params.slug as string;
 
-// Tournament name for the header/share — reuse the shell's cached list (no extra fetch).
+// Nome + seasonId vêm da lista que o shell já carregou (sem fetch extra).
 const { data: tournaments } = useNuxtData<Tournament[]>('tournaments-list');
-const tname = computed(() => tournaments.value?.find((t) => t.id === id)?.name ?? 'Torneio');
+const season = computed(() => tournaments.value?.find((t) => t.slug === slug) ?? null);
+const id = season.value?.id ?? '';
+const tname = computed(() => season.value?.name ?? 'Torneio');
 useSeoMeta({
   title: () => `Ranking do bolão · ${tname.value} — Cravei`,
   description: () =>

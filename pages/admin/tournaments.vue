@@ -56,15 +56,23 @@ const form = reactive({
   endDate: '',
   logoUrl: '',
   location: '',
+  broadcasters: [] as { name: string; url: string }[],
 });
 const saving = ref(false);
+
+function addBroadcaster() {
+  form.broadcasters.push({ name: '', url: '' });
+}
+function removeBroadcaster(i: number) {
+  form.broadcasters.splice(i, 1);
+}
 
 function openNew() {
   editing.value = null;
   Object.assign(form, {
     competitionId: competitions.value[0]?.id ?? '', name: '', seasonLabel: '',
     format: 'GROUPS_KNOCKOUT', status: 'DRAFT', startDate: '', endDate: '', logoUrl: '',
-    location: '',
+    location: '', broadcasters: [],
   });
   modalOpen.value = true;
 }
@@ -80,6 +88,7 @@ function openEdit(t: Tournament) {
     endDate: t.endDate?.slice(0, 10) ?? '',
     logoUrl: t.logoUrl ?? '',
     location: t.location ?? '',
+    broadcasters: (t.broadcasters ?? []).map((b) => ({ name: b.name, url: b.url ?? '' })),
   });
   modalOpen.value = true;
 }
@@ -98,6 +107,10 @@ async function submit() {
     location: form.location || undefined,
     startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
     endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
+    // Sempre enviado (mesmo []) p/ permitir limpar; só linhas com nome.
+    broadcasters: form.broadcasters
+      .filter((b) => b.name.trim())
+      .map((b) => ({ name: b.name.trim(), ...(b.url.trim() ? { url: b.url.trim() } : {}) })),
   };
   try {
     if (editing.value) {
@@ -210,6 +223,15 @@ onMounted(() => {
         />
         <label>Logo</label>
         <ImageUploadField v-model="form.logoUrl" prefix="tournaments" />
+
+        <label>Onde assistir (emissoras)</label>
+        <p class="hint">Transmissão oficial no Brasil — alimenta o "onde assistir" das páginas de jogo. Deixe vazio para não exibir.</p>
+        <div v-for="(b, i) in form.broadcasters" :key="i" class="bcast-row">
+          <input v-model="b.name" class="input" placeholder="Nome (ex.: CazéTV)" />
+          <input v-model="b.url" class="input" placeholder="Link (ex.: https://youtube.com/@CazeTV)" />
+          <button type="button" class="btn bcast-del" title="Remover" @click="removeBroadcaster(i)">×</button>
+        </div>
+        <button type="button" class="btn bcast-add" @click="addBroadcaster">+ Adicionar emissora</button>
       </div>
       <template #footer>
         <button class="btn" @click="modalOpen = false">Cancelar</button>
@@ -222,6 +244,27 @@ onMounted(() => {
 <style scoped>
 .mb {
   margin-bottom: 14px;
+}
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 2px 0 6px;
+}
+.bcast-row {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr auto;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.bcast-del {
+  padding: 0 12px;
+  font-size: 18px;
+  line-height: 1;
+}
+.bcast-add {
+  font-size: 13px;
+  padding: 8px 14px;
 }
 .tn {
   display: flex;

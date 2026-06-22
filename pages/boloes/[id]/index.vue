@@ -81,7 +81,7 @@ async function leavePool() {
       :total="total"
       :title="pool.name"
       :subtitle="pool.tournament.name"
-      :cta-to="`/futebol/torneios/${pool.tournament.id}`"
+      :cta-to="`/futebol/torneios/${pool.tournament.slug ?? pool.tournament.id}`"
     />
 
     <!-- podium leaders (same panel as the Ranking tab) -->
@@ -94,7 +94,7 @@ async function leavePool() {
     />
 
     <!-- tournament: jump to predictions -->
-    <NuxtLink :to="`/futebol/torneios/${pool.tournament.id}`" class="tcard">
+    <NuxtLink :to="`/futebol/torneios/${pool.tournament.slug ?? pool.tournament.id}`" class="tcard">
       <span class="tcard-ic"><AppIcon name="trophy" :size="20" :stroke="2" /></span>
       <span class="tcard-txt">
         <b>{{ pool.tournament.name }}</b>

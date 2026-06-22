@@ -363,6 +363,7 @@ export interface Team {
   id: string;
   sportId: string;
   name: string;
+  slug?: string | null; // slug público p/ /futebol/selecoes/:slug
   shortName: string;
   type: TeamType;
   countryCode: string | null;
@@ -423,6 +424,7 @@ export interface Competition {
 // for UI continuity ("torneio"); the API path is /seasons.
 export interface Tournament {
   id: string;
+  slug?: string | null; // slug público p/ /futebol/torneios/:slug
   name: string;
   seasonLabel?: string | null;
   logoUrl: string | null;
@@ -431,6 +433,8 @@ export interface Tournament {
   endDate: string | null;
   status: TournamentStatus;
   format?: SeasonFormat;
+  // Emissoras curadas ("onde assistir") da edição — display-only no público.
+  broadcasters?: { name: string; url?: string | null }[] | null;
   competition?: Competition | null;
   matchCount?: number; // present on list responses (GET /seasons)
 }
@@ -544,12 +548,15 @@ export interface Match {
   seasonId: string;
   season?: {
     id: string;
+    slug?: string | null;
     name: string;
     status: TournamentStatus;
     startDate?: string | null;
     endDate?: string | null;
     location?: string | null;
     logoUrl?: string | null;
+    // Emissoras curadas ("onde assistir") da edição — display-only.
+    broadcasters?: { name: string; url?: string | null }[] | null;
     competition?: { country: string | null; confederation?: string | null } | null;
     // Participating teams of the season (present on GET /matches/:id) — feeds the
     // tournament's `performer` in structured data.
@@ -656,6 +663,7 @@ export interface MyPoolStanding extends MyStanding {
 }
 export interface MyStandingsTournament {
   id: string;
+  slug?: string | null;
   name: string;
   status: TournamentStatus;
   general: MyStanding;
@@ -690,6 +698,7 @@ export type PoolMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
 
 export interface PoolTournamentSummary {
   id: string;
+  slug?: string | null;
   name: string;
   logoUrl: string | null;
   status: TournamentStatus;

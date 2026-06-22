@@ -52,7 +52,7 @@ const { data, pending } = await useAsyncData('tournaments', async () => {
       <NuxtLink
         v-for="(t, i) in data ?? []"
         :key="t.id"
-        :to="`/futebol/torneios/${t.id}`"
+        :to="`/futebol/torneios/${t.slug ?? t.id}`"
         class="t-card"
       >
         <div class="t-top">

@@ -487,7 +487,7 @@ const ranking = [
         <NuxtLink to="/futebol/torneios" class="hubnav-all">Ver todos <AppIcon name="chevronRight" :size="13" :stroke="2.5" /></NuxtLink>
       </div>
       <div class="hubnav">
-        <NuxtLink v-for="t in torneios.slice(0, 4)" :key="t.id" :to="`/futebol/torneios/${t.id}`" class="hubtile">
+        <NuxtLink v-for="t in torneios.slice(0, 4)" :key="t.id" :to="`/futebol/torneios/${t.slug ?? t.id}`" class="hubtile">
           <TournamentBadge :name="t.name" :logo-url="t.competition?.logoUrl" :logo-url-dark="t.competition?.logoUrlDark" :size="44" />
           <span class="ht-txt">
             <b>{{ t.name }}</b>
