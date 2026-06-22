@@ -58,8 +58,10 @@ function teamColor(raw: string | null | undefined, fallback: string): string {
 const homeColor = computed(() => teamColor(props.match.homeTeam?.color, 'var(--azure)'));
 const awayColor = computed(() => teamColor(props.match.awayTeam?.color, 'var(--scarlet)'));
 
-// View toggle: the list stays the default; "campo" draws the tactical pitch.
-const view = ref<'lista' | 'campo'>('lista');
+// View toggle: the tactical pitch ("campo") is the default; the list stays as the
+// alternate. The pitch shows one team at a time, picked by the team toggle.
+const view = ref<'campo' | 'lista'>('campo');
+const pitchSide = ref<'home' | 'away'>('home');
 
 const LINE_RANK: Record<string, number> = { GK: 0, DEF: 1, MID: 2, FWD: 3 };
 function starters(team: LineupTeam | undefined): LineupPlayer[] {
@@ -67,6 +69,60 @@ function starters(team: LineupTeam | undefined): LineupPlayer[] {
     .filter((p) => p.starter)
     .sort((a, b) => (LINE_RANK[a.line] - LINE_RANK[b.line]) || (a.formationPlace ?? 99) - (b.formationPlace ?? 99));
 }
+
+// --- Tactical pitch layout ---------------------------------------------------
+// ESPN gives no x/y, so we lay the starting XI into rows by formation. The team
+// always attacks UP: GK pinned at the bottom (row 0), forwards near the top.
+const jnum = (p: LineupPlayer) => Number(p.jersey ?? 99);
+// Players-per-row (GK excluded). Prefer the formation string ("4-3-3" → [4,3,3])
+// when it accounts for every outfielder; else fall back to the line buckets.
+function rowCounts(formation: string | null | undefined, outs: LineupPlayer[]): number[] {
+  if (formation) {
+    const nums = formation.split(/[^0-9]+/).map((n) => parseInt(n, 10)).filter((n) => n > 0);
+    if (nums.length && nums.reduce((s, n) => s + n, 0) === outs.length) return nums;
+  }
+  const byLine = (['DEF', 'MID', 'FWD'] as const).map((l) => outs.filter((p) => p.line === l).length);
+  const counts = byLine.filter((c) => c > 0);
+  return counts.length ? counts : [outs.length];
+}
+// A placed starter: y = 0 (top/attack) … 1 (bottom/goal), x = 0…1 across.
+interface Placed { p: LineupPlayer; x: number; y: number }
+function placeStarters(team: LineupTeam | undefined): Placed[] {
+  const xi = (team?.players ?? []).filter((p) => p.starter);
+  if (!xi.length) return [];
+  const gk = xi.filter((p) => p.line === 'GK');
+  const outs = xi
+    .filter((p) => p.line !== 'GK')
+    .sort(
+      (a, b) =>
+        LINE_RANK[a.line] - LINE_RANK[b.line] ||
+        (a.formationPlace ?? 99) - (b.formationPlace ?? 99) ||
+        jnum(a) - jnum(b),
+    );
+  // rows ordered goal→attack (defenders first); render top-to-bottom reversed.
+  const rows: LineupPlayer[][] = [];
+  let i = 0;
+  for (const c of rowCounts(team?.formation, outs)) {
+    rows.push(outs.slice(i, i + c));
+    i += c;
+  }
+  if (i < outs.length) rows.push(outs.slice(i)); // safety: never drop a player
+  if (gk.length) rows.unshift(gk); // GK is the deepest row (bottom)
+
+  const T = rows.length;
+  const placed: Placed[] = [];
+  rows.forEach((row, k) => {
+    // k=0 (GK) at the very bottom (y≈0.94), last row near the top (y≈0.08).
+    const y = T <= 1 ? 0.5 : 0.94 - (0.94 - 0.08) * (k / (T - 1));
+    row.forEach((p, j) => placed.push({ p, x: (j + 1) / (row.length + 1), y }));
+  });
+  return placed;
+}
+const pitchTeam = computed<LineupTeam | undefined>(() =>
+  pitchSide.value === 'home' ? data.value?.home : data.value?.away,
+);
+const pitchPlayers = computed(() => placeStarters(pitchTeam.value));
+const pitchFormation = computed(() => pitchTeam.value?.formation ?? null);
 function bench(team: LineupTeam | undefined): LineupPlayer[] {
   return (team?.players ?? [])
     .filter((p) => !p.starter)
@@ -116,53 +172,84 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
 
 <template>
   <section v-if="available" class="lineup">
-    <!-- team abbreviations with the list↔pitch switch centered between them -->
-    <div class="heads">
-      <span class="thead home">{{ homeName }}</span>
+    <!-- Campo ↔ Lista segmented control (dark fill = active). -->
+    <div class="seg" role="tablist" aria-label="Modo de visualização da escalação">
+      <button
+        class="segbtn"
+        :class="{ on: view === 'campo' }"
+        role="tab"
+        :aria-selected="view === 'campo'"
+        @click="view = 'campo'"
+      >
+        <AppIcon name="stadium" :size="14" :stroke="2.4" />
+        <span>Campo</span>
+      </button>
+      <button
+        class="segbtn"
+        :class="{ on: view === 'lista' }"
+        role="tab"
+        :aria-selected="view === 'lista'"
+        @click="view = 'lista'"
+      >
+        <AppIcon name="list" :size="14" :stroke="2.4" />
+        <span>Lista</span>
+      </button>
+    </div>
 
-      <div class="vsw" role="tablist" aria-label="Modo de visualização da escalação">
-        <span class="vsw-thumb" :class="{ campo: view === 'campo' }" aria-hidden="true" />
+    <!-- CAMPO: single-team tactical pitch with a home/away team toggle. -->
+    <div v-if="view === 'campo'" class="campo">
+      <div class="teampills" role="tablist" aria-label="Selecionar time">
         <button
-          class="vbtn"
-          :class="{ on: view === 'lista' }"
+          class="tpill"
+          :class="{ on: pitchSide === 'home' }"
           role="tab"
-          :aria-selected="view === 'lista'"
-          @click="view = 'lista'"
+          :aria-selected="pitchSide === 'home'"
+          @click="pitchSide = 'home'"
         >
-          <AppIcon name="list" :size="14" :stroke="2.4" />
-          <span>Lista</span>
+          <TeamBadge :team="match.homeTeam" :size="18" />
+          <span>{{ homeName }}</span>
         </button>
         <button
-          class="vbtn"
-          :class="{ on: view === 'campo' }"
+          class="tpill"
+          :class="{ on: pitchSide === 'away' }"
           role="tab"
-          :aria-selected="view === 'campo'"
-          @click="view = 'campo'"
+          :aria-selected="pitchSide === 'away'"
+          @click="pitchSide = 'away'"
         >
-          <AppIcon name="stadium" :size="14" :stroke="2.4" />
-          <span>Campo</span>
+          <TeamBadge :team="match.awayTeam" :size="18" />
+          <span>{{ awayName }}</span>
         </button>
       </div>
 
-      <span class="thead away">{{ awayName }}</span>
+      <div class="pitch">
+        <!-- markings -->
+        <span class="m-mid" />
+        <span class="m-circle" />
+        <span class="m-box top" />
+        <span class="m-box bottom" />
+
+        <!-- starters as dots, laid out by formation (GK at the bottom) -->
+        <div
+          v-for="item in pitchPlayers"
+          :key="pkey(item.p)"
+          class="pp"
+          :class="{ out: item.p.subbedOut, gk: item.p.line === 'GK' }"
+          :style="{ '--x': item.x, '--y': item.y }"
+        >
+          <span class="dot">
+            <span class="dnum">{{ item.p.jersey ?? '–' }}</span>
+            <span v-if="cardKind(item.p)" class="dcard" :class="cardKind(item.p)" />
+            <span v-if="pgoals(pitchSide, item.p).goals" class="dgoal" title="Gol">⚽</span>
+          </span>
+          <span class="chip">{{ surname(item.p.name) }}</span>
+        </div>
+      </div>
+
+      <p v-if="pitchFormation" class="fline">FORMAÇÃO · {{ pitchFormation }}</p>
     </div>
 
-    <!-- CAMPO: tactical pitch -->
-    <MatchLineupPitch
-      v-if="view === 'campo'"
-      :home="data?.home"
-      :away="data?.away"
-      :events="events"
-      :home-team="match.homeTeam"
-      :away-team="match.awayTeam"
-      :home-name="homeName"
-      :away-name="awayName"
-      :home-color="homeColor"
-      :away-color="awayColor"
-    />
-
     <!-- LISTA: starters, one team each side -->
-    <div v-else class="cols">
+    <div v-if="view === 'lista'" class="cols">
       <ul class="col home">
         <li v-for="p in starters(data?.home)" :key="pkey(p)" class="prow" :class="{ out: p.subbedOut }">
           <span class="pav">
@@ -284,69 +371,18 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   border-radius: 14px;
   padding: 14px;
 }
-.heads {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.thead {
-  font-weight: 800;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+/* Campo↔Lista segmented control — pill track, dark fill on the active cell. */
+.seg {
   display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.thead::before {
-  content: '';
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-.thead.home::before {
-  background: var(--azure, #2b7fff);
-}
-.thead.away {
-  justify-content: flex-end;
-}
-.thead.away::before {
-  order: 2;
-  background: var(--scarlet, #e23744);
-}
-/* segmented control with a sliding "thumb" (the pitch gradient) that glides
-   between Lista and Campo. Two equal flex cells; the thumb is sized to one cell
-   and translated 100% for the second. Absolute offsets are measured from the
-   padding box, so left/top:3px (= padding) and width calc(50% - 3px) make the
-   thumb match cell 1 exactly, and translateX(100%) lands it on cell 2. */
-.vsw {
-  position: relative;
-  display: flex;
+  gap: 0;
   padding: 3px;
+  margin-bottom: 14px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--bg-surface);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-.vsw-thumb {
-  position: absolute;
-  top: 3px;
-  bottom: 3px;
-  left: 3px;
-  width: calc(50% - 3px);
-  border-radius: 999px;
-  background: var(--grad-pitch);
-  box-shadow: 0 3px 10px -3px color-mix(in srgb, var(--emerald) 70%, transparent);
-  transition: transform 0.26s cubic-bezier(0.34, 1.32, 0.64, 1);
-}
-.vsw-thumb.campo {
-  transform: translateX(100%);
-}
-.vbtn {
-  position: relative;
-  z-index: 1;
+.segbtn {
   flex: 1 1 0;
   display: inline-flex;
   align-items: center;
@@ -357,21 +393,201 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   color: var(--muted);
   font-weight: 700;
   font-size: 12.5px;
-  padding: 6px 16px;
+  padding: 7px 16px;
   border-radius: 999px;
   cursor: pointer;
   white-space: nowrap;
-  transition: color 0.2s;
+  transition: background 0.2s, color 0.2s;
 }
-.vbtn:hover:not(.on) {
+.segbtn:hover:not(.on) {
   color: var(--text);
 }
-.vbtn.on {
+.segbtn.on {
+  background: var(--text);
   color: #fff;
 }
-/* the icon recolors with the label as the thumb arrives */
-.vbtn :deep(.app-icon) {
-  transition: color 0.2s;
+
+/* CAMPO ------------------------------------------------------------------- */
+.campo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+/* team toggle pills — active one filled azure */
+.teampills {
+  display: inline-flex;
+  gap: 6px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-surface);
+}
+.tpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 5px 13px 5px 7px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+.tpill:hover:not(.on) {
+  color: var(--text);
+}
+.tpill.on {
+  background: var(--azure);
+  color: #fff;
+}
+.tpill :deep(img),
+.tpill :deep(svg) {
+  flex: none;
+}
+
+/* the green field */
+.pitch {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 0.66;
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 9%, transparent 9% 18%),
+    linear-gradient(180deg, #1faa61 0%, #169152 100%);
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.12);
+}
+.m-mid,
+.m-circle,
+.m-box {
+  position: absolute;
+  pointer-events: none;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+.m-mid {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 0;
+  border-width: 2px 0 0 0;
+  transform: translateY(-50%);
+}
+.m-circle {
+  top: 50%;
+  left: 50%;
+  width: 32%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.m-box {
+  left: 50%;
+  width: 54%;
+  height: 13%;
+  transform: translateX(-50%);
+}
+.m-box.top {
+  top: 0;
+  border-top: 0;
+}
+.m-box.bottom {
+  bottom: 0;
+  border-bottom: 0;
+}
+
+/* a placed starter */
+.pp {
+  position: absolute;
+  left: calc(var(--x) * 100%);
+  top: calc(var(--y) * 100%);
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 64px;
+}
+.pp.out .dot,
+.pp.out .chip {
+  opacity: 0.5;
+}
+.dot {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  display: grid;
+  place-items: center;
+}
+.pp.gk .dot {
+  background: var(--gold);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+.dnum {
+  font-family: 'Bebas Neue', var(--font-display, sans-serif);
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.dcard {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 8px;
+  height: 11px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.dcard.yellow {
+  background: #f5c518;
+}
+.dcard.red {
+  background: var(--scarlet, #e8362b);
+}
+.dgoal {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
+}
+.chip {
+  max-width: 64px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.42);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(1px);
+}
+.fline {
+  margin: 2px 0 0;
+  font-family: 'Oswald', var(--font-display, sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  text-align: center;
 }
 .cols {
   display: grid;

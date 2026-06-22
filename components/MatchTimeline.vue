@@ -90,6 +90,9 @@ function rowTag(e: TimelineEvent): string | null {
 }
 // The danger-toned tags (red) vs the default gold ones.
 const dangerTag = (t: string) => t === 'SECOND_YELLOW' || t === 'PENALTY_MISSED';
+// Mini-gol: posição lateral (0–100, ESPN goalY) onde a bola cruzou a linha, clampada
+// pra a bolinha não colar nas traves. Só desenhado quando a ESPN deu a coordenada.
+const goalMouthLeft = (e: TimelineEvent) => `${Math.max(8, Math.min(92, e.goalY ?? 50))}%`;
 // Whistle markers (end of a period): "Intervalo" for the 1st half, "Fim de jogo"
 // for the final whistle, else "Fim do <período>".
 const lastPeriodNum = computed(() => {
@@ -190,6 +193,10 @@ function whistleLabel(period: number, label: string): string {
                 {{ surname(e.player) }}<span v-if="rowTag(e)" class="tag" :class="{ danger: dangerTag(e.type) }">{{ rowTag(e) }}</span><span v-if="isGoal(e.type) && e.detail" class="tag muted">{{ e.detail }}</span>
               </span>
               <span v-if="e.related && isGoal(e.type)" class="assist">{{ surname(e.related) }}</span>
+              <!-- mini-gol: onde a bola cruzou a linha (ESPN goalY) -->
+              <span v-if="isGoal(e.type) && e.goalY != null" class="goalmouth" :title="`Onde a bola entrou`" aria-hidden="true">
+                <span class="gm-ball" :style="{ left: goalMouthLeft(e) }" />
+              </span>
             </template>
           </span>
         </div>
@@ -440,6 +447,31 @@ function whistleLabel(period: number, label: string): string {
   content: '↳ ';
   opacity: 0.7;
 }
+/* mini-gol — quadro do gol (rede) com a bolinha na posição lateral (goalY). */
+.goalmouth {
+  position: relative;
+  margin-top: 6px;
+  width: 62px;
+  height: 24px;
+  border: 2px solid color-mix(in srgb, var(--emerald) 55%, var(--border));
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 5px, color-mix(in srgb, var(--emerald) 14%, transparent) 5px 6px),
+    repeating-linear-gradient(0deg, transparent 0 5px, color-mix(in srgb, var(--emerald) 14%, transparent) 5px 6px);
+}
+.gm-ball {
+  position: absolute;
+  top: 55%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--emerald) 25%, transparent);
+  transform: translate(-50%, -50%);
+}
+.ev.home .goalmouth { align-self: flex-end; }
+.ev.away .goalmouth { align-self: flex-start; }
 .tag {
   margin-left: 6px;
   font-size: 9px;

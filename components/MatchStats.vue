@@ -29,6 +29,41 @@ onBeforeUnmount(() => clearInterval(poll));
 const available = computed(() => !!data.value?.available);
 watch(available, (v) => emit('available', v), { immediate: true });
 
+// Agrupa as estatísticas por tema (em vez de uma lista corrida). A ordem das linhas
+// dentro do grupo segue a do backend; o que não casar com nenhum grupo cai em "Outras".
+const GROUPS: Array<{ title: string; keys: string[] }> = [
+  {
+    title: 'Posse & criação',
+    keys: [
+      'possessionPct', 'totalShots', 'shots', 'shotsOnTarget', 'shotsOnGoal',
+      'wonCorners', 'corners', 'offsides', 'crosses', 'bigChances', 'shotsInsideBox',
+    ],
+  },
+  { title: 'Disciplina', keys: ['foulsCommitted', 'fouls', 'yellowCards', 'redCards'] },
+  {
+    title: 'Passe & defesa',
+    keys: [
+      'accuratePasses', 'passes', 'totalPasses', 'passPct', 'saves',
+      'tackles', 'interceptions', 'clearances', 'blockedShots',
+    ],
+  },
+];
+const groups = computed(() => {
+  const rows = data.value?.rows ?? [];
+  const placed = new Set<string>();
+  const out: Array<{ title: string; items: StatRow[] }> = [];
+  for (const g of GROUPS) {
+    const items = rows.filter((r) => g.keys.includes(r.key));
+    items.forEach((r) => placed.add(r.key));
+    if (items.length) out.push({ title: g.title, items });
+  }
+  const rest = rows.filter((r) => !placed.has(r.key));
+  if (rest.length) out.push({ title: 'Outras', items: rest });
+  return out;
+});
+const homeName = computed(() => props.match.homeTeam?.shortName ?? props.match.homeTeam?.name ?? '');
+const awayName = computed(() => props.match.awayTeam?.shortName ?? props.match.awayTeam?.name ?? '');
+
 function num(v: string | null): number {
   const n = parseFloat((v ?? '').replace(',', '.'));
   return Number.isNaN(n) ? 0 : n;
@@ -46,15 +81,28 @@ function fmt(v: string | null, key: string): string {
 
 <template>
   <section v-if="available" class="stats">
-    <div v-for="r in data?.rows ?? []" :key="r.key" class="srow">
-      <div class="shead">
-        <span class="sval">{{ fmt(r.home, r.key) }}</span>
-        <span class="slbl">{{ r.label }}</span>
-        <span class="sval">{{ fmt(r.away, r.key) }}</span>
-      </div>
-      <div class="sbar">
-        <span class="bh" :style="{ width: `${homePct(r)}%` }" />
-        <span class="ba" :style="{ width: `${100 - homePct(r)}%` }" />
+    <header class="stats-head">
+      <span class="sh-team">
+        <TeamBadge :team="match.homeTeam" :size="24" />
+        <b>{{ homeName }}</b>
+      </span>
+      <span class="sh-team end">
+        <b>{{ awayName }}</b>
+        <TeamBadge :team="match.awayTeam" :size="24" />
+      </span>
+    </header>
+    <div v-for="g in groups" :key="g.title" class="sgroup">
+      <h4 class="sg-title">{{ g.title }}</h4>
+      <div v-for="r in g.items" :key="r.key" class="srow">
+        <div class="shead">
+          <span class="sval">{{ fmt(r.home, r.key) }}</span>
+          <span class="slbl">{{ r.label }}</span>
+          <span class="sval">{{ fmt(r.away, r.key) }}</span>
+        </div>
+        <div class="sbar">
+          <span class="bh" :style="{ width: `${homePct(r)}%` }" />
+          <span class="ba" :style="{ width: `${100 - homePct(r)}%` }" />
+        </div>
       </div>
     </div>
   </section>
@@ -65,7 +113,43 @@ function fmt(v: string | null, key: string): string {
   margin-top: 4px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
+}
+.stats-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.sh-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  min-width: 0;
+}
+.sh-team.end { justify-content: flex-end; }
+.sh-team b { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sgroup { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.sg-title {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sg-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }
 .shead {
   display: grid;

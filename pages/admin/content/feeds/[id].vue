@@ -26,6 +26,7 @@ const form = reactive({
   mrBlocks: {
     identificacao: true, gols: true, cartoes: true, substituicoes: true, escalacoes: true,
     estatisticas: true, lancesNotaveis: true, classificacao: true, proximaRodada: true,
+    narracaoEspn: true,
   } as Record<string, boolean>,
   focus: '',
   defaultToneId: '',
@@ -46,6 +47,7 @@ const BLOCK_DEFS: { key: string; label: string; hint: string }[] = [
   { key: 'lancesNotaveis', label: 'Lances notáveis', hint: 'defesas, trave, VAR (limitado pelo teto)' },
   { key: 'classificacao', label: 'Classificação', hint: 'tabela do grupo após o jogo' },
   { key: 'proximaRodada', label: 'Próxima rodada', hint: 'o que vem na sequência' },
+  { key: 'narracaoEspn', label: 'Narração (ESPN)', hint: 'narração humana lance a lance da ESPN — enriquece o texto' },
 ];
 
 interface SeasonOpt { id: string; name: string; seasonLabel: string | null; competition?: { name: string } | null }

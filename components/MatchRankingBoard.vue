@@ -45,6 +45,20 @@ const stadiumLocation = computed(() => {
 // Stadium photo (Wikimedia, mirrored to R2) — painted behind the hero gradient.
 const stadiumPhoto = computed(() => props.match.stadium?.photoUrl ?? null);
 const stadiumCredit = computed(() => props.match.stadium?.photoCredit ?? null);
+// Contexto da partida (torneio · grupo/fase · rodada) — destaque no topo do hero,
+// pra dar o enquadramento de imediato (antes só aparecia na aba Informações).
+const heroContext = computed(() => {
+  const m = props.match;
+  const parts: string[] = [];
+  if (m.season?.name) parts.push(m.season.name);
+  if (m.groupName) parts.push(`Grupo ${m.groupName}`);
+  else if (m.phaseLabel) parts.push(m.phaseLabel);
+  if (m.round?.number != null) parts.push(`Rodada ${m.round.number}`);
+  return parts.join(' · ');
+});
+// O estádio vira VITRINE (foto protagonista) na aba Informações; os demais campos
+// viram um mosaico de tiles. Estádio/Local saem do mosaico (moram na vitrine).
+const hasVenue = computed(() => !!props.match.stadium?.name);
 const infoRows = computed(() => {
   const m = props.match;
   const rows: Array<{ icon: string; label: string; value: string }> = [];
@@ -54,13 +68,17 @@ const infoRows = computed(() => {
   // Matchday (number) only — a knockout round.name would just repeat phaseLabel.
   if (m.round?.number != null) rows.push({ icon: 'refresh', label: 'Rodada', value: `Rodada ${m.round.number}` });
   if (kickoffText.value) rows.push({ icon: 'clock', label: 'Data', value: kickoffText.value });
-  if (m.stadium?.name) rows.push({ icon: 'stadium', label: 'Estádio', value: m.stadium.name });
-  if (stadiumLocation.value) rows.push({ icon: 'mapPin', label: 'Local', value: stadiumLocation.value });
-  if (m.attendance) rows.push({ icon: 'users', label: 'Público', value: m.attendance.toLocaleString('pt-BR') });
+  // Público SEMPRE presente — mostra "—" enquanto a ESPN não fornece (chega após o jogo).
+  rows.push({
+    icon: 'users',
+    label: 'Público',
+    value: m.attendance ? m.attendance.toLocaleString('pt-BR') : '—',
+  });
   if (m.referee) rows.push({ icon: 'user', label: 'Árbitro', value: m.referee });
   return rows;
 });
-const infoAvailable = computed(() => infoRows.value.length > 0);
+// A aba existe sempre que houver vitrine OU qualquer fato (público garante ≥1).
+const infoAvailable = computed(() => hasVenue.value || infoRows.value.length > 0);
 // At halftime the ESPN robot freezes the clock to "Intervalo" — show a pause
 // glyph instead of the pulsing live (rec) dot, since play is stopped.
 const atHalftime = computed(() => /intervalo/i.test(props.match.liveClock ?? ''));
@@ -285,6 +303,10 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         <div v-if="canNotify" class="rhead-actions">
           <MatchNotifyBell :match="match" :size="17" pill />
         </div>
+        <div v-if="heroContext" class="ctx-pill">
+          <AppIcon name="trophy" :size="13" :stroke="2" />
+          <span>{{ heroContext }}</span>
+        </div>
         <div class="result">
           <div class="side" :class="{ win: homeWins, lose: awayWins }">
             <TeamBadge :team="match.homeTeam" :placeholder="match.homeSourceLabel" :size="58" />
@@ -490,14 +512,37 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
       <div v-show="activeTab === 'stats'" class="lntab">
         <MatchStats :match="match" :active="activeTab === 'stats'" />
       </div>
-      <div v-show="activeTab === 'info'" class="lntab">
-        <dl class="info-card">
-          <div v-for="r in infoRows" :key="r.label" class="info-row">
-            <AppIcon :name="r.icon" :size="16" :stroke="2" class="info-ic" />
-            <dt class="info-lbl">{{ r.label }}</dt>
-            <dd class="info-val">{{ r.value }}</dd>
+      <div v-show="activeTab === 'info'" class="lntab info-pane">
+        <!-- Vitrine do estádio: a foto vira protagonista, com nome/local sobreposto. -->
+        <div v-if="hasVenue" class="venue" :class="{ 'has-photo': stadiumPhoto }">
+          <template v-if="stadiumPhoto">
+            <img class="venue-photo" :src="stadiumPhoto" alt="" aria-hidden="true" >
+            <div class="venue-grad" aria-hidden="true" />
+          </template>
+          <div class="venue-body">
+            <span class="venue-kicker"><AppIcon name="stadium" :size="13" :stroke="2" /> Estádio</span>
+            <h3 class="venue-name">{{ match.stadium?.name }}</h3>
+            <p v-if="stadiumLocation" class="venue-loc">{{ stadiumLocation }}</p>
           </div>
-        </dl>
+          <a
+            v-if="stadiumPhoto && stadiumCredit"
+            class="venue-credit"
+            :href="match.stadium?.photoSourceUrl || undefined"
+            target="_blank"
+            rel="noopener nofollow"
+            :title="`Foto: ${stadiumCredit}`"
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            {{ stadiumCredit }}
+          </a>
+        </div>
+        <!-- Mosaico de fatos — valor grande, rótulo pequeno. Data ocupa a linha toda. -->
+        <div class="mosaic">
+          <div v-for="r in infoRows" :key="r.label" class="mtile" :class="{ wide: r.label === 'Data' }">
+            <span class="mt-lbl"><AppIcon :name="r.icon" :size="13" :stroke="2" class="mt-ic" />{{ r.label }}</span>
+            <span class="mt-val">{{ r.value }}</span>
+          </div>
+        </div>
       </div>
       <div v-show="activeTab === 'classificacao'" class="lntab">
         <slot name="classificacao" />
@@ -556,9 +601,10 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 /* RESULTADO */
 .msticky {
   position: sticky;
-  /* <main> is the scroll container (app-shell), so stick at the top of its
-     scrollport (0). The tournament shell's .thead sits above us → see has-thead. */
-  top: 0;
+  /* O documento rola (não há scroll interno); o header global é sticky no topo,
+     então colamos logo ABAIXO dele (--header-h = 0 no mobile, 63px no desktop).
+     A .thead do shell de torneio entra acima de nós → ver has-thead. */
+  top: var(--header-h, 0px);
   z-index: 20;
   background: var(--bg-surface);
   /* opaque space below the chips (padding, not the tab's margin, so it doesn't
@@ -568,12 +614,17 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 /* Inside the tournament shell (hideBack → has-thead) the slim 52px .thead sits
    above the score block, so stick below the header *and* that thead. */
 .detail.has-thead .msticky {
-  top: 52px;
+  top: calc(var(--header-h, 0px) + 52px);
 }
 .result-head {
   position: relative;
   z-index: 2;
   padding: 16px 20px 20px;
+  /* Quinas superiores arredondadas no padrão do projeto (raio do .card) — o board
+     "sobe" como uma folha logo abaixo do header. overflow:hidden para a foto do
+     estádio (absolute inset:0) respeitar o raio. */
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
   background-image: linear-gradient(135deg, rgba(15, 179, 107, 0.16), rgba(30, 127, 240, 0.14));
 }
 .rhead-actions {
@@ -582,6 +633,30 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   right: 12px;
   z-index: 4;
 }
+/* Pílula de contexto (Copa · Grupo · Rodada) — dourada, no topo do hero. */
+.ctx-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 14px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text);
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border));
+  max-width: 100%;
+}
+.ctx-pill span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ctx-pill :deep(svg) { flex: none; color: var(--gold); }
 .detail.live .result-head {
   background: linear-gradient(135deg, rgba(232, 54, 43, 0.14), rgba(224, 33, 138, 0.1));
 }
@@ -613,11 +688,13 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 /* conteúdo acima das camadas de foto/gradiente */
 .result-head.has-photo > .rhead-top,
+.result-head.has-photo > .ctx-pill,
 .result-head.has-photo > .result,
 .result-head.has-photo > .rstate {
   position: relative;
   z-index: 2;
 }
+.result-head.has-photo .ctx-pill { color: #fff; }
 .result-head.has-photo .tname { color: #fff; }
 .result-head.has-photo .colon { color: rgba(255, 255, 255, 0.6); }
 .result-head.has-photo .back { color: rgba(255, 255, 255, 0.82); }
@@ -722,9 +799,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   align-items: center;
   gap: 9px;
   min-width: 0;
-  transition: opacity 0.2s;
 }
-.side.lose { opacity: 0.5; }
 .tname {
   font-size: 13.5px;
   font-weight: 700;
@@ -747,7 +822,8 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .body {
   position: relative;
   z-index: 2;
-  padding: 18px 20px 20px;
+  /* Sem padding lateral — o conteúdo da aba Bolão ocupa toda a largura. */
+  padding: 18px 0 20px;
 }
 
 /* editor */
@@ -1027,40 +1103,125 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   z-index: 2;
   padding: 8px 20px 22px;
 }
+/* Aba Informações: sem padding lateral — o info-card ocupa toda a largura. */
+.info-pane {
+  padding-left: 0;
+  padding-right: 0;
+}
 
-/* Informações tab — tournament + venue metadata as an icon'd definition list. */
-.info-card {
+/* Informações tab — vitrine do estádio + mosaico de tiles. */
+.venue {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 150px;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--emerald) 18%, var(--bg-base)), color-mix(in srgb, var(--azure) 16%, var(--bg-base)));
+  border: 1px solid var(--border);
+}
+.venue.has-photo { color: #fff; border-color: transparent; }
+.venue-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.venue-grad {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(8, 12, 18, 0.08), rgba(8, 12, 18, 0.78));
+}
+.venue-body { position: relative; z-index: 2; }
+.venue-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+  margin-bottom: 5px;
+}
+.venue.has-photo .venue-kicker { color: rgba(255, 255, 255, 0.85); }
+.venue:not(.has-photo) .venue-kicker { color: var(--muted); }
+.venue-name {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 25px;
+  line-height: 1;
+  text-transform: uppercase;
   margin: 0;
+}
+.venue-loc { font-size: 13px; font-weight: 600; margin: 4px 0 0; }
+.venue.has-photo .venue-loc { color: rgba(255, 255, 255, 0.9); }
+.venue:not(.has-photo) .venue-loc { color: var(--muted); }
+.venue-credit {
+  position: absolute;
+  right: 9px;
+  bottom: 6px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 70%;
+  font-size: 8.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.58);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.venue-credit svg { flex: none; }
+.venue-credit:hover { color: rgba(255, 255, 255, 0.9); }
+
+.mosaic {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mtile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   background: var(--bg-base);
   border: 1px solid var(--border);
   border-radius: 14px;
-  overflow: hidden;
+  padding: 13px 14px;
+  min-width: 0;
 }
-.info-row {
-  display: grid;
-  grid-template-columns: 22px 86px 1fr;
+.mtile.wide { grid-column: 1 / -1; }
+.mt-lbl {
+  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 13px 16px;
-}
-.info-row + .info-row {
-  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-}
-.info-ic { color: var(--muted); }
-.info-lbl {
-  font-size: 11px;
+  gap: 6px;
+  font-size: 10.5px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
 }
-.info-val {
-  font-size: 13.5px;
-  font-weight: 700;
+.mt-ic { color: var(--muted); flex: none; }
+.mt-val {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.1;
   color: var(--text);
-  text-align: right;
-  min-width: 0;
+  word-break: break-word;
+}
+/* No desktop o mosaico ganha mais colunas. */
+@media (min-width: 720px) {
+  .mosaic { grid-template-columns: repeat(3, 1fr); }
+  .mtile.wide { grid-column: span 1; }
 }
 </style>
