@@ -256,6 +256,7 @@ export interface NewsCard {
   tags: TermRef[];
   imageAlt: string;
   publishedAt: string;
+  updatedAt: string;
   source: string | null;
 }
 

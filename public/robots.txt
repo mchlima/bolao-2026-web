@@ -13,3 +13,4 @@ Disallow: /entrar
 Disallow: /cadastro
 
 Sitemap: https://cravei.app/sitemap.xml
+Sitemap: https://cravei.app/news-sitemap.xml

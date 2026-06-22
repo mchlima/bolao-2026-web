@@ -105,18 +105,19 @@ export default defineEventHandler(async (event) => {
     /* keep what we have. */
   }
 
-  // News → each published article (organic-traffic surface).
+  // News → each published article (organic-traffic surface). lastmod = updatedAt
+  // (reflete edições/republicação), com fallback p/ publishedAt.
   try {
     const news = await $fetch<{
-      data: { slug: string; publishedAt?: string }[];
-    }>(`${api}/content/news?pageSize=200`);
+      data: { slug: string; publishedAt?: string; updatedAt?: string }[];
+    }>(`${api}/content/news?pageSize=100`);
     for (const n of news.data ?? []) {
       if (!n.slug) continue;
       urls.push({
         loc: `/noticias/${n.slug}`,
         priority: 0.6,
         changefreq: 'weekly',
-        lastmod: n.publishedAt,
+        lastmod: n.updatedAt ?? n.publishedAt,
       });
     }
   } catch {
