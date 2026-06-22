@@ -33,6 +33,7 @@ export default defineEventHandler(async (event) => {
 
   const urls: SitemapUrl[] = [
     { loc: '/', priority: 1.0, changefreq: 'daily' },
+    { loc: '/bolao-da-copa-do-mundo-2026', priority: 0.9, changefreq: 'weekly' },
     { loc: '/como-funciona', priority: 0.8, changefreq: 'monthly' },
     { loc: '/futebol/agenda', priority: 0.8, changefreq: 'hourly' },
     { loc: '/futebol/torneios', priority: 0.7, changefreq: 'daily' },

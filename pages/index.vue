@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FollowingView, Match, Paginated, Prediction, Tournament } from '~/types/api';
+import { BOLAO_FAQ, faqJsonLd } from '~/utils/bolaoFaq';
 // Single home for everyone (default layout → AppHeader + bottom nav). Logged-out
 // visitors also get the marketing pitch below the portal; logged-in users see
 // just the portal (torneios + próximos jogos) — same início as the public one.
@@ -169,6 +170,7 @@ useHead({
         ],
       }),
     },
+    { key: 'ld-faq', type: 'application/ld+json', innerHTML: JSON.stringify(faqJsonLd()) },
   ],
 });
 
@@ -332,7 +334,7 @@ const ranking = [
         <div class="hero-text">
           <span class="eyebrow">Copa do Mundo · 2026</span>
           <h1 class="font-display title">
-            O bolão da Copa<br />que a sua turma<br /><span class="hl">vai levar a sério</span>
+            O bolão da Copa do Mundo 2026<br />que a sua turma<br /><span class="hl">vai levar a sério</span>
           </h1>
           <p class="lead">
             Crave os placares dos 104 jogos, monte bolões privados com a galera e
@@ -532,6 +534,20 @@ const ranking = [
       </div>
     </section>
 
+    <!-- FAQ (SEO: responde "o que é / é grátis / como criar" o bolão da Copa) -->
+    <section class="block faq-home">
+      <header class="sec-head">
+        <h2 class="font-display sec-title">Perguntas frequentes</h2>
+        <p class="sec-lead">Tudo sobre o <NuxtLink to="/bolao-da-copa-do-mundo-2026" class="lead-link">bolão da Copa do Mundo 2026</NuxtLink>.</p>
+      </header>
+      <div class="faq-list">
+        <details v-for="(f, i) in BOLAO_FAQ" :key="i">
+          <summary>{{ f.q }}</summary>
+          <p>{{ f.a }}</p>
+        </details>
+      </div>
+    </section>
+
     <!-- FINAL CTA -->
     <section class="final">
       <div class="glow glow-c" aria-hidden="true" />
@@ -560,6 +576,13 @@ const ranking = [
 .land-page {
   padding: 10px;
 }
+.faq-home { max-width: 760px; margin-left: auto; margin-right: auto; }
+.lead-link { color: var(--azure); text-decoration: none; }
+.lead-link:hover { text-decoration: underline; }
+.faq-list { display: flex; flex-direction: column; gap: 8px; }
+.faq-list details { border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; background: var(--bg-surface); }
+.faq-list summary { font-weight: 700; font-size: 15px; cursor: pointer; }
+.faq-list details p { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 8px 0 0; }
 .welcome {
   margin: 4px 0 22px;
 }

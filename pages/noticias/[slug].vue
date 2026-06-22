@@ -147,8 +147,8 @@ useHead({
     </div>
 
     <aside class="art-cta">
-      <p>Curtiu? No <strong>Cravei</strong> você palpita nos jogos e disputa o bolão com a galera.</p>
-      <NuxtLink to="/" class="btn btn-primary">Entrar no bolão</NuxtLink>
+      <p>Curtiu? Faça seu <strong>bolão da Copa do Mundo 2026</strong> no Cravei e dispute os palpites com a galera.</p>
+      <NuxtLink to="/bolao-da-copa-do-mundo-2026" class="btn btn-primary">Criar bolão da Copa do Mundo 2026</NuxtLink>
     </aside>
   </article>
 </template>
