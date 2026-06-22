@@ -16,6 +16,10 @@ const streamEl = ref<HTMLElement | null>(null);
 // Tempo automático ligado = usa o relógio ao vivo; desligado = input manual (pode ir vazio).
 const autoTime = ref(true);
 const manualTime = ref('');
+// Edição inline de um comentário (mantém a posição — ordena por createdAt, que não muda).
+const editingId = ref<string | null>(null);
+const editText = ref('');
+const editMinute = ref('');
 
 function err(e: unknown) {
   ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro');
@@ -66,6 +70,30 @@ async function removeNote(id: string) {
   try {
     await useApi()(`/admin/matches/${matchId}/notes/${id}`, { method: 'DELETE' });
   } catch (e) { notes.value = prev; err(e); }
+}
+
+function startEdit(n: MatchNote) {
+  editingId.value = n.id;
+  editText.value = n.text;
+  editMinute.value = n.minute ?? '';
+}
+function cancelEdit() { editingId.value = null; }
+async function saveEdit() {
+  const id = editingId.value;
+  const t = editText.value.trim();
+  if (!id || !t) return;
+  try {
+    const updated = await useApi()<MatchNote>(`/admin/matches/${matchId}/notes/${id}`, {
+      method: 'PATCH',
+      body: { text: t, minute: editMinute.value.trim() || null },
+    });
+    notes.value = notes.value.map((n) => (n.id === id ? updated : n)); // mesma posição
+    editingId.value = null;
+  } catch (e) { err(e); }
+}
+function onEditKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void saveEdit(); }
+  else if (e.key === 'Escape') { cancelEdit(); }
 }
 
 async function generate(force = false) {
@@ -134,12 +162,25 @@ function fmtTime(iso: string): string {
       <section class="card adm-panel chat">
         <div ref="streamEl" class="stream">
           <p v-if="!notes.length" class="empty">Comece a narrar — escreva o que você vê. Cada comentário entra como fato da matéria.</p>
-          <div v-for="n in notes" :key="n.id" class="msg">
-            <div class="msg-body"><span v-if="n.minute" class="msg-min">{{ n.minute }}</span>{{ n.text }}</div>
-            <div class="msg-foot">
-              <span class="msg-time">{{ fmtTime(n.createdAt) }}</span>
-              <button class="msg-del" title="Excluir" @click="removeNote(n.id)"><AppIcon name="close" :size="12" :stroke="2.4" /></button>
-            </div>
+          <div v-for="n in notes" :key="n.id" class="msg" :class="{ editing: editingId === n.id }">
+            <template v-if="editingId === n.id">
+              <div class="edit-row">
+                <input v-model="editMinute" class="input edit-min" maxlength="12" placeholder="tempo" />
+                <textarea v-model="editText" class="input edit-ta" rows="2" @keydown="onEditKeydown" />
+              </div>
+              <div class="edit-acts">
+                <button class="btn btn-sm" @click="cancelEdit">Cancelar</button>
+                <button class="btn btn-sm btn-primary" :disabled="!editText.trim()" @click="saveEdit">Salvar</button>
+              </div>
+            </template>
+            <template v-else>
+              <div class="msg-body"><span v-if="n.minute" class="msg-min">{{ n.minute }}</span>{{ n.text }}</div>
+              <div class="msg-foot">
+                <span class="msg-time">{{ fmtTime(n.createdAt) }}</span>
+                <button class="msg-act" title="Editar" @click="startEdit(n)"><AppIcon name="edit" :size="12" :stroke="2.2" /></button>
+                <button class="msg-act del" title="Excluir" @click="removeNote(n.id)"><AppIcon name="close" :size="12" :stroke="2.4" /></button>
+              </div>
+            </template>
           </div>
         </div>
         <div class="composer">
@@ -206,9 +247,16 @@ function fmtTime(iso: string): string {
 .msg-min { display: inline-block; font-size: 11px; font-weight: 800; color: var(--azure); background: color-mix(in srgb, var(--azure) 12%, transparent); border-radius: 5px; padding: 1px 6px; margin-right: 7px; vertical-align: 1px; font-variant-numeric: tabular-nums; }
 .msg-foot { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
 .msg-time { font-size: 10.5px; color: var(--muted); font-weight: 600; }
-.msg-del { display: inline-flex; border: none; background: none; color: var(--muted); cursor: pointer; padding: 1px; border-radius: 4px; opacity: 0; transition: opacity 0.12s, color 0.12s; }
-.msg:hover .msg-del { opacity: 1; }
-.msg-del:hover { color: var(--scarlet); }
+.msg-act { display: inline-flex; border: none; background: none; color: var(--muted); cursor: pointer; padding: 1px; border-radius: 4px; opacity: 0; transition: opacity 0.12s, color 0.12s; }
+.msg:hover .msg-act { opacity: 1; }
+.msg-act:hover { color: var(--azure); }
+.msg-act.del:hover { color: var(--scarlet); }
+.msg.editing { align-self: stretch; max-width: 100%; background: var(--bg-surface); }
+.edit-row { display: flex; gap: 6px; }
+.edit-min { flex: 0 0 70px; font-size: 12px; padding: 6px 8px; }
+.edit-ta { flex: 1; resize: none; font-size: 14px; }
+.edit-acts { display: flex; justify-content: flex-end; gap: 6px; margin-top: 6px; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
 .composer { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-top: 1px solid var(--border); background: var(--bg-surface); }
 .time-ctl { display: flex; align-items: center; gap: 10px; }
 .autochk { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--text); cursor: pointer; user-select: none; white-space: nowrap; }
