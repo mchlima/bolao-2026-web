@@ -10,6 +10,8 @@ const props = defineProps<{ matchId: string }>();
 const api = useApi();
 const auth = useAuthStore();
 const authLink = useAuthLink();
+const route = useRoute();
+const router = useRouter();
 const { data: preview } = await useAsyncData(`preview-${props.matchId}`, () =>
   api<MatchPreview>(`/matches/${props.matchId}/preview`),
 );
@@ -24,12 +26,29 @@ const lede = computed(
     `Forma recente, retrospecto e os artilheiros de ${homeName.value} e ${awayName.value} reunidos — pra você cravar o placar com mais embasamento.`,
 );
 
-// Fechamento → rampa pro palpite: rola suave até o stepper no topo (board). Se o
-// stepper não estiver montado (ex.: jogo fechado), cai pro cabeçalho fixo do placar.
-function scrollToPalpite() {
+// Fechamento → rampa pro palpite. O board deriva a aba ativa da URL (segmento
+// [[aba]]); se o usuário está em outra aba, o stepper está escondido (v-show) —
+// então primeiro voltamos pra aba "Bolão" (remove o segmento) e só depois rolamos
+// até o stepper, posicionado logo abaixo do cabeçalho fixo (placar+abas).
+async function scrollToPalpite() {
   if (!import.meta.client) return;
-  const el = document.querySelector('.mypred') || document.querySelector('.msticky');
-  el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Garante a aba "Bolão" ativa (onde mora o stepper de palpite).
+  const aba = route.params.aba as string | undefined;
+  if (aba) {
+    const base = route.path.replace(/\/$/, '').slice(0, -(aba.length + 1));
+    await router.replace(base);
+    await nextTick();
+  }
+  const el = document.querySelector('.mypred') as HTMLElement | null;
+  if (el && el.offsetParent !== null) {
+    const sticky = document.querySelector('.msticky') as HTMLElement | null;
+    const offset = (sticky?.offsetHeight ?? 0) + 12;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  } else {
+    // sem stepper (jogo fechado) → topo do board, já na aba Bolão.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 // Grupo de letra única ("C", "J") vira "Grupo C"; nome de liga ("Série A") fica como está.
 const tableLabel = computed(() => {
