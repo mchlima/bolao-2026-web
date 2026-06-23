@@ -12,6 +12,9 @@ defineProps<{
 }>();
 
 const tz = useTz();
+// Resolve o componente real — `:is="'NuxtLink'"` (string) NÃO resolve aqui e
+// renderiza um <NuxtLink> inerte (não vira <a href>, card não clica).
+const NuxtLink = resolveComponent('NuxtLink');
 
 function rowTo(m: Match): string | null {
   if (!m.homeTeam || !m.awayTeam) return null;
@@ -139,7 +142,7 @@ onMounted(() => nextTick(onScroll));
 
       <div ref="track" class="msr" @scroll.passive="onScroll" @wheel="onWheel">
         <component
-          :is="rowTo(m) ? 'NuxtLink' : 'div'"
+          :is="rowTo(m) ? NuxtLink : 'div'"
           v-for="m in matches"
           :key="m.id"
           :to="rowTo(m) || undefined"

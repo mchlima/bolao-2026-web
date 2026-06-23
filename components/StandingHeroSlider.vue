@@ -6,6 +6,9 @@ import type { MyStandingsResponse } from '~/types/api';
 // /me/standings and re-fetches live as goals/results land (subscribes to every
 // tournament shown). Falls back to nothing rendered when the user plays no scope.
 const api = useApi();
+// Resolve o componente real — `:is="'NuxtLink'"` (string) NÃO resolve aqui e
+// renderiza um <NuxtLink> inerte (não vira <a href>).
+const NuxtLink = resolveComponent('NuxtLink');
 const { data, refresh } = await useAsyncData('home-standings', () =>
   api<MyStandingsResponse>('/me/standings'),
 );
@@ -116,7 +119,7 @@ const atEnd = computed(() => active.value >= slides.value.length - 1);
            predicted (me != null). While me is null the card shows its own "fazer
            palpites" CTA link, so wrapping it would nest <a> in <a>. -->
       <component
-        :is="s.me ? 'NuxtLink' : 'div'"
+        :is="s.me ? NuxtLink : 'div'"
         v-for="s in slides"
         :key="s.key"
         :to="s.me ? s.linkTo : undefined"

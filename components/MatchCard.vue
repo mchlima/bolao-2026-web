@@ -15,6 +15,9 @@ const props = withDefaults(
 );
 
 const tz = useTz();
+// Resolve o componente real — `:is="'NuxtLink'"` (string) NÃO resolve aqui e
+// renderiza um <NuxtLink> inerte (não vira <a href>, card não clica).
+const NuxtLink = resolveComponent('NuxtLink');
 
 function rowTo(m: Match): string | null {
   if (!m.homeTeam || !m.awayTeam) return null;
@@ -77,7 +80,7 @@ function statusText(m: Match): string {
 <template>
   <div class="mc-list">
     <component
-      :is="rowTo(m) ? 'NuxtLink' : 'div'"
+      :is="rowTo(m) ? NuxtLink : 'div'"
       v-for="m in matches"
       :key="m.id"
       :to="rowTo(m) || undefined"
