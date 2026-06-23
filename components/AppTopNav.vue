@@ -4,7 +4,7 @@
 // aninhada (useNavTree). Aqui ela vira dropdowns horizontais: passar o mouse (ou
 // focar) num pilar abre o painel com a sub-árvore já expandida; clicar no pilar
 // navega pra seção. Some no mobile (lá vale o drawer) — ver AppHeader.
-const { newsTree, championships, bolaoChildren, bolaoRoot } = useNavTree();
+const { newsTree, championships, bolaoFlat, bolaoRanking, bolaoRoot } = useNavTree();
 const route = useRoute();
 
 // Qual dropdown está aberto. '' = nenhum. Pequeno atraso ao sair pra não fechar
@@ -90,13 +90,22 @@ watch(() => route.fullPath, () => close());
     <div class="tgroup" @mouseenter="enter('bolao')" @mouseleave="leave" @focusin="enter('bolao')" @focusout="leave">
       <NuxtLink :to="bolaoRoot" class="titem bolao" :class="{ on: active('/boloes') }">
         Bolão
-        <AppIcon v-if="bolaoChildren.length" name="chevronDown" :size="14" :stroke="2.4" class="tcar" :class="{ on: open === 'bolao' }" />
+        <AppIcon v-if="bolaoFlat.length || bolaoRanking.length" name="chevronDown" :size="14" :stroke="2.4" class="tcar" :class="{ on: open === 'bolao' }" />
       </NuxtLink>
       <Transition name="dd">
-        <div v-if="open === 'bolao' && bolaoChildren.length" class="ddpanel narrow">
-          <ul class="ddtree flat">
-            <li v-for="b in bolaoChildren" :key="b.to">
+        <div v-if="open === 'bolao' && (bolaoFlat.length || bolaoRanking.length)" class="ddpanel narrow">
+          <ul class="ddtree">
+            <li v-for="b in bolaoFlat" :key="b.to" class="ddflatitem">
               <NuxtLink :to="b.to" class="dd-head">{{ b.label }}</NuxtLink>
+            </li>
+            <!-- Ranking = bloco pai com as competições indentadas (igual Campeonatos) -->
+            <li v-if="bolaoRanking.length" class="ddblock">
+              <span class="dd-head as-parent">Ranking</span>
+              <ul class="dd-sub">
+                <li v-for="r in bolaoRanking" :key="r.to">
+                  <NuxtLink :to="r.to" class="dd-link">{{ r.label }}</NuxtLink>
+                </li>
+              </ul>
             </li>
           </ul>
         </div>
@@ -238,6 +247,13 @@ watch(() => route.fullPath, () => close());
 }
 .dd-head:hover {
   background: var(--bg-surface);
+}
+/* "Ranking" é rótulo-pai (não navega) — sem hover/cursor de clique. */
+.dd-head.as-parent {
+  cursor: default;
+}
+.dd-head.as-parent:hover {
+  background: transparent;
 }
 .dd-head.router-link-active {
   color: var(--azure);

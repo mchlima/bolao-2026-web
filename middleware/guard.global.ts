@@ -11,7 +11,9 @@ const isPublicPath = (path: string): boolean =>
   path === '/futebol' ||
   path.startsWith('/futebol/') ||
   path === '/noticias' ||
-  path.startsWith('/noticias/');
+  path.startsWith('/noticias/') ||
+  // Ranking público do bolão por competição (BOLÃO > Ranking > <competição>).
+  path.startsWith('/boloes/ranking/');
 
 export default defineNuxtRouteMiddleware((to) => {
   // Legacy routes moved under the sport namespace — redirect (keeps old links/SEO).
@@ -85,6 +87,9 @@ export default defineNuxtRouteMiddleware((to) => {
   }
   // Personal home merged into the portal home — keep old links/bookmarks working.
   if (to.path === '/home') return navigateTo('/');
+  // A "posição pessoal" (/boloes/ranking) foi removida — manda pra área de bolões
+  // (sem becos sem saída; o ranking público por competição vive em /boloes/ranking/:slug).
+  if (to.path === '/boloes/ranking') return navigateTo('/boloes');
 
   const auth = useAuthStore();
 

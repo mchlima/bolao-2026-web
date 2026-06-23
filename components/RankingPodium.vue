@@ -3,7 +3,9 @@ import type { RankingResponse } from '~/types/api';
 
 // Podium panel: header (label + total + share) over the top-3 pedestals.
 // Extracted from RankingBoard so it can also stand alone on the pool overview.
-const props = defineProps<{ data: RankingResponse; title: string; subtitle?: string }>();
+// `detailed` mostra cravadas + partidas pontuadas sob os pontos (ranking público
+// da competição); nos demais usos (bolão) o pódio segue só com os pontos.
+const props = defineProps<{ data: RankingResponse; title: string; subtitle?: string; detailed?: boolean }>();
 
 const entries = computed(() => props.data.entries ?? []);
 const total = computed(() => props.data.totalParticipants ?? entries.value.length);
@@ -40,7 +42,8 @@ function color(id: string): string {
     </div>
 
     <div class="podium">
-      <div v-for="{ e, slot } in podium" :key="e.user.id" class="pcol">
+      <div v-for="{ e, slot } in podium" :key="e.user.id" class="pcol" :class="{ champ: slot === 0 }">
+        <AppIcon v-if="slot === 0" name="trophy" :size="20" :stroke="2" class="pcrown" />
         <div
           class="pavatar"
           :style="{ background: color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 22px -4px ${MEDALS[slot]}` }"
@@ -50,6 +53,11 @@ function color(id: string): string {
         </div>
         <div class="pname">{{ e.user.name }}</div>
         <div class="font-numeric ppts" :style="{ color: MEDALS[slot] }">{{ e.points }}</div>
+        <div class="ppts-l">pts</div>
+        <div v-if="detailed" class="pstats">
+          <span class="ps"><b class="font-numeric">{{ e.exactCount }}</b><i>crav</i></span>
+          <span class="ps"><b class="font-numeric">{{ e.scoredCount }}</b><i>pont</i></span>
+        </div>
         <div
           class="pbar"
           :style="{ height: HEIGHTS[slot], background: `linear-gradient(180deg, ${MEDALS[slot]}, transparent)` }"
@@ -109,6 +117,28 @@ function color(id: string): string {
   flex-direction: column;
   align-items: center;
 }
+/* 1º lugar em destaque: troféu flutuante sobre o avatar + brilho dourado pulsante. */
+.pcrown {
+  color: var(--gold);
+  margin-bottom: 5px;
+  filter: drop-shadow(0 2px 6px color-mix(in srgb, var(--gold) 55%, transparent));
+  animation: champFloat 2.6s ease-in-out infinite;
+}
+.champ .pavatar {
+  animation: champGlow 2.2s ease-in-out infinite;
+}
+@keyframes champGlow {
+  0%, 100% { box-shadow: 0 0 16px -4px var(--gold); }
+  50% { box-shadow: 0 0 30px 2px var(--gold); }
+}
+@keyframes champFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pcrown { animation: none; }
+  .champ .pavatar { animation: none; }
+}
 .pavatar {
   width: 58px;
   height: 58px;
@@ -140,6 +170,39 @@ function color(id: string): string {
 .ppts {
   font-size: 24px;
   line-height: 1;
+}
+.ppts-l {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-top: 2px;
+}
+/* cravadas + pontuadas do pódio (ordem: pontos acima, depois crav, pont) */
+.pstats {
+  display: flex;
+  gap: 12px;
+  margin-top: 7px;
+}
+.ps {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.05;
+}
+.ps b {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+.ps i {
+  font-style: normal;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
 }
 .pbar {
   width: 100%;

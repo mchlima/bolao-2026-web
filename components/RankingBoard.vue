@@ -5,7 +5,15 @@ import type { RankingEntry, RankingResponse } from '~/types/api';
 // tournament ranking page and the pool ("bolão") detail so both look identical.
 // `title`/`subtitle` name the leaderboard (tournament or pool) for the header
 // and the shareable image.
-const props = defineProps<{ data: RankingResponse; title: string; subtitle?: string }>();
+// `detailed` adiciona as colunas de cravadas + partidas pontuadas (a ordem do
+// desempate) — usado no ranking público da competição; os demais usos (bolão)
+// seguem com a coluna única de pontos.
+const props = defineProps<{
+  data: RankingResponse;
+  title: string;
+  subtitle?: string;
+  detailed?: boolean;
+}>();
 
 const me = computed(() => props.data.currentUser ?? null);
 const entries = computed(() => props.data.entries ?? []);
@@ -36,7 +44,7 @@ function rowEntry(e: RankingEntry) {
     </p>
 
     <template v-else>
-      <RankingPodium :data="data" :title="title" :subtitle="subtitle" class="rk-podium" />
+      <RankingPodium :data="data" :title="title" :subtitle="subtitle" :detailed="detailed" class="rk-podium" />
 
       <!-- rows -->
       <div v-if="rest.length" class="rows">
@@ -44,7 +52,7 @@ function rowEntry(e: RankingEntry) {
           v-for="e in rest.map(rowEntry)"
           :key="e.user.id"
           class="row"
-          :class="{ me: e.isMe }"
+          :class="{ me: e.isMe, detailed }"
         >
         <span class="font-numeric pos">{{ e.rank }}</span>
         <div class="who">
@@ -56,13 +64,17 @@ function rowEntry(e: RankingEntry) {
           <span v-if="e.isMe" class="youtag">Você</span>
         </div>
         <div class="pts"><span class="font-numeric">{{ e.points }}</span><span class="lbl">pts</span></div>
+        <template v-if="detailed">
+          <div class="stat"><span class="font-numeric">{{ e.exactCount }}</span><span class="lbl">crav</span></div>
+          <div class="stat"><span class="font-numeric">{{ e.scoredCount }}</span><span class="lbl">pont</span></div>
+        </template>
       </div>
     </div>
 
     <!-- sticky me -->
     <div v-if="me && !inTop" class="sticky">
       <div class="sticky-cap">Sua posição</div>
-      <div class="row me big">
+      <div class="row me big" :class="{ detailed }">
         <span class="font-numeric pos gold">{{ me.rank }}º</span>
         <div class="who">
           <span class="av pitch">
@@ -73,6 +85,10 @@ function rowEntry(e: RankingEntry) {
           <span class="youtag">Você</span>
         </div>
         <div class="pts"><span class="font-numeric gold">{{ me.points }}</span><span class="lbl">pts</span></div>
+        <template v-if="detailed">
+          <div class="stat"><span class="font-numeric">{{ me.exactCount }}</span><span class="lbl">crav</span></div>
+          <div class="stat"><span class="font-numeric">{{ me.scoredCount }}</span><span class="lbl">pont</span></div>
+        </template>
       </div>
     </div>
     </template>
@@ -102,6 +118,36 @@ function rowEntry(e: RankingEntry) {
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: 14px;
+}
+/* Modo detalhado: ordem PONTOS · CRAVADAS · PONTUADAS (ordem do desempate). */
+.row.detailed {
+  grid-template-columns: 36px 1fr auto auto auto;
+  gap: 14px;
+}
+.stat {
+  text-align: right;
+  white-space: nowrap;
+}
+/* Os três números (pts/crav/pont) com o MESMO tamanho, empilhados (nº + rótulo). */
+.row.detailed .pts,
+.row.detailed .stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.05;
+}
+.row.detailed .pts .font-numeric,
+.row.detailed .stat .font-numeric {
+  font-size: 24px;
+}
+.row.detailed .stat .font-numeric {
+  color: var(--text);
+}
+.row.detailed .pts .lbl,
+.row.detailed .stat .lbl {
+  margin-left: 0;
+  margin-top: 2px;
+  font-size: 10px;
 }
 .row.me {
   border-color: var(--gold);
@@ -197,7 +243,8 @@ function rowEntry(e: RankingEntry) {
 .row.big .pos {
   font-size: 26px;
 }
-.row.big .pts .font-numeric {
+.row.big .pts .font-numeric,
+.row.big.detailed .stat .font-numeric {
   font-size: 26px;
 }
 </style>

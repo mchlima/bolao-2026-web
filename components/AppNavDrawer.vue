@@ -9,7 +9,11 @@ const auth = useAuthStore();
 const route = useRoute();
 const authLink = useAuthLink();
 
-const { newsTree, championships, bolaoChildren, bolaoRoot } = useNavTree();
+const { newsTree, championships, bolaoFlat, bolaoRanking, bolaoRoot } = useNavTree();
+
+// Subgrupo "Ranking" dentro de Bolão (Bolão > Ranking > competição). Começa aberto
+// quando já estamos numa página de ranking por competição.
+const rankOpen = ref(route.path.startsWith('/boloes/ranking'));
 
 // Acordeão: cada pilar abre/fecha; o pilar da rota atual começa aberto.
 const section = computed(() => {
@@ -156,12 +160,24 @@ onUnmounted(() => {
               <div class="pillar bolao">
                 <div class="prow">
                   <NuxtLink :to="bolaoRoot" class="plink"><AppIcon name="trophy" :size="18" :stroke="2" /> Bolão</NuxtLink>
-                  <button v-if="bolaoChildren.length" class="pexp" :class="{ on: expanded.bolao }" aria-label="Expandir" @click="togglePillar('bolao')">
+                  <button v-if="bolaoFlat.length || bolaoRanking.length" class="pexp" :class="{ on: expanded.bolao }" aria-label="Expandir" @click="togglePillar('bolao')">
                     <AppIcon name="chevronDown" :size="16" :stroke="2.4" />
                   </button>
                 </div>
-                <ul v-if="expanded.bolao && bolaoChildren.length" class="psub">
-                  <li v-for="b in bolaoChildren" :key="b.to"><NuxtLink :to="b.to" class="slink">{{ b.label }}</NuxtLink></li>
+                <ul v-if="expanded.bolao && (bolaoFlat.length || bolaoRanking.length)" class="psub">
+                  <li v-for="b in bolaoFlat" :key="b.to"><NuxtLink :to="b.to" class="slink">{{ b.label }}</NuxtLink></li>
+                  <!-- RANKING = subgrupo (Bolão > Ranking > competição) -->
+                  <li v-if="bolaoRanking.length" class="camp-group">
+                    <div class="comp-row">
+                      <span class="camp-head" role="button" tabindex="0" @click="rankOpen = !rankOpen" @keydown.enter="rankOpen = !rankOpen">Ranking</span>
+                      <button class="pexp" :class="{ on: rankOpen }" aria-label="Expandir" @click="rankOpen = !rankOpen">
+                        <AppIcon name="chevronDown" :size="15" :stroke="2.4" />
+                      </button>
+                    </div>
+                    <ul v-if="rankOpen" class="comp-sub">
+                      <li v-for="r in bolaoRanking" :key="r.to"><NuxtLink :to="r.to" class="slink sm">{{ r.label }}</NuxtLink></li>
+                    </ul>
+                  </li>
                 </ul>
               </div>
 
@@ -228,7 +244,7 @@ onUnmounted(() => {
 .slink.router-link-active { color: var(--azure); }
 /* CAMPEONATOS = grupo pai (header tipo rótulo de seção). */
 .camp-group { margin: 6px 0 2px; }
-.camp-head { flex: 1; min-width: 0; padding: 8px 12px; font-size: 16px; font-weight: 700; text-transform: capitalize; color: var(--text); text-decoration: none; border-radius: 7px; }
+.camp-head { flex: 1; min-width: 0; padding: 8px 12px; font-size: 16px; font-weight: 700; text-transform: capitalize; color: var(--text); text-decoration: none; border-radius: 7px; cursor: pointer; }
 .camp-head:hover { color: var(--text); background: var(--bg-surface); }
 .camp-head.router-link-active { color: var(--azure); }
 /* Filhos de CAMPEONATOS, indentados sob o grupo. */

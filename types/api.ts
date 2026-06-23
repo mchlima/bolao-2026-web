@@ -663,8 +663,9 @@ export interface RankingEntry {
   rank: number;
   user: { id: string; name: string; avatarUrl: string | null };
   points: number;
-  exactCount: number;
-  scoredCount: number;
+  exactCount: number; // "cravadas"
+  scoredCount: number; // "pontuadas" (partidas já contabilizadas)
+  predictedCount: number; // "palpitadas" (palpites feitos no escopo)
   prediction?: { home: number; away: number }; // match ranking only
   tier?: ScoreTier; // match ranking only
 }
@@ -676,6 +677,22 @@ export interface RankingResponse {
   provisional?: boolean;
   result?: { home: number; away: number } | null;
   revealed?: boolean; // match ranking: false until kickoff (others hidden)
+}
+
+// GET /competitions/:urlSlug/ranking — ranking público do bolão por competição
+// (BOLÃO > Ranking > <competição>). Logado recebe o ranking completo da temporada
+// vigente; anônimo recebe só os metadados + nº de participantes (privacidade).
+export interface CompetitionRankingResponse {
+  competition: { id: string; name: string; urlSlug: string };
+  season: {
+    id: string;
+    name: string;
+    seasonLabel: string | null;
+    slug: string | null;
+    status: TournamentStatus;
+  } | null;
+  totalParticipants: number;
+  ranking: RankingResponse | null;
 }
 
 // GET /me/standings — the current user's position in every scope they play, for

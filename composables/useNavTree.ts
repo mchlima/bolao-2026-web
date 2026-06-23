@@ -28,18 +28,30 @@ export function useNavTree() {
       .slice(0, 6);
   });
 
-  const bolaoChildren = computed(() =>
+  // Itens diretos do pilar Bolão (1º nível do dropdown). Logado: área privada;
+  // deslogado: equivalentes públicos (pra o menu não ficar só com o Ranking).
+  const bolaoFlat = computed(() =>
     auth.isAuthenticated
       ? [
           { label: 'Meus bolões', to: '/boloes' },
           { label: 'Palpites', to: '/boloes/palpites' },
-          { label: 'Ranking geral', to: '/boloes/ranking' },
         ]
-      : [],
+      : [
+          { label: 'Bolão da Copa do Mundo', to: '/bolao-da-copa-do-mundo-2026' },
+          { label: 'Como funciona', to: '/como-funciona' },
+        ],
+  );
+  // Grupo "Ranking" (3º nível: Bolão > Ranking > …): cada competição com temporada
+  // ativa tem ranking PÚBLICO por slug.
+  const bolaoRanking = computed(() =>
+    championships.value.map((c) => ({
+      label: c.name,
+      to: `/boloes/ranking/${c.urlSlug}`,
+    })),
   );
   const bolaoRoot = computed(() =>
     auth.isAuthenticated ? '/boloes' : '/bolao-da-copa-do-mundo-2026',
   );
 
-  return { newsTree, championships, bolaoChildren, bolaoRoot };
+  return { newsTree, championships, bolaoFlat, bolaoRanking, bolaoRoot };
 }
