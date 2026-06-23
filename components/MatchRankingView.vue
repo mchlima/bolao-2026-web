@@ -183,6 +183,20 @@ const faqItems = computed(() => {
   return out;
 });
 
+// H1 único da página (o hero é visual/escudos, então o h1 vive no topo do DOM,
+// acessível) — keyword-rich e por estado, distinto do <title> pra não duplicar.
+// É o principal sinal de tópico da página pro buscador e pra IA (GEO).
+const seoH1 = computed(() => {
+  const m = match.value;
+  if (!m) return '';
+  const { home, away } = names.value;
+  const tail = compName.value ? ` | ${compName.value}` : '';
+  if (isFinished.value && scoreLine.value)
+    return `${home} ${m.homeScore} x ${m.awayScore} ${away}: resultado, ranking e palpites${tail}`;
+  if (isLive.value)
+    return `${home} x ${away} ao vivo: placar, escalações e ranking do bolão${tail}`;
+  return `${home} x ${away}: palpite, prováveis escalações, retrospecto e onde assistir${tail}`;
+});
 const seoTitle = computed(() => {
   const m = match.value;
   if (!m) return 'Partida — Cravei';
@@ -355,6 +369,9 @@ useHead({
 
 <template>
   <div class="mfill">
+    <!-- H1 da página: matchup + intenção (keyword/GEO). Acessível no topo do DOM;
+         o hero logo abaixo mostra o confronto visualmente (escudos + placar). -->
+    <h1 v-if="match" class="sr-only">{{ seoH1 }}</h1>
     <SkeletonList v-if="pending && !match" variant="match" :count="1" />
     <p v-else-if="error || !match" class="muted load">Partida não encontrada.</p>
     <MatchRankingBoard
@@ -381,7 +398,7 @@ useHead({
          abaixo do board imersivo; serve ao buscador/IA e a quem rola pra ler. -->
     <section v-if="match && hasMatchup" class="match-seo">
       <div class="ms-in">
-        <h2 class="ms-title">{{ names.home }} x {{ names.away }}</h2>
+        <h2 class="ms-title">Tudo sobre {{ names.home }} x {{ names.away }}</h2>
         <p v-if="phaseAndComp || kickoffDateLong" class="ms-meta">
           <span v-if="phaseAndComp">{{ phaseAndComp }}</span>
           <span v-if="phaseAndComp && kickoffDateLong" class="ms-sep">·</span>
@@ -398,7 +415,7 @@ useHead({
         </p>
 
         <div v-if="faqItems.length" class="ms-faq">
-          <h3>Perguntas frequentes</h3>
+          <h3>Perguntas frequentes sobre {{ names.home }} x {{ names.away }}</h3>
           <details v-for="(f, i) in faqItems" :key="i">
             <summary>{{ f.q }}</summary>
             <p>{{ f.a }}</p>
@@ -420,6 +437,19 @@ useHead({
 
 <style scoped>
 .load { padding: 2rem 0; }
+/* H1 acessível: lido por buscador/leitor de tela; o hero visual abaixo mostra o
+   confronto (escudos/placar). Padrão para heroes baseados em imagem. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .ms-cta { margin-top: 24px; }
 
 /* Bloco SEO/GEO abaixo do board. Surface neutra, largura de leitura confortável. */

@@ -20,10 +20,10 @@ const show = computed(() => !!preview.value?.available);
 const homeName = computed(() => preview.value?.home?.name ?? '');
 const awayName = computed(() => preview.value?.away?.name ?? '');
 // Lede determinístico (só nomes dos times): enquadra a seção e dá texto factual
-// rastreável (SEO/GEO) — sem inventar nada.
+// rastreável (SEO/GEO), denso em palavras-chave de intenção — sem inventar nada.
 const lede = computed(
   () =>
-    `Forma recente, retrospecto e os artilheiros de ${homeName.value} e ${awayName.value} reunidos — pra você cravar o placar com mais embasamento.`,
+    `Análise pré-jogo de ${homeName.value} x ${awayName.value}: probabilidades e favorito, forma recente, retrospecto do confronto direto, classificação e artilheiros — tudo para você cravar o placar do palpite com mais embasamento.`,
 );
 
 // Fechamento → rampa pro palpite. O board deriva a aba ativa da URL (segmento
@@ -86,16 +86,16 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
   <section v-if="show && preview" class="preview">
     <div class="pv-in">
       <header class="pv-head">
-        <span class="pv-kicker"><AppIcon name="ball" :size="13" :stroke="2" /> Prévia</span>
-        <h2 class="pv-title">Antes da bola rolar</h2>
+        <span class="pv-kicker"><AppIcon name="ball" :size="13" :stroke="2" /> Antes da bola rolar</span>
+        <h2 class="pv-title">Prévia de {{ homeName }} x {{ awayName }}</h2>
         <p class="pv-lede">{{ lede }}</p>
       </header>
 
       <!-- PROBABILIDADE — favorito do mercado (odds da ESPN, de-vigadas) -->
       <div v-if="preview.probability" class="pv-block">
         <h3 class="pv-bt">
-          Probabilidade
-          <InfoTip text="Chance de cada resultado segundo as odds do mercado (casas de apostas), já descontada a margem da casa. É uma estimativa do mercado — não uma garantia." />
+          Quem é o favorito em {{ homeName }} x {{ awayName }}?
+          <InfoTip text="Chance de cada resultado segundo as odds do mercado (casas de apostas), já descontada a margem. É uma estimativa do mercado — não uma garantia." />
         </h3>
         <div class="prob">
           <div class="prob-head">
@@ -119,7 +119,7 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
           </div>
           <p class="prob-foot">
             Favorito: <b>{{ favoriteName }}</b>
-            <span v-if="preview.probability.provider" class="prob-src">· mercado via {{ preview.probability.provider }}</span>
+            <span class="prob-src">· segundo as odds do mercado</span>
           </p>
         </div>
       </div>
@@ -127,7 +127,7 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
       <!-- O QUE ESTÁ EM JOGO — posição na tabela do grupo -->
       <div v-if="preview.standings && (preview.standings.home || preview.standings.away)" class="pv-block">
         <h3 class="pv-bt">
-          Na tabela · {{ tableLabel }}
+          Classificação · {{ tableLabel }}
           <InfoTip text="Como cada time está no grupo antes desta partida. pts = pontos, j = jogos disputados, e o número final é o saldo de gols (gols marcados menos sofridos)." />
         </h3>
         <div class="tbl">
@@ -155,7 +155,7 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
       <!-- FORMA RECENTE — últimos jogos de cada time -->
       <div v-if="preview.form && (preview.form.home.matches.length || preview.form.away.matches.length)" class="pv-block">
         <h3 class="pv-bt">
-          Forma recente
+          Forma recente de {{ homeName }} e {{ awayName }}
           <InfoTip text="Como cada time vem jogando: seus últimos jogos. Os quadradinhos mostram a sequência da esquerda (mais antigo) para a direita (mais recente). V = vitória (verde), E = empate (cinza), D = derrota (vermelho). Na lista, o placar mostra os gols do próprio time primeiro." />
         </h3>
         <div class="forms">
@@ -210,7 +210,7 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
       <!-- RETROSPECTO — confrontos diretos -->
       <div v-if="preview.h2h && preview.h2h.total" class="pv-block">
         <h3 class="pv-bt">
-          Retrospecto · {{ preview.h2h.total }} jogo{{ preview.h2h.total > 1 ? 's' : '' }}
+          Retrospecto e confronto direto · {{ preview.h2h.total }} jogo{{ preview.h2h.total > 1 ? 's' : '' }}
           <InfoTip text="Histórico dos confrontos diretos entre os dois times: quantas vezes cada um venceu e quantos empates, com os jogos mais recentes listados abaixo." />
         </h3>
         <div class="tape">
