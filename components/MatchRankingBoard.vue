@@ -580,12 +580,12 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
      ends mid-screen. The result-head gradient gives the top enough definition. */
   border: none;
   box-shadow: none;
-  /* Fill from below the slim header down to the bottom nav — via min-height (NOT
-     flex; a flex ancestor makes the sticky headers jitter). Subtracts the global
-     header, the bottom nav, and the ~52px tournament sub-header so the card ends
-     right at the nav. Static vh (not dvh) avoids reflow when the mobile address
-     bar toggles. */
-  min-height: calc(100dvh - var(--header-h, 0px) - var(--nav-h, 0px) - 52px);
+  /* O board ABRAÇA o conteúdo (sem min-height de viewport). Antes ele "enchia a
+     tela" pra não sobrar faixa abaixo quando era a página inteira — mas agora a
+     seção SEO ("Sobre a partida" + FAQ) vem logo abaixo, então forçar altura só
+     criava uma faixa branca morta entre o board e o SEO quando o conteúdo era
+     curto (jogo agendado/deslogado). Sem borda/sombra e mesmo fundo (surface),
+     não há emenda visual a esconder. */
 }
 .detail.live {
   border-color: rgba(232, 54, 43, 0.5);
