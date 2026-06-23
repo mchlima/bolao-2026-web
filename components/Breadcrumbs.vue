@@ -42,17 +42,31 @@ useHead({
 <style scoped>
 .crumbs {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* uma linha só */
   align-items: center;
   gap: 5px;
   font-size: 13px;
   margin-bottom: 14px;
+  max-width: 100%;
+  /* Trilha profunda (até 6 níveis) não cabe no mobile → a FAIXA rola na horizontal
+     (a página não), sem quebra e sem "›" órfão. Scrollbar escondida. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none; /* Firefox */
+  -webkit-overflow-scrolling: touch;
+  /* Fade na borda direita sinaliza que a faixa continua (rolável) em vez de um
+     corte seco no meio de uma palavra. */
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 22px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 22px), transparent);
+}
+.crumbs::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 .seg {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  max-width: 100%;
+  flex: none; /* não encolhe → conteúdo natural, rola se passar da largura */
 }
 .crumb {
   color: var(--muted);
@@ -66,17 +80,6 @@ useHead({
 .crumb.cur {
   color: var(--text);
   font-weight: 700;
-  /* Página atual (ex.: título da matéria) pode ser uma frase longa → trunca com
-     reticências em vez de estourar a largura (no mobile/PWA virava scroll lateral).
-     min-width:0 deixa o item encolher abaixo do tamanho do conteúdo. */
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-/* O segmento do título pode encolher (→ o crumb trunca); os demais ficam fixos. */
-.seg.cur {
-  min-width: 0;
-  flex: 0 1 auto;
 }
 .sep {
   color: var(--muted);
