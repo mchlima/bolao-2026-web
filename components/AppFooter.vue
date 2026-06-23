@@ -50,6 +50,10 @@ const columns = computed(() => [
           </NuxtLink>
           <p class="fb-tag">Notícias, jogos e o bolão da Copa do Mundo — crave os placares e dispute o ranking com a galera.</p>
           <NuxtLink :to="bolaoRoot" class="fb-cta">Criar meu bolão</NuxtLink>
+          <p class="fb-contact">
+            Encontrou um problema ou tem uma sugestão? Escreva para
+            <a href="mailto:dev@cravei.app?subject=Problema%20ou%20sugest%C3%A3o%20no%20Cravei" class="fb-mail">dev@cravei.app</a>.
+          </p>
         </div>
 
         <!-- Colunas de links -->
@@ -114,6 +118,9 @@ const columns = computed(() => [
   transition: filter 0.14s;
 }
 .fb-cta:hover { filter: brightness(1.06); }
+.fb-contact { margin: 16px 0 0; font-size: 12.5px; line-height: 1.55; color: #9aa3b4; max-width: 40ch; }
+.fb-mail { color: var(--gold, #ffb020); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.fb-mail:hover { text-decoration: underline; }
 
 /* Colunas */
 .foot-cols {
