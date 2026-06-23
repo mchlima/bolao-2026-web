@@ -8,6 +8,8 @@ import type { MatchPreview, PreviewTeamRef } from '~/types/api';
 const props = defineProps<{ matchId: string }>();
 
 const api = useApi();
+const auth = useAuthStore();
+const authLink = useAuthLink();
 const { data: preview } = await useAsyncData(`preview-${props.matchId}`, () =>
   api<MatchPreview>(`/matches/${props.matchId}/preview`),
 );
@@ -15,6 +17,20 @@ const { data: preview } = await useAsyncData(`preview-${props.matchId}`, () =>
 const show = computed(() => !!preview.value?.available);
 const homeName = computed(() => preview.value?.home?.name ?? '');
 const awayName = computed(() => preview.value?.away?.name ?? '');
+// Lede determinístico (só nomes dos times): enquadra a seção e dá texto factual
+// rastreável (SEO/GEO) — sem inventar nada.
+const lede = computed(
+  () =>
+    `Forma recente, retrospecto e os artilheiros de ${homeName.value} e ${awayName.value} reunidos — pra você cravar o placar com mais embasamento.`,
+);
+
+// Fechamento → rampa pro palpite: rola suave até o stepper no topo (board). Se o
+// stepper não estiver montado (ex.: jogo fechado), cai pro cabeçalho fixo do placar.
+function scrollToPalpite() {
+  if (!import.meta.client) return;
+  const el = document.querySelector('.mypred') || document.querySelector('.msticky');
+  el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
 // Grupo de letra única ("C", "J") vira "Grupo C"; nome de liga ("Série A") fica como está.
 const tableLabel = computed(() => {
   const g = preview.value?.standings?.groupName ?? '';
@@ -44,6 +60,7 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
       <header class="pv-head">
         <span class="pv-kicker"><AppIcon name="ball" :size="13" :stroke="2" /> Prévia</span>
         <h2 class="pv-title">Antes da bola rolar</h2>
+        <p class="pv-lede">{{ lede }}</p>
       </header>
 
       <!-- O QUE ESTÁ EM JOGO — posição na tabela do grupo -->
@@ -194,6 +211,19 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
           </div>
         </div>
       </div>
+
+      <!-- FECHAMENTO — converte a confiança da prévia em palpite. Adapta ao login;
+           não duplica o stepper do board (rola até ele) nem o banner da seção SEO. -->
+      <div class="pv-cta">
+        <template v-if="!auth.isAuthenticated">
+          <p class="pv-cta-lead">Confiante no palpite? Crie sua conta e crave o placar de <b>{{ homeName }}</b> x <b>{{ awayName }}</b>.</p>
+          <NuxtLink :to="authLink('/cadastro')" class="btn btn-gold pv-cta-btn">Criar conta grátis</NuxtLink>
+        </template>
+        <template v-else>
+          <p class="pv-cta-lead">Agora é com você. Crave o placar de <b>{{ homeName }}</b> x <b>{{ awayName }}</b> com mais embasamento.</p>
+          <button type="button" class="btn btn-gold pv-cta-btn" @click="scrollToPalpite">Fazer meu palpite</button>
+        </template>
+      </div>
     </div>
   </section>
 </template>
@@ -212,6 +242,7 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
   font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(19px, 4vw, 24px);
   text-transform: uppercase; letter-spacing: 0.01em; margin: 4px 0 0;
 }
+.pv-lede { margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: var(--muted); max-width: 60ch; }
 .pv-block { margin-bottom: 22px; }
 .pv-bt {
   display: flex; align-items: center; gap: 6px;
@@ -295,4 +326,15 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
 .sc-name { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sc-goals { font-weight: 800; flex: none; }
 .sc-goals i { font-style: normal; font-size: 11px; margin-left: 3px; }
+
+/* Fechamento (rampa pro palpite) */
+.pv-cta {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px;
+  margin-top: 6px; padding: 20px 18px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 11%, var(--bg-base)), var(--bg-base));
+  border: 1px solid color-mix(in srgb, var(--gold) 26%, var(--border)); border-radius: 16px;
+}
+.pv-cta-lead { margin: 0; font-size: 14.5px; line-height: 1.5; font-weight: 600; color: var(--text); max-width: 44ch; }
+.pv-cta-lead b { font-weight: 800; }
+.pv-cta-btn { min-width: 220px; }
 </style>
