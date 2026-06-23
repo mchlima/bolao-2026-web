@@ -290,7 +290,7 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
 </template>
 
 <style scoped>
-.preview { border-top: 1px solid var(--border); background: var(--bg-surface); padding: 24px 16px 8px; }
+.preview { border-top: 1px solid var(--border); background: var(--bg-surface); padding: 24px 16px 32px; }
 .pv-in { max-width: 720px; margin: 0 auto; }
 .pv-head { margin-bottom: 18px; }
 .pv-kicker {

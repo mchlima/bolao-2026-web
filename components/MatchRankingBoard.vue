@@ -297,9 +297,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
           <img class="rh-photo" :src="stadiumPhoto" alt="" aria-hidden="true" >
           <div class="rh-grad" aria-hidden="true" />
         </template>
-        <div v-if="!hideBack" class="rhead-top">
-          <button class="back" @click="emit('back')"><AppIcon name="arrowLeft" :size="14" :stroke="2.2" />{{ backLabel }}</button>
-        </div>
         <div v-if="canNotify" class="rhead-actions">
           <MatchNotifyBell :match="match" :size="17" pill />
         </div>
@@ -686,7 +683,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
     linear-gradient(180deg, rgba(8, 12, 18, 0.4), rgba(8, 12, 18, 0.74));
 }
 /* conteúdo acima das camadas de foto/gradiente */
-.result-head.has-photo > .rhead-top,
 .result-head.has-photo > .ctx-pill,
 .result-head.has-photo > .result,
 .result-head.has-photo > .rstate {
@@ -717,12 +713,6 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 .photo-credit svg { flex: none; }
 .photo-credit:hover { color: rgba(255, 255, 255, 0.9); }
-.rhead-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
 /* live/status chip centered under the score */
 .rstate {
   display: flex;
