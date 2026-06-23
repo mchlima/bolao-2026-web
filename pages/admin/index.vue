@@ -1,40 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 
-interface Dashboard {
-  users: { total: number; active: number; admins: number };
-  tournaments: number;
-  teams: number;
-  stadiums: number;
-  matches: { total: number; byStatus: Record<string, number> };
-  predictions: number;
-}
-
-const { data } = await useAsyncData('admin-dashboard', () =>
-  useApi()<Dashboard>('/admin/dashboard'),
-);
-
-interface Metric {
-  value: number;
-  label: string;
-  icon: string;
-  color: string;
-  extra?: string;
-  to: string;
-}
-const metrics = computed<Metric[]>(() => {
-  const d = data.value;
-  if (!d) return [];
-  return [
-    { value: d.tournaments, label: 'Torneios', icon: 'calendar', color: 'var(--emerald)', to: '/admin/tournaments' },
-    { value: d.matches.total, label: 'Partidas', icon: 'ball', color: 'var(--azure)', extra: `${d.matches.byStatus.LIVE ?? 0} ao vivo`, to: '/admin/matches' },
-    { value: d.predictions, label: 'Palpites', icon: 'star', color: 'var(--gold)', to: '/admin/matches' },
-    { value: d.users.total, label: 'Usuários', icon: 'users', color: 'var(--magenta)', extra: `${d.users.active} ativos`, to: '/admin/users' },
-    { value: d.teams, label: 'Times', icon: 'shield', color: 'var(--emerald)', to: '/admin/teams' },
-    { value: d.stadiums, label: 'Estádios', icon: 'stadium', color: 'var(--azure)', to: '/admin/stadiums' },
-  ];
-});
-
 // Live presence (quem está conectado no SSE agora). Polled — presence isn't
 // an emitted event. The endpoint identifies whoever it can; the rest only
 // counts toward the total.
@@ -95,20 +61,6 @@ onBeforeUnmount(() => {
         </template>
         <template v-else>Ninguém online no momento.</template>
       </div>
-    </div>
-
-    <div v-if="!data" class="metrics">
-      <div v-for="i in 6" :key="i" class="card metric sk"><div class="skeleton" style="height: 42px; width: 42px; border-radius: 12px" /><div class="skeleton" style="height: 40px; width: 70px; margin-top: 16px" /><div class="skeleton" style="height: 12px; width: 90px; margin-top: 8px" /></div>
-    </div>
-    <div v-else class="metrics">
-      <NuxtLink v-for="m in metrics" :key="m.label" :to="m.to" class="card metric">
-        <div class="blob" :style="{ background: m.color }" />
-        <div class="icon" :style="{ color: m.color, background: `color-mix(in srgb, ${m.color} 14%, transparent)` }">
-          <AppIcon :name="m.icon" :size="22" />
-        </div>
-        <div class="font-numeric val">{{ m.value }}</div>
-        <div class="lbl">{{ m.label }}<span v-if="m.extra" class="extra"> · {{ m.extra }}</span></div>
-      </NuxtLink>
     </div>
 
     <div class="card shortcuts">
@@ -216,55 +168,6 @@ onBeforeUnmount(() => {
 .on-empty {
   margin-top: 10px;
   font-size: 13px;
-  color: var(--muted);
-}
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
-  gap: 14px;
-}
-.metric {
-  display: block;
-  padding: 18px;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
-}
-a.metric:hover {
-  transform: translateY(-2px);
-  border-color: var(--muted);
-}
-.metric.sk {
-  pointer-events: none;
-}
-.blob {
-  position: absolute;
-  right: -10px;
-  top: -10px;
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  opacity: 0.1;
-}
-.icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 13px;
-  display: grid;
-  place-items: center;
-}
-.val {
-  font-size: 46px;
-  line-height: 0.9;
-  margin-top: 14px;
-}
-.lbl {
-  font-size: 12px;
-  color: var(--muted);
-  font-weight: 600;
-  margin-top: 4px;
-}
-.extra {
   color: var(--muted);
 }
 .shortcuts {
