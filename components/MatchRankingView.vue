@@ -373,6 +373,10 @@ useHead({
       </template>
     </MatchRankingBoard>
 
+    <!-- Prévia do jogo (só agendado): forma/H2H/tabela/artilheiros do nosso banco.
+         Enriquece o estado pré-jogo (antes era só 1 parágrafo). Some quando começa. -->
+    <MatchPreview v-if="match && hasMatchup && match.status === 'SCHEDULED'" :match-id="props.matchId" />
+
     <!-- Conteúdo SEO/GEO: texto factual + FAQ da partida (SSR, rastreável). Fica
          abaixo do board imersivo; serve ao buscador/IA e a quem rola pra ler. -->
     <section v-if="match && hasMatchup" class="match-seo">

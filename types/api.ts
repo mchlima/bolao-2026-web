@@ -873,6 +873,82 @@ export interface MatchStats {
   rows: StatRow[];
 }
 
+// ── Prévia do jogo (GET /matches/:id/preview) — só estado SCHEDULED ──
+// Blocos determinísticos do nosso banco: forma recente, retrospecto (H2H),
+// o que está em jogo (tabela do grupo) e artilheiros da competição.
+export interface PreviewTeamRef {
+  id: string;
+  name: string;
+  shortName: string;
+  logoUrl: string | null;
+}
+export interface PreviewFormMatch {
+  matchId: string;
+  slug: string | null;
+  kickoffAt: string;
+  competition: string | null;
+  home: boolean;
+  opponent: PreviewTeamRef | null;
+  goalsFor: number;
+  goalsAgainst: number;
+  result: 'W' | 'D' | 'L';
+}
+export interface PreviewForm {
+  matches: PreviewFormMatch[];
+  summary: { w: number; d: number; l: number };
+}
+export interface PreviewH2HMeeting {
+  matchId: string;
+  slug: string | null;
+  kickoffAt: string;
+  competition: string | null;
+  homeTeam: PreviewTeamRef | null;
+  awayTeam: PreviewTeamRef | null;
+  homeScore: number;
+  awayScore: number;
+}
+export interface PreviewH2H {
+  total: number;
+  homeWins: number;
+  awayWins: number;
+  draws: number;
+  meetings: PreviewH2HMeeting[];
+}
+export interface PreviewStandingRow {
+  position: number;
+  points: number;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalDiff: number;
+  form: ('W' | 'D' | 'L')[];
+}
+export interface PreviewStandings {
+  stageName: string;
+  groupName: string;
+  home: PreviewStandingRow | null;
+  away: PreviewStandingRow | null;
+}
+export interface PreviewScorer {
+  player: { id: string; name: string; photoUrl: string | null };
+  goals: number;
+}
+export interface PreviewScorers {
+  competition: string | null;
+  home: PreviewScorer[];
+  away: PreviewScorer[];
+}
+export interface MatchPreview {
+  available: boolean;
+  home: PreviewTeamRef | null;
+  away: PreviewTeamRef | null;
+  form: { home: PreviewForm; away: PreviewForm } | null;
+  h2h: PreviewH2H | null;
+  standings: PreviewStandings | null;
+  scorers: PreviewScorers | null;
+}
+
 // Comentário do admin na narração ao vivo (vira fato pra geração).
 export interface MatchNote {
   id: string;
