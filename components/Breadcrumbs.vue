@@ -28,11 +28,14 @@ useHead({
 
 <template>
   <nav class="crumbs" aria-label="Trilha">
-    <template v-for="(it, i) in items" :key="i">
+    <!-- Cada segmento = [separador líder] + crumb, agrupados (inline-flex, nowrap) →
+         na quebra de linha o "›" desce JUNTO com o crumb seguinte em vez de ficar
+         pendurado no fim da linha anterior. -->
+    <span v-for="(it, i) in items" :key="i" class="seg" :class="{ cur: i === items.length - 1 }">
+      <AppIcon v-if="i > 0" name="chevronRight" :size="13" :stroke="2.4" class="sep" />
       <NuxtLink v-if="it.to && i < items.length - 1" :to="it.to" class="crumb">{{ it.name }}</NuxtLink>
       <span v-else class="crumb cur" aria-current="page">{{ it.name }}</span>
-      <AppIcon v-if="i < items.length - 1" name="chevronRight" :size="13" :stroke="2.4" class="sep" />
-    </template>
+    </span>
   </nav>
 </template>
 
@@ -44,6 +47,12 @@ useHead({
   gap: 5px;
   font-size: 13px;
   margin-bottom: 14px;
+}
+.seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
 }
 .crumb {
   color: var(--muted);
@@ -59,11 +68,15 @@ useHead({
   font-weight: 700;
   /* Página atual (ex.: título da matéria) pode ser uma frase longa → trunca com
      reticências em vez de estourar a largura (no mobile/PWA virava scroll lateral).
-     min-width:0 + flex-shrink deixam o item encolher abaixo do tamanho do conteúdo. */
+     min-width:0 deixa o item encolher abaixo do tamanho do conteúdo. */
   min-width: 0;
-  flex: 0 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+/* O segmento do título pode encolher (→ o crumb trunca); os demais ficam fixos. */
+.seg.cur {
+  min-width: 0;
+  flex: 0 1 auto;
 }
 .sep {
   color: var(--muted);
