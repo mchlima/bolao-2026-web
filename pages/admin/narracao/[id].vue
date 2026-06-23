@@ -225,7 +225,7 @@ const sideName = (s: 'home' | 'away' | null) =>
         </header>
         <div ref="streamEl" class="stream">
           <p v-if="!notes.length" class="empty">Comece a narrar — escreva o que você vê. Cada comentário entra como fato da matéria. Dica: clique em “usar” num lance da ESPN ao lado pra puxar como base.</p>
-          <div v-for="n in notes" :key="n.id" class="msg" :class="{ editing: editingId === n.id }">
+          <div v-for="n in notes" :key="n.id" class="eline mine" :class="{ editing: editingId === n.id }">
             <template v-if="editingId === n.id">
               <div class="edit-row">
                 <input v-model="editMinute" class="input edit-min" maxlength="12" placeholder="tempo" />
@@ -237,12 +237,16 @@ const sideName = (s: 'home' | 'away' | null) =>
               </div>
             </template>
             <template v-else>
-              <div class="msg-body"><span v-if="n.minute" class="msg-min">{{ n.minute }}</span>{{ n.text }}</div>
-              <div class="msg-foot">
-                <span class="msg-time">{{ fmtTime(n.createdAt) }}</span>
-                <button class="msg-act" title="Editar" @click="startEdit(n)"><AppIcon name="edit" :size="12" :stroke="2.2" /></button>
-                <button class="msg-act del" title="Excluir" @click="removeNote(n.id)"><AppIcon name="close" :size="12" :stroke="2.4" /></button>
+              <div class="eline-top">
+                <span v-if="n.minute" class="eline-min">{{ n.minute }}</span>
+                <span class="eline-tag mine">Seu</span>
+                <span class="eline-time">{{ fmtTime(n.createdAt) }}</span>
+                <span class="eline-acts">
+                  <button class="msg-act" title="Editar" @click="startEdit(n)"><AppIcon name="edit" :size="12" :stroke="2.2" /></button>
+                  <button class="msg-act del" title="Excluir" @click="removeNote(n.id)"><AppIcon name="close" :size="12" :stroke="2.4" /></button>
+                </span>
               </div>
+              <p class="eline-text">{{ n.text }}</p>
             </template>
           </div>
         </div>
@@ -332,17 +336,13 @@ const sideName = (s: 'home' | 'away' | null) =>
 @media (max-width: 980px) { .stream { max-height: 52vh; } }
 .empty { color: var(--muted); font-size: 13px; line-height: 1.5; margin: auto; text-align: center; max-width: 320px; }
 
-/* chat (seus comentários) */
-.msg { align-self: flex-start; max-width: 88%; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; border-top-left-radius: 4px; padding: 9px 12px; }
-.msg-body { font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
-.msg-min { display: inline-block; font-size: 11px; font-weight: 800; color: var(--azure); background: color-mix(in srgb, var(--azure) 12%, transparent); border-radius: 5px; padding: 1px 6px; margin-right: 7px; vertical-align: 1px; font-variant-numeric: tabular-nums; }
-.msg-foot { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
-.msg-time { font-size: 10.5px; color: var(--muted); font-weight: 600; }
+/* seus comentários — MESMO cartão da narração ESPN (.eline), com borda dourada
+   marcando que é seu, e ações editar/excluir revelando no hover. */
 .msg-act { display: inline-flex; border: none; background: none; color: var(--muted); cursor: pointer; padding: 1px; border-radius: 4px; opacity: 0; transition: opacity 0.12s, color 0.12s; }
-.msg:hover .msg-act { opacity: 1; }
+.eline.mine:hover .msg-act { opacity: 1; }
 .msg-act:hover { color: var(--azure); }
 .msg-act.del:hover { color: var(--scarlet); }
-.msg.editing { align-self: stretch; max-width: 100%; background: var(--bg-surface); }
+.eline.mine.editing { background: var(--bg-surface); }
 .edit-row { display: flex; gap: 6px; }
 .edit-min { flex: 0 0 70px; font-size: 12px; padding: 6px 8px; }
 .edit-ta { flex: 1; resize: none; font-size: 14px; }
@@ -378,6 +378,11 @@ const sideName = (s: 'home' | 'away' | null) =>
 .eline-tag.foul { color: #e07b39; border-color: color-mix(in srgb, #e07b39 45%, transparent); }
 .eline-tag.var { color: var(--azure); border-color: color-mix(in srgb, var(--azure) 45%, transparent); }
 .eline-side { font-size: 10.5px; font-weight: 700; color: var(--muted); }
+/* variante "seu comentário": mesmo cartão, acento dourado */
+.eline.mine { border-left-color: var(--gold); }
+.eline-tag.mine { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
+.eline-time { margin-left: auto; font-size: 10px; font-weight: 600; color: var(--muted); }
+.eline-acts { display: inline-flex; align-items: center; gap: 4px; }
 .eline-use { margin-left: auto; display: inline-flex; align-items: center; gap: 3px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--muted); font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 2px 8px; cursor: pointer; transition: color 0.12s, border-color 0.12s; }
 .eline-use:hover { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, var(--border)); }
 .eline-text { font-size: 13px; line-height: 1.45; color: var(--text); margin: 0; word-break: break-word; }
