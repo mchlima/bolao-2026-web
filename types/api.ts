@@ -939,6 +939,14 @@ export interface PreviewScorers {
   home: PreviewScorer[];
   away: PreviewScorer[];
 }
+export interface PreviewProbability {
+  provider: string | null;
+  home: number; // % 0–100
+  draw: number;
+  away: number;
+  favorite: 'home' | 'draw' | 'away';
+  updatedAt: string | null;
+}
 export interface MatchPreview {
   available: boolean;
   home: PreviewTeamRef | null;
@@ -947,6 +955,7 @@ export interface MatchPreview {
   h2h: PreviewH2H | null;
   standings: PreviewStandings | null;
   scorers: PreviewScorers | null;
+  probability: PreviewProbability | null;
 }
 
 // Comentário do admin na narração ao vivo (vira fato pra geração).

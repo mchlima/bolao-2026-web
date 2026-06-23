@@ -65,6 +65,15 @@ function shortDate(iso: string): string {
     timeZone: DEFAULT_TZ,
   }).format(new Date(iso));
 }
+// % no formato pt-BR, sem ".0" supérfluo (83.7→"83,7%", 5→"5%").
+function fmtPct(n: number): string {
+  return `${(Math.round(n * 10) / 10).toString().replace('.', ',')}%`;
+}
+const favoriteName = computed(() => {
+  const p = preview.value?.probability;
+  if (!p) return '';
+  return p.favorite === 'home' ? homeName.value : p.favorite === 'away' ? awayName.value : 'Empate';
+});
 function resultLabel(r: 'W' | 'D' | 'L'): string {
   return r === 'W' ? 'V' : r === 'D' ? 'E' : 'D';
 }
@@ -81,6 +90,39 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
         <h2 class="pv-title">Antes da bola rolar</h2>
         <p class="pv-lede">{{ lede }}</p>
       </header>
+
+      <!-- PROBABILIDADE — favorito do mercado (odds da ESPN, de-vigadas) -->
+      <div v-if="preview.probability" class="pv-block">
+        <h3 class="pv-bt">
+          Probabilidade
+          <InfoTip text="Chance de cada resultado segundo as odds do mercado (casas de apostas), já descontada a margem da casa. É uma estimativa do mercado — não uma garantia." />
+        </h3>
+        <div class="prob">
+          <div class="prob-head">
+            <span class="prob-side home" :class="{ fav: preview.probability.favorite === 'home' }">
+              <span class="ps-name">{{ homeName }}</span>
+              <b class="ps-pct font-numeric">{{ fmtPct(preview.probability.home) }}</b>
+            </span>
+            <span class="prob-side draw" :class="{ fav: preview.probability.favorite === 'draw' }">
+              <span class="ps-name">Empate</span>
+              <b class="ps-pct font-numeric">{{ fmtPct(preview.probability.draw) }}</b>
+            </span>
+            <span class="prob-side away" :class="{ fav: preview.probability.favorite === 'away' }">
+              <span class="ps-name">{{ awayName }}</span>
+              <b class="ps-pct font-numeric">{{ fmtPct(preview.probability.away) }}</b>
+            </span>
+          </div>
+          <div class="prob-bar">
+            <span class="seg home" :style="{ width: preview.probability.home + '%' }" />
+            <span class="seg draw" :style="{ width: preview.probability.draw + '%' }" />
+            <span class="seg away" :style="{ width: preview.probability.away + '%' }" />
+          </div>
+          <p class="prob-foot">
+            Favorito: <b>{{ favoriteName }}</b>
+            <span v-if="preview.probability.provider" class="prob-src">· mercado via {{ preview.probability.provider }}</span>
+          </p>
+        </div>
+      </div>
 
       <!-- O QUE ESTÁ EM JOGO — posição na tabela do grupo -->
       <div v-if="preview.standings && (preview.standings.home || preview.standings.away)" class="pv-block">
@@ -276,6 +318,28 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
 .crest.xs { width: 18px; height: 18px; }
 .crest img { width: 100%; height: 100%; object-fit: contain; }
 .crest span { font-size: 9px; font-weight: 800; color: var(--muted); }
+
+/* Probabilidade (favorito do mercado) */
+.prob { background: var(--bg-base); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+.prob-head { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; margin-bottom: 10px; }
+.prob-side { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.prob-side.home { align-items: flex-start; text-align: left; }
+.prob-side.draw { align-items: center; text-align: center; }
+.prob-side.away { align-items: flex-end; text-align: right; }
+.ps-name { font-size: 12px; font-weight: 700; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.ps-pct { font-size: 19px; line-height: 1; color: var(--text); }
+.prob-side.home.fav .ps-pct { color: var(--emerald); }
+.prob-side.away.fav .ps-pct { color: var(--azure); }
+.prob-side.draw.fav .ps-pct { color: var(--text); }
+.prob-side.fav .ps-name { color: var(--text); }
+.prob-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--border); }
+.prob-bar .seg { height: 100%; }
+.prob-bar .seg.home { background: var(--emerald); }
+.prob-bar .seg.draw { background: color-mix(in srgb, var(--muted) 55%, var(--border)); }
+.prob-bar .seg.away { background: var(--azure); }
+.prob-foot { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
+.prob-foot b { color: var(--text); font-weight: 800; }
+.prob-src { opacity: 0.85; }
 
 /* Tabela (o que está em jogo) */
 .tbl { display: flex; flex-direction: column; gap: 7px; }
