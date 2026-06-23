@@ -20,10 +20,12 @@ export default defineNuxtRouteMiddleware((to) => {
       redirectCode: 301,
     });
   }
-  if (to.path === '/matches' || to.path.startsWith('/matches/')) {
-    return navigateTo(to.fullPath.replace('/matches', '/futebol/agenda'), {
-      redirectCode: 301,
-    });
+  // /matches (lista) → /futebol/agenda; /matches/:id (detalhe) → /futebol/jogo/:id.
+  if (to.path === '/matches') {
+    return navigateTo({ path: '/futebol/agenda', query: to.query }, { redirectCode: 301 });
+  }
+  if (to.path.startsWith('/matches/')) {
+    return navigateTo(to.fullPath.replace('/matches/', '/futebol/jogo/'), { redirectCode: 301 });
   }
   // News moved out of the sport namespace: /futebol/noticias → /noticias (the
   // section already has its own "Futebol" category, so the prefix was redundant).
@@ -32,12 +34,22 @@ export default defineNuxtRouteMiddleware((to) => {
       redirectCode: 301,
     });
   }
-  // The agenda moved from /futebol/jogos to /futebol/agenda — keep old links,
-  // bookmarks and already-sent notification deep-links working.
-  if (to.path === '/futebol/jogos' || to.path.startsWith('/futebol/jogos/')) {
-    return navigateTo(to.fullPath.replace('/futebol/jogos', '/futebol/agenda'), {
-      redirectCode: 301,
-    });
+  // The agenda list moved from /futebol/jogos to /futebol/agenda; an old match
+  // detail under /futebol/jogos/:id goes to the new /futebol/jogo/:id.
+  if (to.path === '/futebol/jogos') {
+    return navigateTo({ path: '/futebol/agenda', query: to.query }, { redirectCode: 301 });
+  }
+  if (to.path.startsWith('/futebol/jogos/')) {
+    return navigateTo(to.fullPath.replace('/futebol/jogos/', '/futebol/jogo/'), { redirectCode: 301 });
+  }
+  // O detalhe da partida saiu de /futebol/agenda/:id para /futebol/jogo/:slug (URL
+  // de SEO). A própria página de jogo faz o "upgrade" 301 de id→slug; aqui só movemos
+  // o segmento. NÃO casa a lista (/futebol/agenda) nem ?scope= (sem subcaminho).
+  {
+    const am = to.path.match(/^\/futebol\/agenda\/(.+)$/);
+    if (am) {
+      return navigateTo({ path: `/futebol/jogo/${am[1]}`, query: to.query }, { redirectCode: 301 });
+    }
   }
   // "Torneios" (slug de temporada) virou "Campeonato" (slug de competição). O detalhe
   // de partida (id) ainda mapeia direto pra agenda. O hub antigo era keyed por slug de
@@ -46,7 +58,7 @@ export default defineNuxtRouteMiddleware((to) => {
   if (to.path === '/futebol/torneios' || to.path.startsWith('/futebol/torneios/')) {
     const md = to.path.match(/^\/futebol\/torneios\/[^/]+\/(?:jogos|matches)\/([^/]+)\/?$/);
     if (md) {
-      return navigateTo({ path: `/futebol/agenda/${md[1]}`, query: to.query }, { redirectCode: 301 });
+      return navigateTo({ path: `/futebol/jogo/${md[1]}`, query: to.query }, { redirectCode: 301 });
     }
     return navigateTo({ path: '/futebol/campeonato', query: to.query }, { redirectCode: 301 });
   }

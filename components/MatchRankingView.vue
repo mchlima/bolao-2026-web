@@ -52,15 +52,12 @@ const seoMatchup = computed(() => {
   const away = m.awayTeam?.name ?? m.awaySourceLabel ?? 'A definir';
   return `${home} x ${away}`;
 });
-// The same match is reachable from /futebol/agenda/:id and the tournament-scoped
-// route → one canonical (tournament-scoped when it has a season) so search engines
-// don't see duplicate content.
+// O mesmo jogo é alcançável por /futebol/jogo/:slug e por rotas de torneio/bolão →
+// um canonical único (slug de SEO, com fallback p/ id) pra não duplicar conteúdo.
 const canonicalUrl = computed(() => {
   const m = match.value;
   if (!m) return siteUrl;
-  return m.season?.slug
-    ? `${siteUrl}/futebol/agenda/${m.id}`
-    : `${siteUrl}/futebol/agenda/${m.id}`;
+  return `${siteUrl}/futebol/jogo/${m.slug || m.id}`;
 });
 // ── Conteúdo SEO/GEO da partida ──────────────────────────────────────────────
 // Cada jogo é um cluster de busca de alta intenção (horário, escalações, palpite,

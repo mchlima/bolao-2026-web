@@ -62,7 +62,7 @@ function hasResult(m: Match) {
       <NuxtLink
         v-for="m in round?.matches ?? []"
         :key="m.id"
-        :to="m.season?.slug ? `/futebol/agenda/${m.id}` : `/futebol/agenda/${m.id}`"
+        :to="`/futebol/jogo/${m.slug || m.id}`"
         class="fix"
         :class="{ live: m.status === 'LIVE' }"
       >

@@ -81,6 +81,7 @@ export default defineEventHandler(async (event) => {
       days: {
         matches: {
           id: string;
+          slug?: string | null;
           seasonId?: string | null;
           season?: { slug?: string | null } | null;
           updatedAt?: string;
@@ -100,7 +101,7 @@ export default defineEventHandler(async (event) => {
         if (m.homeTeam?.slug) teamSlugs.add(m.homeTeam.slug);
         if (m.awayTeam?.slug) teamSlugs.add(m.awayTeam.slug);
         urls.push({
-          loc: `/futebol/agenda/${m.id}`,
+          loc: `/futebol/jogo/${m.slug || m.id}`,
           priority: 0.5,
           changefreq: 'hourly',
           lastmod: m.updatedAt,

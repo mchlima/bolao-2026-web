@@ -201,9 +201,9 @@ useHead({
 .news-page { width: 100%; padding: 8px 16px 48px; }
 
 /* etiqueta de categoria (acento por --c) e badge destaque */
-.ncat { align-self: flex-start; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--c, var(--azure)); }
-.ncat.sm { font-size: 10px; }
-.nbadge { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-radius: 20px; padding: 1px 8px; }
+.ncat { align-self: flex-start; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--c, var(--azure)); }
+.ncat.sm { font-size: 11px; }
+.nbadge { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-radius: 20px; padding: 1px 8px; }
 
 /* MANCHETE + CHAMADAS */
 .lead { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; margin-bottom: 30px; }

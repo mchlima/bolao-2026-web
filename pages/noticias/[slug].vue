@@ -50,6 +50,10 @@ useSeoMeta({
   ogDescription: a.metaDescription || a.dek,
   ogUrl: url,
   ogType: 'article',
+  // Sem imagem programática: só compartilha capa quando há uma definida manualmente
+  // (coverUrl). null sobrescreve o fallback global /og-cover.png do app.vue.
+  ogImage: a.coverUrl || null,
+  twitterImage: a.coverUrl || null,
   articlePublishedTime: a.publishedAt,
   articleModifiedTime: a.updatedAt,
   articleSection: a.category?.name || undefined,

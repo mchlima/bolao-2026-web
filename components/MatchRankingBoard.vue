@@ -620,10 +620,9 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   position: relative;
   z-index: 2;
   padding: 16px 20px 20px;
-  /* Quinas superiores arredondadas no padrão do projeto (raio do .card) — o board
-     "sobe" como uma folha logo abaixo do header. overflow:hidden para a foto do
-     estádio (absolute inset:0) respeitar o raio. */
-  border-radius: 18px 18px 0 0;
+  /* Hero full-bleed encostado no topo: sem quinas arredondadas. overflow:hidden
+     para a foto do estádio (absolute inset:0) ficar contida. */
+  border-radius: 0;
   overflow: hidden;
   background-image: linear-gradient(135deg, rgba(15, 179, 107, 0.16), rgba(30, 127, 240, 0.14));
 }

@@ -15,7 +15,7 @@ const tz = useTz();
 
 function rowTo(m: Match): string | null {
   if (!m.homeTeam || !m.awayTeam) return null;
-  return `/futebol/agenda/${m.id}`;
+  return `/futebol/jogo/${m.slug || m.id}`;
 }
 function shortName(t: { shortName?: string; name?: string } | null, fallback: string | null): string {
   return t?.shortName || t?.name || fallback || 'A def.';

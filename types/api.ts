@@ -566,6 +566,8 @@ export interface BracketStage {
 
 export interface Match {
   id: string;
+  /** Slug de SEO ("brasil-x-franca-2026-06-22"); pode faltar enquanto os times não resolvem. */
+  slug?: string | null;
   seasonId: string;
   season?: {
     id: string;

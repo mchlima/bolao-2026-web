@@ -18,8 +18,8 @@ const tz = useTz();
 
 function rowTo(m: Match): string | null {
   if (!m.homeTeam || !m.awayTeam) return null;
-  // Rota canônica da partida (uma só), independente do torneio.
-  return `/futebol/agenda/${m.id}`;
+  // Rota canônica da partida (uma só), independente do torneio. Slug de SEO quando há.
+  return `/futebol/jogo/${m.slug || m.id}`;
 }
 function teamName(t: { name?: string } | null, fallback: string | null): string {
   return t?.name ?? fallback ?? 'A definir';
