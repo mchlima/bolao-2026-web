@@ -57,6 +57,13 @@ useHead({
 .crumb.cur {
   color: var(--text);
   font-weight: 700;
+  /* Página atual (ex.: título da matéria) pode ser uma frase longa → trunca com
+     reticências em vez de estourar a largura (no mobile/PWA virava scroll lateral).
+     min-width:0 + flex-shrink deixam o item encolher abaixo do tamanho do conteúdo. */
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sep {
   color: var(--muted);
