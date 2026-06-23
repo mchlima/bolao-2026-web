@@ -15,6 +15,11 @@ const { data: preview } = await useAsyncData(`preview-${props.matchId}`, () =>
 const show = computed(() => !!preview.value?.available);
 const homeName = computed(() => preview.value?.home?.name ?? '');
 const awayName = computed(() => preview.value?.away?.name ?? '');
+// Grupo de letra única ("C", "J") vira "Grupo C"; nome de liga ("Série A") fica como está.
+const tableLabel = computed(() => {
+  const g = preview.value?.standings?.groupName ?? '';
+  return /^[A-Z]$/i.test(g) ? `Grupo ${g.toUpperCase()}` : g;
+});
 
 // Data curta (dd/mm/aa) no fuso de Brasília — usada nas listas de jogos.
 function shortDate(iso: string): string {
@@ -28,6 +33,9 @@ function shortDate(iso: string): string {
 function resultLabel(r: 'W' | 'D' | 'L'): string {
   return r === 'W' ? 'V' : r === 'D' ? 'E' : 'D';
 }
+function resultWord(r: 'W' | 'D' | 'L'): string {
+  return r === 'W' ? 'Vitória' : r === 'D' ? 'Empate' : 'Derrota';
+}
 </script>
 
 <template>
@@ -40,7 +48,10 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
 
       <!-- O QUE ESTÁ EM JOGO — posição na tabela do grupo -->
       <div v-if="preview.standings && (preview.standings.home || preview.standings.away)" class="pv-block">
-        <h3 class="pv-bt">Na tabela · {{ preview.standings.groupName }}</h3>
+        <h3 class="pv-bt">
+          Na tabela · {{ tableLabel }}
+          <InfoTip text="Como cada time está no grupo antes desta partida. pts = pontos, j = jogos disputados, e o número final é o saldo de gols (gols marcados menos sofridos)." />
+        </h3>
         <div class="tbl">
           <div
             v-for="row in [
@@ -65,7 +76,10 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
 
       <!-- FORMA RECENTE — últimos jogos de cada time -->
       <div v-if="preview.form && (preview.form.home.matches.length || preview.form.away.matches.length)" class="pv-block">
-        <h3 class="pv-bt">Forma recente</h3>
+        <h3 class="pv-bt">
+          Forma recente
+          <InfoTip text="Como cada time vem jogando: seus últimos jogos. Os quadradinhos mostram a sequência da esquerda (mais antigo) para a direita (mais recente). V = vitória (verde), E = empate (cinza), D = derrota (vermelho). Na lista, o placar mostra os gols do próprio time primeiro." />
+        </h3>
         <div class="forms">
           <div
             v-for="col in [
@@ -81,6 +95,9 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
                 <span v-else>{{ col.team?.shortName }}</span>
               </span>
               <span class="form-name">{{ col.team?.name }}</span>
+              <span v-if="col.f.matches.length" class="form-tally">
+                {{ col.f.summary.w }}V · {{ col.f.summary.d }}E · {{ col.f.summary.l }}D
+              </span>
             </div>
             <div v-if="col.f.matches.length" class="chips">
               <!-- mais antigo → mais recente (matches vem recente-primeiro) -->
@@ -89,14 +106,21 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
                 :key="i"
                 class="chip"
                 :class="m.result.toLowerCase()"
-                :title="`${m.home ? 'casa' : 'fora'} · ${m.goalsFor}-${m.goalsAgainst}${m.opponent ? ' vs ' + m.opponent.name : ''}`"
+                :title="`${resultWord(m.result)} ${m.home ? 'em casa contra' : 'fora contra'} ${m.opponent?.name ?? ''}: ${m.goalsFor} a ${m.goalsAgainst}`"
               >{{ resultLabel(m.result) }}</span>
             </div>
             <ul v-if="col.f.matches.length" class="form-list">
               <li v-for="(m, i) in col.f.matches" :key="i">
                 <span class="fl-res" :class="m.result.toLowerCase()">{{ resultLabel(m.result) }}</span>
-                <span class="fl-opp">{{ m.home ? '' : '@' }}{{ m.opponent?.shortName ?? '—' }}</span>
-                <span class="fl-score font-numeric">{{ m.goalsFor }}-{{ m.goalsAgainst }}</span>
+                <span class="fl-crest crest xs">
+                  <img v-if="m.opponent?.logoUrl" :src="m.opponent.logoUrl" :alt="m.opponent?.name ?? ''" >
+                  <span v-else>{{ m.opponent?.shortName ?? '—' }}</span>
+                </span>
+                <span class="fl-opp">
+                  <span class="fl-opp-name">{{ m.opponent?.name ?? '—' }}</span>
+                  <span class="fl-loc">{{ m.home ? 'em casa' : 'fora' }}</span>
+                </span>
+                <span class="fl-score font-numeric">{{ m.goalsFor }}<i>–</i>{{ m.goalsAgainst }}</span>
                 <span class="fl-date">{{ shortDate(m.kickoffAt) }}</span>
               </li>
             </ul>
@@ -107,7 +131,10 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
 
       <!-- RETROSPECTO — confrontos diretos -->
       <div v-if="preview.h2h && preview.h2h.total" class="pv-block">
-        <h3 class="pv-bt">Retrospecto · {{ preview.h2h.total }} jogo{{ preview.h2h.total > 1 ? 's' : '' }}</h3>
+        <h3 class="pv-bt">
+          Retrospecto · {{ preview.h2h.total }} jogo{{ preview.h2h.total > 1 ? 's' : '' }}
+          <InfoTip text="Histórico dos confrontos diretos entre os dois times: quantas vezes cada um venceu e quantos empates, com os jogos mais recentes listados abaixo." />
+        </h3>
         <div class="tape">
           <div class="tape-side">
             <b class="font-numeric">{{ preview.h2h.homeWins }}</b>
@@ -134,7 +161,10 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
 
       <!-- ARTILHEIROS — da competição, por time -->
       <div v-if="preview.scorers && (preview.scorers.home.length || preview.scorers.away.length)" class="pv-block">
-        <h3 class="pv-bt">Artilheiros{{ preview.scorers.competition ? ' · ' + preview.scorers.competition : '' }}</h3>
+        <h3 class="pv-bt">
+          Artilheiros{{ preview.scorers.competition ? ' · ' + preview.scorers.competition : '' }}
+          <InfoTip text="Os jogadores que mais marcaram gols em cada time nesta competição até aqui. O número ao lado é o total de gols." />
+        </h3>
         <div class="scorers">
           <div
             v-for="col in [
@@ -184,6 +214,7 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
 }
 .pv-block { margin-bottom: 22px; }
 .pv-bt {
+  display: flex; align-items: center; gap: 6px;
   font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 13.5px;
   text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 11px;
 }
@@ -192,6 +223,7 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
 /* Crest reutilizável (logo ou sigla) */
 .crest { display: inline-grid; place-items: center; flex: none; overflow: hidden; }
 .crest.sm { width: 22px; height: 22px; }
+.crest.xs { width: 18px; height: 18px; }
 .crest img { width: 100%; height: 100%; object-fit: contain; }
 .crest span { font-size: 9px; font-weight: 800; color: var(--muted); }
 
@@ -213,6 +245,7 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
 .form-col, .sc-col { background: var(--bg-base); border: 1px solid var(--border); border-radius: 14px; padding: 13px; }
 .form-team { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .form-name { font-size: 13.5px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.form-tally { margin-left: auto; flex: none; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.02em; }
 .chips { display: flex; gap: 5px; margin-bottom: 11px; }
 .chip {
   width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center;
@@ -221,15 +254,19 @@ function resultLabel(r: 'W' | 'D' | 'L'): string {
 .chip.w { background: var(--emerald); }
 .chip.d { background: color-mix(in srgb, var(--muted) 65%, var(--border)); }
 .chip.l { background: var(--scarlet); }
-.form-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.form-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .form-list li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
-.fl-res { width: 16px; height: 16px; border-radius: 4px; display: grid; place-items: center; font-size: 9.5px; font-weight: 800; color: #fff; flex: none; }
+.fl-res { width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; font-size: 10px; font-weight: 800; color: #fff; flex: none; }
 .fl-res.w { background: var(--emerald); }
 .fl-res.d { background: color-mix(in srgb, var(--muted) 65%, var(--border)); }
 .fl-res.l { background: var(--scarlet); }
-.fl-opp { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fl-score { font-weight: 800; flex: none; }
-.fl-date { font-size: 11px; color: var(--muted); flex: none; }
+.fl-crest { flex: none; }
+.fl-opp { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.fl-opp-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fl-loc { font-size: 10.5px; font-weight: 600; color: var(--muted); }
+.fl-score { font-weight: 800; flex: none; font-size: 13px; }
+.fl-score i { color: var(--muted); font-style: normal; margin: 0 1px; }
+.fl-date { font-size: 11px; color: var(--muted); flex: none; min-width: 46px; text-align: right; }
 
 /* Retrospecto (tale of the tape) */
 .tape {
