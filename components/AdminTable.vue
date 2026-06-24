@@ -83,7 +83,7 @@ withDefaults(
 }
 .atr-head {
   background: var(--bg-base);
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -127,7 +127,7 @@ withDefaults(
   text-align: center;
 }
 .atable-empty p {
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
@@ -159,7 +159,7 @@ withDefaults(
   /* secondary cells: show the column label on the left, value on the right */
   .atr-cell:not(.is-primary):not(.is-actions)::before {
     content: attr(data-label);
-    font-size: 10px;
+    font-size: var(--fs-xs);
     font-weight: 800;
     letter-spacing: 0.05em;
     text-transform: uppercase;

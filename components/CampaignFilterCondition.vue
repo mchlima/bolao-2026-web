@@ -109,7 +109,7 @@ const dateVal = computed({
 }
 .cond-field { flex: 0 0 auto; min-width: 150px; }
 .cond-op { flex: 0 0 auto; min-width: 90px; }
-.cond-op-static { font-size: 13px; color: var(--muted); font-weight: 600; }
+.cond-op-static { font-size: var(--fs-sm); color: var(--muted); font-weight: 600; }
 .cond-val { flex: 1 1 200px; min-width: 180px; }
 .cond-chip {
   display: inline-flex;
@@ -119,7 +119,7 @@ const dateVal = computed({
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--bg-base);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 .cond-x {
@@ -132,7 +132,7 @@ const dateVal = computed({
   background: color-mix(in srgb, var(--muted) 20%, transparent);
   color: var(--text);
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1;
 }
 .cond-remove {

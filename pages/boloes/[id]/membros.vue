@@ -124,7 +124,7 @@ async function makeOwner(m: PoolMemberView) {
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   flex: 0 0 auto;
 }
 .av-img {
@@ -138,11 +138,11 @@ async function makeOwner(m: PoolMemberView) {
 }
 .m-name {
   display: block;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 .me-tag {
-  font-size: 9px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   color: #0a0e14;
@@ -152,7 +152,7 @@ async function makeOwner(m: PoolMemberView) {
   margin-left: 5px;
 }
 .m-role {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
 }
@@ -169,7 +169,7 @@ async function makeOwner(m: PoolMemberView) {
   background: var(--bg-base);
   color: var(--text);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   cursor: pointer;
 }

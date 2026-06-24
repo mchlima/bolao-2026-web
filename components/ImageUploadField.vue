@@ -52,5 +52,5 @@ async function onFile(e: Event) {
 }
 .prev img { width: 100%; height: 100%; object-fit: cover; }
 .ctrl { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.lbl { font-size: 12.5px; padding: 8px 12px; cursor: pointer; }
+.lbl { font-size: var(--fs-xs); padding: 8px 12px; cursor: pointer; }
 </style>

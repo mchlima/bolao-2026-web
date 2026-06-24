@@ -56,13 +56,13 @@ const ui = useUiStore();
 }
 .dialog h3 {
   font-weight: 700;
-  font-size: 18px;
+  font-size: var(--fs-lg);
   text-transform: uppercase;
   margin-bottom: 8px;
 }
 .msg {
   color: var(--muted);
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   margin-bottom: 20px;
 }

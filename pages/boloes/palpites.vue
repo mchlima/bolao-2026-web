@@ -71,7 +71,7 @@ useHead({ link: [{ rel: 'canonical', href: `${siteUrl}/boloes/palpites` }] });
 .page { padding: 10px; }
 .pend-chip {
   display: inline-flex; align-items: center;
-  font-size: 12px; font-weight: 800; color: #0a0e14;
+  font-size: var(--fs-xs); font-weight: 800; color: #0a0e14;
   background: var(--gold); border-radius: 999px; padding: 5px 12px;
 }
 </style>

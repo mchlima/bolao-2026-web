@@ -128,7 +128,7 @@ onBeforeUnmount(() => ro?.disconnect());
   border-radius: 999px;
   background: var(--bg-surface);
   color: var(--text);
-  font-size: 15px;
+  font-size: var(--fs-base);
   font-weight: 700;
   transition:
     background 0.15s ease,
@@ -159,7 +159,7 @@ onBeforeUnmount(() => ro?.disconnect());
   transform: translateY(1px);
 }
 .gbtn-off {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   text-align: center;
 }

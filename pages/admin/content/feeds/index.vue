@@ -130,12 +130,12 @@ onMounted(load);
 
 <style scoped>
 .finfo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.fname { font-weight: 700; font-size: 14px; }
-.off { font-size: 11px; color: var(--muted); font-weight: 600; }
-.furl { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.muted-txt { font-size: 12.5px; color: var(--muted); font-weight: 600; }
-.type-badge { display: inline-block; white-space: nowrap; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; }
+.fname { font-weight: 700; font-size: var(--fs-sm); }
+.off { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
+.furl { font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.muted-txt { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
+.type-badge { display: inline-block; white-space: nowrap; font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; }
 .health { display: flex; align-items: center; gap: 8px; }
-.hwhen { font-size: 11.5px; color: var(--muted); }
+.hwhen { font-size: var(--fs-xs); color: var(--muted); }
 .acts { display: flex; justify-content: flex-end; }
 </style>

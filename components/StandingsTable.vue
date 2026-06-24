@@ -189,7 +189,7 @@ const discTitle = (r: StandingsRow): string => {
 }
 .cap {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-base);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   padding: 12px 14px 8px;
@@ -200,7 +200,7 @@ const discTitle = (r: StandingsRow): string => {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 th,
 td {
@@ -209,7 +209,7 @@ td {
   white-space: nowrap;
 }
 th {
-  font-size: 11px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -258,7 +258,7 @@ tbody tr:last-child {
   padding: 0 5px;
   border-radius: 6px;
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   background: var(--bg);
   border: 1px solid var(--border);
 }
@@ -283,7 +283,7 @@ tbody tr:last-child {
   gap: 1px;
   margin-left: auto;
   flex: none;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   padding-left: 6px;
@@ -382,7 +382,7 @@ tbody tr:last-child {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -410,7 +410,7 @@ tbody tr:last-child {
   width: 17px;
   height: 17px;
   border-radius: 5px;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: #fff;
 }
@@ -428,7 +428,7 @@ tbody tr:last-child {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 14px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   padding: 8px 14px;
   border-top: 1px solid var(--border);

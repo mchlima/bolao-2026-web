@@ -96,7 +96,7 @@ function fmtDate(iso: string): string {
 
 .ncat {
   align-self: flex-start;
-  font-size: 10.5px;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -104,7 +104,7 @@ function fmtDate(iso: string): string {
 }
 .ntop { display: flex; align-items: center; gap: 10px; }
 .nbadge {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -113,24 +113,24 @@ function fmtDate(iso: string): string {
   border-radius: 20px;
   padding: 1px 8px;
 }
-.ntitle { font-family: 'Oswald', sans-serif; font-size: 19px; font-weight: 700; line-height: 1.25; margin: 0; }
+.ntitle { font-family: 'Oswald', sans-serif; font-size: var(--fs-xl); font-weight: 700; line-height: 1.25; margin: 0; }
 .ndek {
-  font-size: 13.5px; line-height: 1.55; color: var(--muted); margin: 0;
+  font-size: var(--fs-sm); line-height: 1.55; color: var(--muted); margin: 0;
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 .nfoot { margin-top: auto; padding-top: 4px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.nmeta { font-size: 12px; color: var(--muted); display: flex; gap: 5px; }
+.nmeta { font-size: var(--fs-xs); color: var(--muted); display: flex; gap: 5px; }
 .nsrc { opacity: 0.8; }
 .ntags { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
 .ntag {
-  font-size: 11px; font-weight: 600; color: var(--muted);
+  font-size: var(--fs-xs); font-weight: 600; color: var(--muted);
   background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 1px 9px;
 }
 
 /* Destaque */
 .ncard.hero { padding: 26px 28px; background: var(--bg-elevated, var(--bg-surface)); }
-.ncard.hero .ntitle { font-size: clamp(24px, 4vw, 32px); line-height: 1.16; letter-spacing: -0.01em; }
-.ncard.hero .ndek { font-size: 15.5px; -webkit-line-clamp: 4; max-width: 68ch; }
+.ncard.hero .ntitle { font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.16; letter-spacing: -0.01em; }
+.ncard.hero .ndek { font-size: var(--fs-base); -webkit-line-clamp: 4; max-width: 68ch; }
 .ncard.hero::before { width: 4px; transform: scaleY(1); opacity: 0.85; }
 .ncard.hero:hover::before { opacity: 1; }
 

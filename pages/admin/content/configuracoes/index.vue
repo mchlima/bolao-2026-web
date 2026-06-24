@@ -91,11 +91,11 @@ onMounted(load);
 
 <style scoped>
 .form-wrap { max-width: 680px; }
-.ctitle { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 12px; }
+.ctitle { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 12px; }
 .limits { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
-.limits label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 8px; }
+.limits label { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); margin-top: 8px; }
 .limits .lh { font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--muted); opacity: 0.8; }
-.hint { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 14px 0 0; }
+.hint { font-size: var(--fs-xs); color: var(--muted); line-height: 1.5; margin: 14px 0 0; }
 .save-row { margin-top: 16px; display: flex; justify-content: flex-end; }
 @media (max-width: 760px) { .limits { grid-template-columns: 1fr; } }
 </style>

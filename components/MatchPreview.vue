@@ -295,29 +295,29 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
 .pv-head { margin-bottom: 18px; }
 .pv-kicker {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: var(--fs-2xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--emerald);
 }
 .pv-kicker :deep(svg) { color: var(--emerald); }
 .pv-title {
-  font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(19px, 4vw, 24px);
+  font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(1.1875rem, 4vw, 1.5rem);
   text-transform: uppercase; letter-spacing: 0.01em; margin: 4px 0 0;
 }
-.pv-lede { margin: 8px 0 0; font-size: 14.5px; line-height: 1.6; color: var(--muted); max-width: 60ch; }
+.pv-lede { margin: 8px 0 0; font-size: var(--fs-sm); line-height: 1.6; color: var(--muted); max-width: 60ch; }
 .pv-block { margin-bottom: 22px; }
 .pv-bt {
   display: flex; align-items: center; gap: 6px;
-  font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 13.5px;
+  font-family: 'Oswald', sans-serif; font-weight: 600; font-size: var(--fs-sm);
   text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 0 0 11px;
 }
-.pv-empty { font-size: 12.5px; color: var(--muted); margin: 8px 0 0; }
+.pv-empty { font-size: var(--fs-xs); color: var(--muted); margin: 8px 0 0; }
 
 /* Crest reutilizável (logo ou sigla) */
 .crest { display: inline-grid; place-items: center; flex: none; overflow: hidden; }
 .crest.sm { width: 22px; height: 22px; }
 .crest.xs { width: 18px; height: 18px; }
 .crest img { width: 100%; height: 100%; object-fit: contain; }
-.crest span { font-size: 9px; font-weight: 800; color: var(--muted); }
+.crest span { font-size: var(--fs-xs); font-weight: 800; color: var(--muted); }
 
 /* Probabilidade (favorito do mercado) */
 .prob { background: var(--bg-base); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
@@ -326,8 +326,8 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
 .prob-side.home { align-items: flex-start; text-align: left; }
 .prob-side.draw { align-items: center; text-align: center; }
 .prob-side.away { align-items: flex-end; text-align: right; }
-.ps-name { font-size: 12px; font-weight: 700; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
-.ps-pct { font-size: 19px; line-height: 1; color: var(--text); }
+.ps-name { font-size: var(--fs-2xs); font-weight: 700; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.ps-pct { font-size: var(--fs-xl); line-height: 1; color: var(--text); }
 .prob-side.home.fav .ps-pct { color: var(--emerald); }
 .prob-side.away.fav .ps-pct { color: var(--azure); }
 .prob-side.draw.fav .ps-pct { color: var(--text); }
@@ -337,7 +337,7 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
 .prob-bar .seg.home { background: var(--emerald); }
 .prob-bar .seg.draw { background: color-mix(in srgb, var(--muted) 55%, var(--border)); }
 .prob-bar .seg.away { background: var(--azure); }
-.prob-foot { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
+.prob-foot { margin: 10px 0 0; font-size: var(--fs-2xs); color: var(--muted); }
 .prob-foot b { color: var(--text); font-weight: 800; }
 .prob-src { opacity: 0.85; }
 
@@ -347,40 +347,40 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
   display: flex; align-items: center; gap: 9px;
   background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 9px 12px;
 }
-.tbl-pos { font-size: 15px; font-weight: 800; color: var(--gold); flex: none; min-width: 26px; }
-.tbl-name { font-size: 13.5px; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tbl-stat { font-size: 12px; color: var(--muted); flex: none; }
-.tbl-stat b { font-size: 14px; color: var(--text); }
-.tbl-stat.sub { font-size: 11.5px; opacity: 0.85; }
+.tbl-pos { font-size: var(--fs-base); font-weight: 800; color: var(--gold); flex: none; min-width: 26px; }
+.tbl-name { font-size: var(--fs-sm); font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tbl-stat { font-size: var(--fs-xs); color: var(--muted); flex: none; }
+.tbl-stat b { font-size: var(--fs-sm); color: var(--text); }
+.tbl-stat.sub { font-size: var(--fs-xs); opacity: 0.85; }
 
 /* Forma recente */
 .forms, .scorers { display: grid; grid-template-columns: 1fr; gap: 12px; }
 @media (min-width: 560px) { .forms, .scorers { grid-template-columns: 1fr 1fr; } }
 .form-col, .sc-col { background: var(--bg-base); border: 1px solid var(--border); border-radius: 14px; padding: 13px; }
 .form-team { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.form-name { font-size: 13.5px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.form-tally { margin-left: auto; flex: none; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 0.02em; }
+.form-name { font-size: var(--fs-sm); font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.form-tally { margin-left: auto; flex: none; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); letter-spacing: 0.02em; }
 .chips { display: flex; gap: 5px; margin-bottom: 11px; }
 .chip {
   width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center;
-  font-size: 11px; font-weight: 800; color: #fff;
+  font-size: var(--fs-xs); font-weight: 800; color: #fff;
 }
 .chip.w { background: var(--emerald); }
 .chip.d { background: color-mix(in srgb, var(--muted) 65%, var(--border)); }
 .chip.l { background: var(--scarlet); }
 .form-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.form-list li { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
-.fl-res { width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; font-size: 10px; font-weight: 800; color: #fff; flex: none; }
+.form-list li { display: flex; align-items: center; gap: 8px; font-size: var(--fs-xs); }
+.fl-res { width: 18px; height: 18px; border-radius: 5px; display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; color: #fff; flex: none; }
 .fl-res.w { background: var(--emerald); }
 .fl-res.d { background: color-mix(in srgb, var(--muted) 65%, var(--border)); }
 .fl-res.l { background: var(--scarlet); }
 .fl-crest { flex: none; }
 .fl-opp { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
 .fl-opp-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fl-loc { font-size: 10.5px; font-weight: 600; color: var(--muted); }
-.fl-score { font-weight: 800; flex: none; font-size: 13px; }
+.fl-loc { font-size: var(--fs-2xs); font-weight: 600; color: var(--muted); }
+.fl-score { font-weight: 800; flex: none; font-size: var(--fs-sm); }
 .fl-score i { color: var(--muted); font-style: normal; margin: 0 1px; }
-.fl-date { font-size: 11px; color: var(--muted); flex: none; min-width: 46px; text-align: right; }
+.fl-date { font-size: var(--fs-xs); color: var(--muted); flex: none; min-width: 46px; text-align: right; }
 
 /* Retrospecto (tale of the tape) */
 .tape {
@@ -389,13 +389,13 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
   border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
 }
 .tape-side, .tape-mid { display: flex; flex-direction: column; align-items: center; min-width: 0; text-align: center; }
-.tape-side b { font-size: 28px; line-height: 1; color: var(--emerald); }
+.tape-side b { font-size: var(--fs-3xl); line-height: 1; color: var(--emerald); }
 .tape-side.right b { color: var(--azure); }
-.tape-mid b { font-size: 22px; line-height: 1; color: var(--muted); }
-.tape-side span, .tape-mid span { font-size: 11.5px; font-weight: 700; color: var(--muted); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.tape-mid b { font-size: var(--fs-2xl); line-height: 1; color: var(--muted); }
+.tape-side span, .tape-mid span { font-size: var(--fs-2xs); font-weight: 700; color: var(--muted); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .h2h-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
-.h2h-list li { display: grid; grid-template-columns: 52px 1fr auto 1fr; align-items: center; gap: 8px; font-size: 12.5px; padding: 6px 10px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; }
-.h-date { font-size: 11px; color: var(--muted); }
+.h2h-list li { display: grid; grid-template-columns: 52px 1fr auto 1fr; align-items: center; gap: 8px; font-size: var(--fs-xs); padding: 6px 10px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; }
+.h-date { font-size: var(--fs-xs); color: var(--muted); }
 .h-team { font-weight: 700; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .h-team.right { text-align: left; }
 .h-score { font-weight: 800; }
@@ -403,12 +403,12 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
 
 /* Artilheiros */
 .sc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.sc-list li { display: flex; align-items: center; gap: 9px; font-size: 13px; }
+.sc-list li { display: flex; align-items: center; gap: 9px; font-size: var(--fs-sm); }
 .sc-av { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex: none; background: var(--bg-surface); border: 1px solid var(--border); display: grid; place-items: center; }
 .sc-av img { width: 100%; height: 100%; object-fit: cover; }
 .sc-name { font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sc-goals { font-weight: 800; flex: none; }
-.sc-goals i { font-style: normal; font-size: 11px; margin-left: 3px; }
+.sc-goals i { font-style: normal; font-size: var(--fs-xs); margin-left: 3px; }
 
 /* Fechamento (rampa pro palpite) */
 .pv-cta {
@@ -417,7 +417,7 @@ function resultWord(r: 'W' | 'D' | 'L'): string {
   background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 11%, var(--bg-base)), var(--bg-base));
   border: 1px solid color-mix(in srgb, var(--gold) 26%, var(--border)); border-radius: 16px;
 }
-.pv-cta-lead { margin: 0; font-size: 14.5px; line-height: 1.5; font-weight: 600; color: var(--text); max-width: 44ch; }
+.pv-cta-lead { margin: 0; font-size: var(--fs-sm); line-height: 1.5; font-weight: 600; color: var(--text); max-width: 44ch; }
 .pv-cta-lead b { font-weight: 800; }
 .pv-cta-btn { min-width: 220px; }
 </style>

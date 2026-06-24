@@ -217,18 +217,18 @@ onUnmounted(() => {
 .dhead { flex: none; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); background: var(--bg-elevated); }
 .dbrand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
 .dlogo { width: 34px; height: 34px; border-radius: 10px; background: var(--grad-trophy); display: grid; place-items: center; }
-.dname { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 17px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--text); }
+.dname { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-lg); text-transform: uppercase; letter-spacing: 0.02em; color: var(--text); }
 .dclose { display: grid; place-items: center; width: 36px; height: 36px; border: 0; background: transparent; color: var(--muted); border-radius: 9px; cursor: pointer; }
 .dclose:hover { color: var(--text); background: var(--bg-surface); }
 
 .dnav { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 10px 12px 16px; display: flex; flex-direction: column; }
 .dfoot { flex: none; padding: 10px 12px; border-top: 1px solid var(--border); background: var(--bg-elevated); }
-.dcopa { display: flex; align-items: center; gap: 11px; padding: 13px 14px; margin-bottom: 8px; border-radius: 13px; background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 20%, var(--bg-surface)), var(--bg-surface) 75%); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border)); color: var(--text); text-decoration: none; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 15px; text-transform: uppercase; letter-spacing: 0.01em; }
+.dcopa { display: flex; align-items: center; gap: 11px; padding: 13px 14px; margin-bottom: 8px; border-radius: 13px; background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 20%, var(--bg-surface)), var(--bg-surface) 75%); border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--border)); color: var(--text); text-decoration: none; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: var(--fs-base); text-transform: uppercase; letter-spacing: 0.01em; }
 .dcopa:hover { border-color: var(--gold); }
 .dcopa-go { margin-left: auto; color: var(--muted); }
 .pillar { padding: 2px 0; }
 .prow { display: flex; align-items: center; gap: 4px; }
-.plink { flex: 1; display: flex; align-items: center; gap: 11px; padding: 12px 12px; border-radius: 11px; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 16px; text-transform: uppercase; letter-spacing: 0.01em; color: var(--text); text-decoration: none; }
+.plink { flex: 1; display: flex; align-items: center; gap: 11px; padding: 12px 12px; border-radius: 11px; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: var(--fs-base); text-transform: uppercase; letter-spacing: 0.01em; color: var(--text); text-decoration: none; }
 .plink:hover { background: var(--bg-surface); }
 .pillar.bolao .plink { color: var(--gold); }
 /* Filhos de Bolão na mesma cor/peso dos filhos de Futebol (campeonatos). */
@@ -238,13 +238,13 @@ onUnmounted(() => {
 .pexp:hover { color: var(--text); background: var(--bg-surface); }
 .pexp.on { transform: rotate(180deg); }
 .psub { list-style: none; margin: 2px 0 8px; padding: 0 0 0 12px; display: flex; flex-direction: column; gap: 1px; border-left: 2px solid var(--border); margin-left: 18px; }
-.slink { display: block; padding: 9px 12px; border-radius: 9px; font-size: 16px; font-weight: 600; color: var(--muted); text-decoration: none; }
+.slink { display: block; padding: 9px 12px; border-radius: 9px; font-size: var(--fs-base); font-weight: 600; color: var(--muted); text-decoration: none; }
 .slink:hover { color: var(--text); background: var(--bg-surface); }
-.slink.sm { font-size: 16px; opacity: 0.9; }
+.slink.sm { font-size: var(--fs-base); opacity: 0.9; }
 .slink.router-link-active { color: var(--azure); }
 /* CAMPEONATOS = grupo pai (header tipo rótulo de seção). */
 .camp-group { margin: 6px 0 2px; }
-.camp-head { flex: 1; min-width: 0; padding: 8px 12px; font-size: 16px; font-weight: 700; text-transform: capitalize; color: var(--text); text-decoration: none; border-radius: 7px; cursor: pointer; }
+.camp-head { flex: 1; min-width: 0; padding: 8px 12px; font-size: var(--fs-base); font-weight: 700; text-transform: capitalize; color: var(--text); text-decoration: none; border-radius: 7px; cursor: pointer; }
 .camp-head:hover { color: var(--text); background: var(--bg-surface); }
 .camp-head.router-link-active { color: var(--azure); }
 /* Filhos de CAMPEONATOS, indentados sob o grupo. */
@@ -253,7 +253,7 @@ onUnmounted(() => {
 .comp-row { display: flex; align-items: center; gap: 4px; }
 .comp-head { flex: 1; min-width: 0; display: flex; align-items: center; padding: 8px 12px; border-radius: 9px; text-decoration: none; }
 .comp-head:hover { background: var(--bg-surface); }
-.comp-name { min-width: 0; font-size: 16px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.comp-name { min-width: 0; font-size: var(--fs-base); font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .comp-sub { list-style: none; margin: 0 0 4px; padding: 0 0 0 14px; display: flex; flex-direction: column; gap: 1px; }
 .dsep { height: 1px; background: var(--border); margin: 12px 6px; }
 .dcta { display: flex; flex-direction: column; gap: 8px; padding: 0 6px; }

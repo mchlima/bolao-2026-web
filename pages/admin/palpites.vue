@@ -202,7 +202,7 @@ onMounted(async () => {
 .pick-tour { flex: 1 1 260px; min-width: 0; }
 .pl {
   display: block;
-  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase;
   letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px;
 }
 .chosen {
@@ -210,8 +210,8 @@ onMounted(async () => {
   padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px;
   background: var(--bg-surface);
 }
-.cu-name { font-weight: 700; font-size: 14px; }
-.cu-mail { font-size: 12px; color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cu-name { font-weight: 700; font-size: var(--fs-sm); }
+.cu-mail { font-size: var(--fs-xs); color: var(--muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cu-x {
   margin-left: auto; flex: none; display: grid; place-items: center;
   width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--border);
@@ -230,12 +230,12 @@ onMounted(async () => {
   padding: 8px 9px; border: 0; background: transparent; border-radius: 8px; cursor: pointer;
 }
 .ures-opt:hover { background: var(--bg-base); }
-.ro-name { font-weight: 600; font-size: 13.5px; color: var(--text); }
-.ro-mail { font-size: 11.5px; color: var(--muted); }
+.ro-name { font-weight: 600; font-size: var(--fs-sm); color: var(--text); }
+.ro-mail { font-size: var(--fs-xs); color: var(--muted); }
 .hint { padding: 2rem 0; text-align: center; color: var(--muted); font-weight: 600; }
 .mb { margin-bottom: 12px; }
 .adm-filters { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .fsearch { flex: 1; min-width: 180px; }
 .fstatus { flex: none; width: 170px; }
-.cnt { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.cnt { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; }
 </style>

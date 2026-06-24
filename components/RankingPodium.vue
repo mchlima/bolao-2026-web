@@ -9,16 +9,19 @@ const props = defineProps<{ data: RankingResponse; title: string; subtitle?: str
 
 const entries = computed(() => props.data.entries ?? []);
 const total = computed(() => props.data.totalParticipants ?? entries.value.length);
-const top3 = computed(() => entries.value.slice(0, 3));
+// Só ocupa um lugar no pódio quem JÁ pontuou (> 0); os zerados ficam na tabela.
+const scored = computed(() => entries.value.filter((e) => e.points > 0).slice(0, 3));
 
 const MEDALS = ['var(--gold)', '#C2CAD6', '#CD7F45'];
 const HEIGHTS = ['84px', '64px', '50px'];
-// visual order: 2nd, 1st, 3rd (only the slots that exist)
-const podium = computed(() =>
-  [top3.value[1], top3.value[0], top3.value[2]]
-    .map((e, i) => ({ e, slot: [1, 0, 2][i] }))
-    .filter((x) => x.e),
-);
+// SEMPRE 3 pedestais (ordem visual 2º, 1º, 3º). Lugares sem pontuador ficam
+// VAZIOS (placeholder, aguardando alguém subir) — o pódio não some.
+const podium = computed(() => [
+  { e: scored.value[1] ?? null, slot: 1 },
+  { e: scored.value[0] ?? null, slot: 0 },
+  { e: scored.value[2] ?? null, slot: 2 },
+]);
+const posOf = (slot: number) => (slot === 0 ? 1 : slot === 1 ? 2 : 3);
 
 function initials(name: string): string {
   const p = name.trim().split(/\s+/);
@@ -32,7 +35,7 @@ function color(id: string): string {
 </script>
 
 <template>
-  <div v-if="top3.length" class="rk-panel">
+  <div v-if="entries.length" class="rk-panel">
     <div class="rk-head">
       <div class="rk-head-l">
         <span class="rk-eyebrow">Classificação</span>
@@ -42,27 +45,36 @@ function color(id: string): string {
     </div>
 
     <div class="podium">
-      <div v-for="{ e, slot } in podium" :key="e.user.id" class="pcol" :class="{ champ: slot === 0 }">
-        <AppIcon v-if="slot === 0" name="trophy" :size="20" :stroke="2" class="pcrown" />
-        <div
-          class="pavatar"
-          :style="{ background: color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 22px -4px ${MEDALS[slot]}` }"
-        >
-          <img v-if="e.user.avatarUrl" class="pavatar-img" :src="e.user.avatarUrl" alt="" >
-          <template v-else>{{ initials(e.user.name) }}</template>
-        </div>
-        <div class="pname">{{ e.user.name }}</div>
-        <div class="font-numeric ppts" :style="{ color: MEDALS[slot] }">{{ e.points }}</div>
-        <div class="ppts-l">pts</div>
-        <div v-if="detailed" class="pstats">
-          <span class="ps"><b class="font-numeric">{{ e.exactCount }}</b><i>crav</i></span>
-          <span class="ps"><b class="font-numeric">{{ e.scoredCount }}</b><i>pont</i></span>
-        </div>
+      <div v-for="{ e, slot } in podium" :key="slot" class="pcol" :class="{ champ: slot === 0 && e, empty: !e }">
+        <!-- Lugar PREENCHIDO -->
+        <template v-if="e">
+          <AppIcon v-if="slot === 0" name="trophy" :size="20" :stroke="2" class="pcrown" />
+          <div
+            class="pavatar"
+            :style="{ background: color(e.user.id), borderColor: MEDALS[slot], boxShadow: `0 0 22px -4px ${MEDALS[slot]}` }"
+          >
+            <img v-if="e.user.avatarUrl" class="pavatar-img" :src="e.user.avatarUrl" alt="" >
+            <template v-else>{{ initials(e.user.name) }}</template>
+          </div>
+          <div class="pname">{{ e.user.name }}</div>
+          <div class="font-numeric ppts" :style="{ color: MEDALS[slot] }">{{ e.points }}</div>
+          <div class="ppts-l">pts</div>
+          <div v-if="detailed" class="pstats">
+            <span class="ps"><b class="font-numeric">{{ e.exactCount }}</b><i>crav</i></span>
+            <span class="ps"><b class="font-numeric">{{ e.scoredCount }}</b><i>pont</i></span>
+          </div>
+        </template>
+        <!-- Lugar VAZIO (aguardando alguém pontuar) -->
+        <template v-else>
+          <div class="pavatar pavatar-empty" aria-hidden="true" />
+          <div class="pname pname-empty">A definir</div>
+        </template>
         <div
           class="pbar"
-          :style="{ height: HEIGHTS[slot], background: `linear-gradient(180deg, ${MEDALS[slot]}, transparent)` }"
+          :class="{ 'pbar-empty': !e }"
+          :style="{ height: HEIGHTS[slot], background: e ? `linear-gradient(180deg, ${MEDALS[slot]}, transparent)` : undefined }"
         >
-          <span class="font-numeric prank">{{ e.rank }}º</span>
+          <span class="font-numeric prank">{{ e ? e.rank : posOf(slot) }}º</span>
         </div>
       </div>
     </div>
@@ -90,14 +102,14 @@ function color(id: string): string {
   min-width: 0;
 }
 .rk-eyebrow {
-  font-size: 10.5px;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
 }
 .rk-total {
-  font-size: 15px;
+  font-size: var(--fs-base);
   font-weight: 600;
   color: var(--text);
 }
@@ -149,7 +161,7 @@ function color(id: string): string {
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 17px;
+  font-size: var(--fs-lg);
   border: 3px solid;
 }
 .pavatar-img {
@@ -157,8 +169,24 @@ function color(id: string): string {
   height: 100%;
   object-fit: cover;
 }
+/* Lugar vazio: círculo tracejado + pedestal neutro (aguardando pontuar). */
+.pavatar-empty {
+  background: transparent;
+  border: 2px dashed color-mix(in srgb, var(--muted) 45%, transparent);
+  box-shadow: none;
+}
+.pname-empty {
+  color: var(--muted);
+  font-weight: 600;
+}
+.pbar-empty {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--muted) 20%, transparent), transparent);
+}
+.pbar-empty .prank {
+  color: var(--muted);
+}
 .pname {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   margin-top: 9px;
   text-align: center;
@@ -168,11 +196,11 @@ function color(id: string): string {
   max-width: 100%;
 }
 .ppts {
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   line-height: 1;
 }
 .ppts-l {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -192,13 +220,13 @@ function color(id: string): string {
   line-height: 1.05;
 }
 .ps b {
-  font-size: 17px;
+  font-size: var(--fs-lg);
   font-weight: 700;
   color: var(--text);
 }
 .ps i {
   font-style: normal;
-  font-size: 9.5px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -214,7 +242,7 @@ function color(id: string): string {
   padding-top: 9px;
 }
 .prank {
-  font-size: 30px;
+  font-size: var(--fs-3xl);
   color: #0a0e14;
 }
 </style>

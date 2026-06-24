@@ -26,6 +26,22 @@
   --muted: #5b6675;
   --shadow: 0 16px 40px -16px rgba(15, 22, 32, 0.18);
   --ring: rgba(15, 22, 32, 0.02);
+
+  /* Escala tipográfica padrão de mercado (Tailwind), em rem → respeita a fonte-base
+     do navegador (acessibilidade). Raiz = 16px. --fs-base = corpo de texto.
+     --fs-2xs (11px) = micro-rótulo/overline/badge (caption — padrão Material/Ant). */
+  --fs-2xs: 0.6875rem; /* 11px */
+  --fs-xs: 0.75rem;    /* 12px */
+  --fs-sm: 0.875rem;   /* 14px */
+  --fs-base: 1rem;     /* 16px (texto do body) */
+  --fs-lg: 1.125rem;   /* 18px */
+  --fs-xl: 1.25rem;    /* 20px */
+  --fs-2xl: 1.5rem;    /* 24px */
+  --fs-3xl: 1.875rem;  /* 30px */
+  --fs-4xl: 2.25rem;   /* 36px */
+  --fs-5xl: 3rem;      /* 48px */
+  --fs-6xl: 3.75rem;   /* 60px */
+  --fs-7xl: 4.5rem;    /* 72px */
 }
 
 html[data-theme='dark'] {
@@ -89,7 +105,7 @@ body {
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
   background: var(--bg-base);
   color: var(--text);
-  font-size: 15px;
+  font-size: var(--fs-base);
   line-height: 1.45;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
@@ -252,7 +268,7 @@ select {
   gap: 0.45rem;
   font: inherit;
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   padding: 12px 18px;
   border-radius: 12px;
   border: 1px solid var(--border);
@@ -324,7 +340,7 @@ select:focus-visible,
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;

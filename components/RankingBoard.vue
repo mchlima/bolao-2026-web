@@ -17,8 +17,13 @@ const props = defineProps<{
 
 const me = computed(() => props.data.currentUser ?? null);
 const entries = computed(() => props.data.entries ?? []);
-// Top 3 lead the podium (RankingPodium); the rows list everyone after them.
-const rest = computed(() => entries.value.slice(3));
+// Só vai pro pódio quem pontuou (> 0), no máx. 3 — mesma regra do RankingPodium.
+// Antes de pontuar o pódio fica vazio e TODOS aparecem na tabela.
+const podiumCount = computed(
+  () => Math.min(3, entries.value.filter((e) => e.points > 0).length),
+);
+// As linhas listam todo mundo que não está no pódio (inclui os zerados).
+const rest = computed(() => entries.value.slice(podiumCount.value));
 const inTop = computed(
   () => !!me.value && entries.value.some((e) => e.user.id === me.value!.user.id),
 );
@@ -138,7 +143,7 @@ function rowEntry(e: RankingEntry) {
 }
 .row.detailed .pts .font-numeric,
 .row.detailed .stat .font-numeric {
-  font-size: 24px;
+  font-size: var(--fs-2xl);
 }
 .row.detailed .stat .font-numeric {
   color: var(--text);
@@ -147,14 +152,14 @@ function rowEntry(e: RankingEntry) {
 .row.detailed .stat .lbl {
   margin-left: 0;
   margin-top: 2px;
-  font-size: 10px;
+  font-size: var(--fs-2xs);
 }
 .row.me {
   border-color: var(--gold);
   background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 16%, var(--bg-surface)), var(--bg-surface));
 }
 .pos {
-  font-size: 20px;
+  font-size: var(--fs-xl);
   color: var(--muted);
   text-align: center;
 }
@@ -177,7 +182,7 @@ function rowEntry(e: RankingEntry) {
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   flex: 0 0 auto;
 }
 .av-img {
@@ -189,14 +194,14 @@ function rowEntry(e: RankingEntry) {
   background: var(--grad-pitch);
 }
 .nm {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .youtag {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -211,13 +216,13 @@ function rowEntry(e: RankingEntry) {
   white-space: nowrap;
 }
 .pts .font-numeric {
-  font-size: 24px;
+  font-size: var(--fs-2xl);
 }
 .pts .gold {
   color: var(--gold);
 }
 .pts .lbl {
-  font-size: 11px;
+  font-size: var(--fs-2xs);
   color: var(--muted);
   font-weight: 600;
   margin-left: 4px;
@@ -229,7 +234,7 @@ function rowEntry(e: RankingEntry) {
   z-index: 15;
 }
 .sticky-cap {
-  font-size: 10px;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -241,10 +246,10 @@ function rowEntry(e: RankingEntry) {
   box-shadow: 0 14px 34px -10px rgba(244, 184, 30, 0.5);
 }
 .row.big .pos {
-  font-size: 26px;
+  font-size: var(--fs-2xl);
 }
 .row.big .pts .font-numeric,
 .row.big.detailed .stat .font-numeric {
-  font-size: 26px;
+  font-size: var(--fs-2xl);
 }
 </style>

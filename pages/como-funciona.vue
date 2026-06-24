@@ -187,14 +187,14 @@ const phases = [
 .hero { position: relative; overflow: hidden; border-radius: 22px; border: 1px solid var(--border); background: linear-gradient(135deg, rgba(244, 184, 30, 0.2), rgba(224, 33, 138, 0.16)), var(--bg-surface); box-shadow: var(--shadow); padding: clamp(20px, 4vw, 30px); margin-bottom: 24px; }
 .glow { position: absolute; right: -30px; top: -30px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(244, 184, 30, 0.3), transparent 70%); }
 .hero-in { position: relative; }
-.kicker { display: inline-block; background: rgba(244, 184, 30, 0.16); border: 1px solid rgba(244, 184, 30, 0.4); color: var(--gold); border-radius: 999px; padding: 5px 11px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
-.hero-in h1 { font-weight: 700; font-size: clamp(28px, 5vw, 40px); text-transform: uppercase; line-height: 1; }
-.sub { color: var(--muted); margin-top: 10px; font-size: 14.5px; max-width: 540px; }
-.sec { font-weight: 600; font-size: 19px; text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 6px; }
-.sec2 { font-weight: 600; font-size: 19px; text-transform: uppercase; letter-spacing: 0.02em; margin: 30px 0 6px; }
-.lead { color: var(--muted); font-size: 13.5px; line-height: 1.55; margin-bottom: 14px; }
+.kicker { display: inline-block; background: rgba(244, 184, 30, 0.16); border: 1px solid rgba(244, 184, 30, 0.4); color: var(--gold); border-radius: 999px; padding: 5px 11px; font-size: var(--fs-2xs); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+.hero-in h1 { font-weight: 700; font-size: clamp(1.75rem, 5vw, 2.5rem); text-transform: uppercase; line-height: 1; }
+.sub { color: var(--muted); margin-top: 10px; font-size: var(--fs-sm); max-width: 540px; }
+.sec { font-weight: 600; font-size: var(--fs-xl); text-transform: uppercase; letter-spacing: 0.02em; margin-bottom: 6px; }
+.sec2 { font-weight: 600; font-size: var(--fs-xl); text-transform: uppercase; letter-spacing: 0.02em; margin: 30px 0 6px; }
+.lead { color: var(--muted); font-size: var(--fs-sm); line-height: 1.55; margin-bottom: 14px; }
 .lead b, .rule p b { color: var(--text); }
-.note { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+.note { font-size: var(--fs-sm); color: var(--muted); margin: 12px 0 0; }
 .note b { color: var(--text); }
 
 /* tiers ladder — two columns on wide screens (reads 25→0 left-to-right, row by row) */
@@ -202,39 +202,39 @@ const phases = [
 .tier { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border: 1px solid; border-radius: 13px; }
 .tier-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .tier-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.tier-name { font-size: 14px; font-weight: 800; }
-.tier-cond { font-size: 12px; color: var(--muted); font-weight: 500; }
-.tier-pts { font-size: 26px; line-height: 0.9; flex: none; }
+.tier-name { font-size: var(--fs-sm); font-weight: 800; }
+.tier-cond { font-size: var(--fs-xs); color: var(--muted); font-weight: 500; }
+.tier-pts { font-size: var(--fs-2xl); line-height: 0.9; flex: none; }
 
 /* example cases — two columns on wide screens */
 .cases { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
 .case { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 14px; border: 1px solid; }
 .cg { text-align: center; flex: 0 0 auto; }
-.cg-cap { display: block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-.cg-sc { font-size: 24px; line-height: 1; letter-spacing: 0.02em; }
+.cg-cap { display: block; font-size: var(--fs-2xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.cg-sc { font-size: var(--fs-2xl); line-height: 1; letter-spacing: 0.02em; }
 .ci { flex: 1; min-width: 0; }
-.cl { font-size: 14px; font-weight: 800; }
-.cw { font-size: 12px; color: var(--muted); font-weight: 500; line-height: 1.4; margin-top: 2px; }
+.cl { font-size: var(--fs-sm); font-weight: 800; }
+.cw { font-size: var(--fs-xs); color: var(--muted); font-weight: 500; line-height: 1.4; margin-top: 2px; }
 .cp { text-align: right; flex: 0 0 auto; }
-.cp .font-numeric { font-size: 28px; line-height: 0.8; }
-.cp-l { display: block; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.cp .font-numeric { font-size: var(--fs-3xl); line-height: 0.8; }
+.cp-l { display: block; font-size: var(--fs-2xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
 
 /* phase weights */
 .phases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .phase { border: 1px solid color-mix(in srgb, var(--c) 40%, var(--border)); background: color-mix(in srgb, var(--c) 7%, var(--bg-surface)); border-radius: 14px; padding: 16px 12px; text-align: center; }
-.ph-w { display: block; font-size: 34px; line-height: 0.8; color: var(--c); }
-.ph-name { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); margin-top: 8px; }
+.ph-w { display: block; font-size: 2.125rem; line-height: 0.8; color: var(--c); }
+.ph-name { display: block; font-size: var(--fs-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); margin-top: 8px; }
 
 /* rules */
 .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; }
 .rule { padding: 18px; }
-.ric { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 12px; font-size: 18px; }
+.ric { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; margin-bottom: 12px; font-size: var(--fs-lg); }
 .ric.azure { color: var(--azure); background: color-mix(in srgb, var(--azure) 14%, transparent); }
 .ric.scarlet { color: var(--scarlet); background: color-mix(in srgb, var(--scarlet) 14%, transparent); }
 .ric.gold { color: var(--gold); background: color-mix(in srgb, var(--gold) 16%, transparent); }
 .ric.magenta { color: var(--magenta); background: color-mix(in srgb, var(--magenta) 14%, transparent); }
-.rule h3 { font-weight: 600; font-size: 16px; text-transform: uppercase; margin-bottom: 7px; }
-.rule p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.rule h3 { font-weight: 600; font-size: var(--fs-base); text-transform: uppercase; margin-bottom: 7px; }
+.rule p { font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
 .azure { color: var(--azure); }
 .scarlet { color: var(--scarlet); }
 .emerald { color: var(--emerald); }

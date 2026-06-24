@@ -45,7 +45,7 @@ useHead({
   flex-wrap: nowrap; /* uma linha só */
   align-items: center;
   gap: 5px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   margin-bottom: 14px;
   max-width: 100%;
   /* Trilha profunda (até 6 níveis) não cabe no mobile → a FAIXA rola na horizontal

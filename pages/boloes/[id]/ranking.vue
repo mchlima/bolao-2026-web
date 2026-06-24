@@ -49,7 +49,7 @@ useRealtime(
   align-items: center;
   gap: 4px;
   margin-bottom: 12px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--muted);
 }

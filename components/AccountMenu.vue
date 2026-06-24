@@ -141,14 +141,14 @@ function logout() {
   display: block;
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .who-email {
   display: block;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -168,7 +168,7 @@ function logout() {
   background: none;
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   border-radius: 9px;
   cursor: pointer;
@@ -188,7 +188,7 @@ function logout() {
   border-radius: 9px;
   background: var(--scarlet);
   color: #fff;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   line-height: 18px;
   text-align: center;

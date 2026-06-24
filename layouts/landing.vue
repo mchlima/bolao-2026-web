@@ -80,14 +80,14 @@ const toggleTheme = () => {
   display: block;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--fs-base);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 .sub {
   display: block;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -101,7 +101,7 @@ const toggleTheme = () => {
   gap: 9px;
 }
 .cta .btn {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   padding: 9px 14px;
 }
 .tgl {
@@ -123,7 +123,7 @@ const toggleTheme = () => {
 @media (max-width: 420px) {
   .cta .btn {
     padding: 8px 11px;
-    font-size: 12.5px;
+    font-size: var(--fs-xs);
   }
   .sub {
     display: none;

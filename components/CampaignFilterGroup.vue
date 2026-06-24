@@ -98,7 +98,7 @@ const asCond = (n: AudienceNode) => n as AudienceCondition;
   flex-wrap: wrap;
 }
 .combo-lead {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--muted);
   font-weight: 600;
 }
@@ -116,7 +116,7 @@ const asCond = (n: AudienceNode) => n as AudienceCondition;
   background: none;
   color: var(--muted);
   font-weight: 800;
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   letter-spacing: 0.03em;
   cursor: pointer;
   transition: color 0.12s, background 0.12s;
@@ -134,7 +134,7 @@ const asCond = (n: AudienceNode) => n as AudienceCondition;
   border-radius: 8px;
   background: var(--bg-base);
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   cursor: pointer;
 }
@@ -177,12 +177,12 @@ const asCond = (n: AudienceNode) => n as AudienceCondition;
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: color-mix(in srgb, var(--accent) 75%, var(--text));
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 0.04em;
 }
 .grp-empty {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--muted);
   padding: 10px 2px;
 }
@@ -201,7 +201,7 @@ const asCond = (n: AudienceNode) => n as AudienceCondition;
   border-radius: 9px;
   background: var(--bg-surface);
   color: var(--text);
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   cursor: pointer;
   transition: border-color 0.12s, color 0.12s, background 0.12s;

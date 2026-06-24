@@ -14,6 +14,9 @@ if (error.value || !article.value) {
 
 const a = article.value;
 const url = `${siteUrl}/noticias/${slug}`;
+// Se a capa falhar ao carregar (404/objeto removido do R2), some com a figure em
+// vez de mostrar alt-text/ícone quebrado.
+const coverFailed = ref(false);
 const paragraphs = computed(() => a.body.split(/\n+/).map((s) => s.trim()).filter(Boolean));
 const readingMins = computed(() => Math.max(1, Math.round(a.body.split(/\s+/).filter(Boolean).length / 200)));
 // Caminho completo da categoria (Futebol > Copa do Mundo > 2026); fallback p/ a folha em itens antigos.
@@ -133,8 +136,8 @@ useHead({
       </button>
     </div>
 
-    <figure v-if="a.coverUrl" class="art-cover">
-      <img :src="a.coverUrl" :alt="a.imageAlt || a.title" />
+    <figure v-if="a.coverUrl && !coverFailed" class="art-cover">
+      <img :src="a.coverUrl" :alt="a.imageAlt || a.title" @error="coverFailed = true" />
     </figure>
 
     <div class="art-body">
@@ -161,22 +164,22 @@ useHead({
 /* Container 100% do espaço; o HEADER (título, dek, meta) usa largura total. Só a
    coluna de LEITURA (corpo + FAQ) fica estreita p/ legibilidade. Seções separadas. */
 .art { width: 100%; padding: 8px 16px 48px; }
-.art-dek { font-size: 18px; line-height: 1.5; color: var(--text); opacity: 0.9; margin: 0 0 14px; }
-.art-meta { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-bottom: 18px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
-.share-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--azure); background: none; border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; }
+.art-dek { font-size: var(--fs-lg); line-height: 1.5; color: var(--text); opacity: 0.9; margin: 0 0 14px; }
+.art-meta { font-size: var(--fs-sm); color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-bottom: 18px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+.share-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; color: var(--azure); background: none; border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; }
 .share-btn:hover { border-color: var(--azure); background: color-mix(in srgb, var(--azure) 10%, transparent); }
 .art-cover { margin: 0 auto 28px; max-width: 860px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 16px; background: var(--bg-base); }
 .art-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.art-body { font-size: 17px; line-height: 1.8; color: var(--text); max-width: 760px; margin: 0 auto; }
+.art-body { font-size: var(--fs-lg); line-height: 1.8; color: var(--text); max-width: 760px; margin: 0 auto; }
 .art-body p { margin: 0 0 18px; }
 .art-faq { margin: 40px auto 0; padding-top: 28px; border-top: 1px solid var(--border); max-width: 760px; }
-.art-faq h2 { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 700; margin: 0 0 18px; }
+.art-faq h2 { font-family: 'Oswald', sans-serif; font-size: var(--fs-2xl); font-weight: 700; margin: 0 0 18px; }
 .faq-item { margin-bottom: 18px; }
-.faq-item h3 { font-size: 16px; font-weight: 700; margin: 0 0 5px; }
-.faq-item p { font-size: 15px; line-height: 1.6; color: var(--muted); margin: 0; }
+.faq-item h3 { font-size: var(--fs-base); font-weight: 700; margin: 0 0 5px; }
+.faq-item p { font-size: var(--fs-base); line-height: 1.6; color: var(--muted); margin: 0; }
 .art-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border); }
-.tag { font-size: 12px; font-weight: 600; color: var(--muted); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; text-decoration: none; transition: border-color 0.15s, color 0.15s; }
+.tag { font-size: var(--fs-xs); font-weight: 600; color: var(--muted); border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; text-decoration: none; transition: border-color 0.15s, color 0.15s; }
 .tag:hover { color: var(--azure); border-color: var(--azure); }
 .art-cta-band { margin-top: 40px; }
-@media (max-width: 600px) { .art-body { font-size: 16px; } }
+@media (max-width: 600px) { .art-body { font-size: var(--fs-base); } }
 </style>

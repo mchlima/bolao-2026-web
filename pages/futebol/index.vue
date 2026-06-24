@@ -172,14 +172,14 @@ useRealtime(
 .fh-main {
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--fs-base);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--text);
 }
 .fh-link {
   margin-left: auto;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--azure);
   text-decoration: none;
@@ -196,7 +196,7 @@ useRealtime(
   color: var(--scarlet);
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -222,11 +222,11 @@ useRealtime(
   gap: 2px;
 }
 .fbig strong {
-  font-size: 15px;
+  font-size: var(--fs-base);
   font-weight: 700;
 }
 .fbig small {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .fbig-go {
@@ -260,7 +260,7 @@ useRealtime(
   height: 40px;
   display: grid;
   place-items: center;
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   border-radius: 11px;
   background: var(--bg-base);
   border: 1px solid var(--border);
@@ -273,7 +273,7 @@ useRealtime(
   gap: 3px;
 }
 .cc-name {
-  font-size: 14.5px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1.15;
   white-space: nowrap;
@@ -281,7 +281,7 @@ useRealtime(
   text-overflow: ellipsis;
 }
 .cc-status {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;

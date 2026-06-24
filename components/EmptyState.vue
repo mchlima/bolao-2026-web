@@ -44,11 +44,11 @@ withDefaults(
 }
 .es-title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-base);
   color: var(--text);
 }
 .es-desc {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--muted);
   font-weight: 500;
   max-width: 360px;

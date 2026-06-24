@@ -392,7 +392,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   background: transparent;
   color: var(--muted);
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   padding: 7px 16px;
   border-radius: 999px;
   cursor: pointer;
@@ -431,7 +431,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   background: transparent;
   color: var(--muted);
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   padding: 5px 13px 5px 7px;
   border-radius: 999px;
   cursor: pointer;
@@ -534,7 +534,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
 }
 .dnum {
   font-family: 'Bebas Neue', var(--font-display, sans-serif);
-  font-size: 16px;
+  font-size: var(--fs-base);
   line-height: 1;
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -561,7 +561,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   top: -9px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   line-height: 1;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.4));
 }
@@ -571,7 +571,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.42);
   color: #fff;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   line-height: 1.15;
   white-space: nowrap;
@@ -582,7 +582,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
 .fline {
   margin: 2px 0 0;
   font-family: 'Oswald', var(--font-display, sans-serif);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -647,7 +647,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   object-fit: cover;
 }
 .pini {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: var(--muted);
 }
@@ -668,27 +668,27 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
 }
 .pnum {
   flex: none;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 .pname {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .ppos {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--muted);
 }
 .subline {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -704,21 +704,21 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   flex: none;
   display: inline-flex;
   align-items: center;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1;
 }
 /* own goal reads as a goal against — tag it with a red "GC" so it's unmistakable */
 .goal.og::after {
   content: 'GC';
   margin-left: 1px;
-  font-size: 8.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 0.02em;
   color: var(--scarlet, #e8362b);
 }
 .gn {
   margin-left: 1px;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -739,7 +739,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
 .arr {
   flex: none;
   font-weight: 900;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1;
 }
 .arr.down {
@@ -766,17 +766,17 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
 }
 .cform {
   font-weight: 800;
-  font-size: 15px;
+  font-size: var(--fs-base);
   font-variant-numeric: tabular-nums;
 }
 .clbl {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
 }
 .bttl {
   margin: 18px 0 8px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;

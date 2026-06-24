@@ -250,7 +250,7 @@ function whistleLabel(period: number, label: string): string {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 3px 13px;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -276,7 +276,7 @@ function whistleLabel(period: number, label: string): string {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 3px 7px;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -320,7 +320,7 @@ function whistleLabel(period: number, label: string): string {
   border-color: color-mix(in srgb, var(--emerald) 55%, var(--border));
 }
 .ev.goal .nm {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 .ev.goal .ball {
@@ -387,7 +387,7 @@ function whistleLabel(period: number, label: string): string {
 }
 .ball {
   display: inline-block;
-  font-size: 15px;
+  font-size: var(--fs-base);
   line-height: 1;
 }
 .card {
@@ -421,7 +421,7 @@ function whistleLabel(period: number, label: string): string {
   gap: 1px;
 }
 .nm {
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -431,12 +431,12 @@ function whistleLabel(period: number, label: string): string {
   color: var(--emerald);
 }
 .nm.out {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
 }
 .assist {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
@@ -474,7 +474,7 @@ function whistleLabel(period: number, label: string): string {
 .ev.away .goalmouth { align-self: flex-start; }
 .tag {
   margin-left: 6px;
-  font-size: 9px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -535,7 +535,7 @@ function whistleLabel(period: number, label: string): string {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 4px 13px;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -611,7 +611,7 @@ function whistleLabel(period: number, label: string): string {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 4px 13px;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -637,7 +637,7 @@ function whistleLabel(period: number, label: string): string {
   color: var(--muted);
 }
 .var-badge {
-  font-size: 9px;
+  font-size: var(--fs-xs);
   font-weight: 900;
   letter-spacing: 0.08em;
   color: #fff;
@@ -663,12 +663,12 @@ function whistleLabel(period: number, label: string): string {
   gap: 1px;
 }
 .mlabel {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text);
 }
 .mwho {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
 }
@@ -699,7 +699,7 @@ function whistleLabel(period: number, label: string): string {
   background: var(--magenta, #e0218a);
 }
 .msaver {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--emerald);
 }
@@ -734,12 +734,12 @@ function whistleLabel(period: number, label: string): string {
   50% { opacity: 0.3; }
 }
 .tl-wait-t {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   color: var(--text);
 }
 .tl-wait-s {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
   max-width: 26ch;

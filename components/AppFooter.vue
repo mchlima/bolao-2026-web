@@ -103,8 +103,8 @@ const columns = computed(() => [
 .foot-brand { min-width: 0; }
 .fb-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
 .fb-mark { width: 34px; height: 34px; border-radius: 10px; background: var(--grad-trophy, linear-gradient(135deg, #ffb020, #ff7a59)); display: grid; place-items: center; }
-.fb-name { font-weight: 700; font-size: 19px; text-transform: uppercase; letter-spacing: 0.03em; color: #fff; }
-.fb-tag { margin: 13px 0 0; font-size: 13px; line-height: 1.55; color: #9aa3b4; max-width: 40ch; }
+.fb-name { font-weight: 700; font-size: var(--fs-xl); text-transform: uppercase; letter-spacing: 0.03em; color: #fff; }
+.fb-tag { margin: 13px 0 0; font-size: var(--fs-sm); line-height: 1.55; color: #9aa3b4; max-width: 40ch; }
 .fb-cta {
   display: inline-block;
   margin-top: 16px;
@@ -112,13 +112,13 @@ const columns = computed(() => [
   border-radius: 999px;
   background: var(--gold, #ffb020);
   color: #0a0e14;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   text-decoration: none;
   transition: filter 0.14s;
 }
 .fb-cta:hover { filter: brightness(1.06); }
-.fb-contact { margin: 16px 0 0; font-size: 12.5px; line-height: 1.55; color: #9aa3b4; max-width: 40ch; }
+.fb-contact { margin: 16px 0 0; font-size: var(--fs-xs); line-height: 1.55; color: #9aa3b4; max-width: 40ch; }
 .fb-mail { color: var(--gold, #ffb020); font-weight: 700; text-decoration: none; white-space: nowrap; }
 .fb-mail:hover { text-decoration: underline; }
 
@@ -129,7 +129,7 @@ const columns = computed(() => [
   gap: 24px;
 }
 .fc-title {
-  font-size: 11px;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.09em;
@@ -138,7 +138,7 @@ const columns = computed(() => [
 }
 .fc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
 .fc-link {
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: #9aa3b4;
   text-decoration: none;
@@ -157,8 +157,8 @@ const columns = computed(() => [
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
-.fb-disc { margin: 0; max-width: 70ch; font-size: 11px; line-height: 1.55; color: #6f7888; }
-.fb-copy { flex: none; font-size: 12px; font-weight: 700; color: #8b94a6; white-space: nowrap; }
+.fb-disc { margin: 0; max-width: 70ch; font-size: var(--fs-xs); line-height: 1.55; color: #6f7888; }
+.fb-copy { flex: none; font-size: var(--fs-xs); font-weight: 700; color: #8b94a6; white-space: nowrap; }
 
 @media (max-width: 860px) {
   .foot-top { grid-template-columns: 1fr; gap: 28px; }

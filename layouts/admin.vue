@@ -348,14 +348,14 @@ function logout() {
   display: block;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-base);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
 .brand-sub {
   display: block;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -369,7 +369,7 @@ function logout() {
   gap: 12px;
 }
 .ghost-link {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--muted);
   padding: 8px 12px;
@@ -392,7 +392,7 @@ function logout() {
   color: #fff;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -415,10 +415,10 @@ function logout() {
 .who-name {
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 .who-email {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   word-break: break-all;
 }
@@ -426,7 +426,7 @@ function logout() {
   padding: 6px 10px 4px;
 }
 .theme-lbl {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -447,7 +447,7 @@ function logout() {
   border: none;
   border-radius: 7px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--muted);
   background: transparent;
@@ -470,7 +470,7 @@ function logout() {
   background: none;
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   border-radius: 9px;
   cursor: pointer;
@@ -519,7 +519,7 @@ function logout() {
   margin-top: 4px;
 }
 .group-title {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -541,7 +541,7 @@ function logout() {
   border-radius: 10px;
   color: var(--muted);
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   white-space: nowrap;
 }
 .nav-item:hover {

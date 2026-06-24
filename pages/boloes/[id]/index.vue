@@ -174,7 +174,7 @@ async function leavePool() {
   background: var(--bg-surface);
 }
 .sec-lbl {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -200,13 +200,13 @@ async function leavePool() {
   border-bottom: none;
 }
 .ab-row dt {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--muted);
 }
 .ab-row dd {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--text);
   text-align: right;
@@ -224,7 +224,7 @@ async function leavePool() {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
 }
 .st-dot {
@@ -254,14 +254,14 @@ async function leavePool() {
 }
 .pdesc-lbl {
   display: block;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--muted);
   margin-bottom: 4px;
 }
 .pdesc-tx {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--text);
   white-space: pre-line;
@@ -326,11 +326,11 @@ async function leavePool() {
   gap: 1px;
 }
 .cfg-txt b {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 .cfg-txt small {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
 }

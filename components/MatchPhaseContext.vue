@@ -121,7 +121,7 @@ const hasContext = computed(() => (isGroup.value && !!group.value) || !!knockout
 }
 .mpc-title {
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--fs-base);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   margin-bottom: 12px;

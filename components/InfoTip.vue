@@ -73,7 +73,7 @@ function hide() {
   border-radius: 10px;
   box-shadow: var(--shadow);
   padding: 9px 11px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 500;
   line-height: 1.45;
   text-transform: none;

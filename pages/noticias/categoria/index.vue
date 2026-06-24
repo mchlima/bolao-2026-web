@@ -56,12 +56,12 @@ useHead({ link: [{ rel: 'canonical', href: url }] });
 }
 .tcard:hover { border-color: var(--azure); transform: translateY(-2px); }
 .tc-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.tc-name { font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 700; line-height: 1.2; }
-.tc-desc { font-size: 12.5px; color: var(--muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.tc-count { font-size: 11.5px; font-weight: 700; color: var(--azure); margin-top: 2px; }
+.tc-name { font-family: 'Oswald', sans-serif; font-size: var(--fs-lg); font-weight: 700; line-height: 1.2; }
+.tc-desc { font-size: var(--fs-xs); color: var(--muted); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tc-count { font-size: var(--fs-xs); font-weight: 700; color: var(--azure); margin-top: 2px; }
 .tc-arrow { flex-shrink: 0; color: var(--muted); transition: color 0.15s, transform 0.15s; }
 .tcard:hover .tc-arrow { color: var(--azure); transform: translateX(2px); }
 
 .hub-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 56px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 16px; }
-.hub-empty p { font-size: 14px; margin: 0; }
+.hub-empty p { font-size: var(--fs-sm); margin: 0; }
 </style>

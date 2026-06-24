@@ -89,8 +89,8 @@ onMounted(load);
 
 <style scoped>
 .tinfo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.tname { font-weight: 700; font-size: 14px; }
-.tdesc { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.muted-txt { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.tname { font-weight: 700; font-size: var(--fs-sm); }
+.tdesc { font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.muted-txt { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
 .acts { display: flex; justify-content: flex-end; }
 </style>

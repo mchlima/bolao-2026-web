@@ -108,14 +108,14 @@ async function onGoogle(idToken: string) {
 }
 .brand h1 {
   font-weight: 700;
-  font-size: 30px;
+  font-size: var(--fs-3xl);
   text-transform: uppercase;
   line-height: 1;
 }
 .tag {
   color: var(--muted);
   margin-top: 8px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 .box {
   border-radius: 20px;
@@ -135,7 +135,7 @@ async function onGoogle(idToken: string) {
   padding: 10px;
   border-radius: 9px;
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   color: var(--muted);
   cursor: pointer;
 }
@@ -150,7 +150,7 @@ form {
   gap: 0.3rem;
 }
 label {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   margin-top: 0.6rem;
   color: var(--muted);
@@ -158,7 +158,7 @@ label {
 .submit {
   margin-top: 1rem;
   padding: 14px;
-  font-size: 16px;
+  font-size: var(--fs-base);
 }
 .sep {
   display: flex;
@@ -166,7 +166,7 @@ label {
   gap: 12px;
   margin: 18px 0 16px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
 }

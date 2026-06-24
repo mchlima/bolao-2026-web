@@ -135,8 +135,8 @@ function statusText(m: Match): string {
 .mc:hover { border-color: color-mix(in srgb, var(--azure) 38%, var(--border)); transform: translateY(-1px); box-shadow: var(--shadow); }
 
 .mc-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
-.mc-comp { font-size: 11.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.mc-status { flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 800; letter-spacing: 0.02em; color: var(--muted); }
+.mc-comp { font-size: var(--fs-2xs); font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.mc-status { flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-sm); font-weight: 800; letter-spacing: 0.02em; color: var(--muted); }
 .mc-status.scheduled { color: var(--azure); }
 .mc-status.done { color: var(--muted); }
 .mc-status.live { color: var(--scarlet); text-transform: uppercase; }
@@ -145,14 +145,14 @@ function statusText(m: Match): string {
 .mc-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
 .mc-team { display: flex; align-items: center; gap: 9px; min-width: 0; }
 .mc-team.away { justify-content: flex-end; }
-.mc-name { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 17.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mc-name { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: var(--fs-lg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mc-mid { flex: none; display: grid; place-items: center; min-width: 64px; }
-.mc-score { font-size: 24px; font-weight: 800; letter-spacing: 0.02em; }
-.mc-time { font-size: 22px; font-weight: 700; color: var(--azure); }
-.mc-vs { font-size: 14px; color: var(--muted); }
+.mc-score { font-size: var(--fs-2xl); font-weight: 800; letter-spacing: 0.02em; }
+.mc-time { font-size: var(--fs-2xl); font-weight: 700; color: var(--azure); }
+.mc-vs { font-size: var(--fs-sm); color: var(--muted); }
 
 @media (max-width: 420px) {
   .mc { padding: 12px; }
-  .mc-name { font-size: 13.5px; }
+  .mc-name { font-size: var(--fs-sm); }
 }
 </style>

@@ -128,14 +128,14 @@ function fmt(v: string | null, key: string): string {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   min-width: 0;
 }
 .sh-team.end { justify-content: flex-end; }
 .sh-team b { font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sgroup { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
 .sg-title {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -159,7 +159,7 @@ function fmt(v: string | null, key: string): string {
   margin-bottom: 5px;
 }
 .sval {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
@@ -170,7 +170,7 @@ function fmt(v: string | null, key: string): string {
   text-align: right;
 }
 .slbl {
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;

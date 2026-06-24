@@ -100,11 +100,11 @@ useHead({
 
 <style scoped>
 .term-page { width: 100%; padding: 8px 16px 40px; }
-.term-intro { font-size: 15px; line-height: 1.65; color: var(--text); margin: 0 0 22px; max-width: 70ch; }
+.term-intro { font-size: var(--fs-base); line-height: 1.65; color: var(--text); margin: 0 0 22px; max-width: 70ch; }
 .term-empty { padding: 60px 20px; text-align: center; color: var(--muted); }
 .term-faq { margin-top: 34px; border-top: 1px solid var(--border); padding-top: 22px; }
-.term-faq h2 { font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 700; margin: 0 0 12px; }
+.term-faq h2 { font-family: 'Oswald', sans-serif; font-size: var(--fs-2xl); font-weight: 700; margin: 0 0 12px; }
 .term-faq details { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; }
-.term-faq summary { font-weight: 700; font-size: 14.5px; cursor: pointer; }
-.term-faq details p { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 8px 0 0; }
+.term-faq summary { font-weight: 700; font-size: var(--fs-sm); cursor: pointer; }
+.term-faq details p { color: var(--muted); font-size: var(--fs-sm); line-height: 1.6; margin: 8px 0 0; }
 </style>

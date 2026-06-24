@@ -78,15 +78,15 @@ function dismiss() {
 .txt b {
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 .txt small {
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
 }
 .ish {
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 .ins-btn {
   flex: none;
@@ -95,7 +95,7 @@ function dismiss() {
   color: #0a0e14;
   font: inherit;
   font-weight: 800;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   padding: 9px 16px;
   border-radius: 10px;
   cursor: pointer;

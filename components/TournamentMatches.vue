@@ -196,7 +196,7 @@ function clearFilters() {
   place-items: center;
   font-weight: 700;
   color: #fff;
-  font-size: 17px;
+  font-size: var(--fs-lg);
   flex: 0 0 auto;
 }
 .meta {
@@ -205,7 +205,7 @@ function clearFilters() {
 }
 .name {
   font-weight: 700;
-  font-size: clamp(22px, 4vw, 30px);
+  font-size: clamp(1.375rem, 4vw, 1.875rem);
   text-transform: uppercase;
   line-height: 1;
 }
@@ -216,7 +216,7 @@ function clearFilters() {
   margin-top: 8px;
 }
 .tag {
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -238,7 +238,7 @@ function clearFilters() {
   border: 1px solid var(--border);
   border-radius: 11px;
   color: var(--text);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   padding: 0 10px;
   height: 40px;
@@ -263,7 +263,7 @@ function clearFilters() {
   padding: 10px;
   border-radius: 10px;
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   color: var(--muted);
   cursor: pointer;
 }
@@ -325,7 +325,7 @@ function clearFilters() {
   padding: 0 12px;
   height: 40px;
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   cursor: pointer;
 }
 .search {
@@ -345,7 +345,7 @@ function clearFilters() {
   border: 0;
   outline: none;
   color: var(--text);
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   padding: 10px 0;
 }
 .sel {
@@ -354,7 +354,7 @@ function clearFilters() {
   border: 1px solid var(--border);
   border-radius: 11px;
   color: var(--text);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   padding: 0 10px;
   height: 40px;
@@ -381,7 +381,7 @@ function clearFilters() {
   background: transparent;
   color: var(--muted);
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   padding: 7px 10px;
   border-radius: 8px;
   cursor: pointer;
@@ -406,14 +406,14 @@ function clearFilters() {
   border-radius: 9px;
   padding: 7px 14px;
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   cursor: pointer;
 }
 .section {
   margin-top: 1.4rem;
 }
 .section-title {
-  font-size: 15px;
+  font-size: var(--fs-base);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;

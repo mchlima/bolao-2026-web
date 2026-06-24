@@ -152,7 +152,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
   gap: 9px;
 }
 .field-lbl {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -160,7 +160,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
 }
 .hint {
   margin: -3px 0 2px;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .search-wrap {
@@ -184,7 +184,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
   border: 0;
   background: transparent;
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   outline: none;
 }
 .results {
@@ -222,7 +222,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
 .rname {
   flex: 1;
   min-width: 0;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
@@ -230,13 +230,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
   text-overflow: ellipsis;
 }
 .rtag {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--emerald);
 }
 .rmsg {
   padding: 10px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--muted);
 }
 .chips {
@@ -257,7 +257,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
   background: var(--bg-base);
 }
 .cname {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 .cx {
@@ -280,11 +280,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
   cursor: default;
 }
 .empty {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--muted);
 }
 .saving {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 </style>

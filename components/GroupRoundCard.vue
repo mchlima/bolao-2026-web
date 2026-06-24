@@ -136,7 +136,7 @@ function hasResult(m: Match) {
   flex: 1;
   text-align: center;
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -163,7 +163,7 @@ function hasResult(m: Match) {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
   margin-bottom: 7px;
@@ -194,7 +194,7 @@ function hasResult(m: Match) {
 }
 .ab {
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   white-space: nowrap;
 }
 .mid {
@@ -204,7 +204,7 @@ function hasResult(m: Match) {
   min-width: 36px;
 }
 .score {
-  font-size: 18px;
+  font-size: var(--fs-lg);
   line-height: 1;
 }
 .score .x {
@@ -214,7 +214,7 @@ function hasResult(m: Match) {
 .vs {
   color: var(--muted);
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 .fx-foot {
   display: flex;
@@ -224,7 +224,7 @@ function hasResult(m: Match) {
   margin-top: 8px;
 }
 .adiada {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -238,7 +238,7 @@ function hasResult(m: Match) {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--emerald);
 }

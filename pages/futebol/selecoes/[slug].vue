@@ -136,15 +136,15 @@ useHead({
 
 <style scoped>
 .sel { padding: 10px; }
-.sel-intro { font-size: 15px; line-height: 1.6; color: var(--text); margin: 0 0 22px; }
+.sel-intro { font-size: var(--fs-base); line-height: 1.6; color: var(--text); margin: 0 0 22px; }
 .sel-intro a { color: var(--azure); text-decoration: none; font-weight: 600; }
 .sel-intro a:hover { text-decoration: underline; }
 .sel-intro strong { font-weight: 800; }
 .sel-sec { margin-bottom: 26px; }
-.sel-sec h2 { font-weight: 600; font-size: clamp(17px, 3vw, 21px); text-transform: uppercase; letter-spacing: 0.02em; margin: 0 0 12px; }
+.sel-sec h2 { font-weight: 600; font-size: clamp(1.0625rem, 3vw, 1.3125rem); text-transform: uppercase; letter-spacing: 0.02em; margin: 0 0 12px; }
 .sel-empty { padding: 1.5rem 0; }
 .sel-empty a { color: var(--azure); font-weight: 600; }
 .sel-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.sel-links a { font-size: 13px; font-weight: 700; color: var(--azure); border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; text-decoration: none; transition: border-color 0.14s; }
+.sel-links a { font-size: var(--fs-sm); font-weight: 700; color: var(--azure); border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; text-decoration: none; transition: border-color 0.14s; }
 .sel-links a:hover { border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); }
 </style>

@@ -52,9 +52,9 @@ useHead({ link: [{ rel: 'canonical', href: url }] });
 }
 .term-chip:hover { border-color: var(--azure); color: var(--azure); }
 .tc-hash { font-weight: 800; color: var(--azure); opacity: 0.7; }
-.tc-name { font-weight: 700; font-size: 14px; }
-.tc-count { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--bg-base); border-radius: 20px; padding: 1px 8px; }
+.tc-name { font-weight: 700; font-size: var(--fs-sm); }
+.tc-count { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); background: var(--bg-base); border-radius: 20px; padding: 1px 8px; }
 
 .hub-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 56px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 16px; }
-.hub-empty p { font-size: 14px; margin: 0; }
+.hub-empty p { font-size: var(--fs-sm); margin: 0; }
 </style>

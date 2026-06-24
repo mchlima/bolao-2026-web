@@ -83,7 +83,7 @@ async function open(n: AppNotification) {
 .page-title {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin: 0;
@@ -93,7 +93,7 @@ async function open(n: AppNotification) {
   border: 1px solid var(--border);
   background: var(--bg-surface);
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   padding: 7px 12px;
   border-radius: 999px;
@@ -113,10 +113,10 @@ async function open(n: AppNotification) {
 }
 .empty p {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 .lnk {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--emerald);
 }
@@ -170,7 +170,7 @@ async function open(n: AppNotification) {
   gap: 10px;
 }
 .title {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   white-space: nowrap;
   overflow: hidden;
@@ -178,11 +178,11 @@ async function open(n: AppNotification) {
 }
 .time {
   flex: none;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .text {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--muted);
   line-height: 1.35;
 }

@@ -35,7 +35,7 @@ const model = defineModel<string>({ default: '' });
   background: var(--bg-base);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .sinput:focus {

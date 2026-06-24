@@ -60,7 +60,7 @@ const ICON: Record<string, string> = { success: '✓', error: '✕', info: 'ℹ'
   flex: 0 0 auto;
 }
 .msg {
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 </style>

@@ -330,23 +330,23 @@ const CH_LABEL: Record<string, string> = { inapp: 'In-app', push: 'Push' };
 </template>
 
 <style scoped>
-.ro-banner { padding: 12px 16px; margin-bottom: 14px; font-size: 13px; color: var(--muted); }
+.ro-banner { padding: 12px 16px; margin-bottom: 14px; font-size: var(--fs-sm); color: var(--muted); }
 .steps { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
 .stepbtn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 13px; border: 1px solid var(--border); border-radius: 10px;
-  background: var(--bg-surface); color: var(--muted); font-weight: 700; font-size: 13px; cursor: pointer;
+  background: var(--bg-surface); color: var(--muted); font-weight: 700; font-size: var(--fs-sm); cursor: pointer;
 }
 .stepbtn.on { color: var(--text); border-color: color-mix(in srgb, var(--gold) 50%, var(--border)); background: color-mix(in srgb, var(--gold) 10%, var(--bg-surface)); }
 .stepbtn.done { color: var(--text); }
 .stepn {
   display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
-  background: var(--bg-base); color: var(--muted); font-size: 11px; font-weight: 800;
+  background: var(--bg-base); color: var(--muted); font-size: var(--fs-xs); font-weight: 800;
 }
 .stepbtn.on .stepn { background: var(--gold); color: #0a0e14; }
 .wstep { display: flex; flex-direction: column; gap: 16px; }
-.wtitle { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 18px; }
-.wsub { font-size: 13.5px; color: var(--muted); line-height: 1.5; margin: -8px 0 0; }
+.wtitle { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: var(--fs-lg); }
+.wsub { font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; margin: -8px 0 0; }
 .wsub strong { color: var(--text); }
 .aud-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (max-width: 560px) { .aud-tiles { grid-template-columns: 1fr; } }
@@ -363,35 +363,35 @@ const CH_LABEL: Record<string, string> = { inapp: 'In-app', push: 'Push' };
 }
 .aud-tile.on .at-ic { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 40%, var(--border)); }
 .at-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.at-txt b { font-size: 14px; }
-.at-txt small { font-size: 12px; color: var(--muted); }
+.at-txt b { font-size: var(--fs-sm); }
+.at-txt small { font-size: var(--fs-xs); color: var(--muted); }
 .aud-modes { display: flex; gap: 18px; flex-wrap: wrap; }
-.radio { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.radio { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: var(--fs-sm); cursor: pointer; }
 .builder { }
 .count {
   display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
-  padding: 9px 14px; border-radius: 10px; font-size: 14px;
+  padding: 9px 14px; border-radius: 10px; font-size: var(--fs-sm);
   background: color-mix(in srgb, var(--emerald) 12%, var(--bg-base));
   border: 1px solid color-mix(in srgb, var(--emerald) 30%, var(--border)); color: var(--text);
 }
 .count.zero { background: color-mix(in srgb, var(--scarlet) 10%, var(--bg-base)); border-color: color-mix(in srgb, var(--scarlet) 30%, var(--border)); }
-.count strong { font-size: 16px; }
+.count strong { font-size: var(--fs-base); }
 .nt-form { display: flex; flex-direction: column; gap: 6px; }
-.nt-form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 6px; }
+.nt-form label { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); margin-top: 6px; }
 .nt-area { resize: vertical; min-height: 70px; font: inherit; }
-.nt-hint { font-size: 13px; color: var(--muted); }
+.nt-hint { font-size: var(--fs-sm); color: var(--muted); }
 .chans { display: flex; gap: 8px; flex-wrap: wrap; }
 .chan {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 8px 13px; border: 1px solid var(--border); border-radius: 10px;
-  background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: 13px; cursor: pointer;
+  background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: var(--fs-sm); cursor: pointer;
 }
 .chan.on { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, var(--border)); background: color-mix(in srgb, var(--gold) 10%, var(--bg-base)); }
 .chan.disabled { opacity: 0.55; cursor: default; }
-.chan.disabled em { font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+.chan.disabled em { font-style: normal; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.04em; }
 .rev { display: grid; grid-template-columns: 110px 1fr; gap: 8px 16px; }
-.rev dt { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
-.rev dd { margin: 0; font-size: 14px; }
+.rev dt { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+.rev dd { margin: 0; font-size: var(--fs-sm); }
 .rev-count { color: var(--muted); font-weight: 600; }
 .wfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
 .wfoot-r { display: flex; gap: 10px; margin-left: auto; }

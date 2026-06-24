@@ -143,7 +143,7 @@ async function removeInvite(inv: PoolInviteView) {
   background: var(--bg-surface);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 .inp:focus {
   outline: none;
@@ -167,12 +167,12 @@ async function removeInvite(inv: PoolInviteView) {
 }
 .i-name {
   display: block;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 .i-url {
   display: block;
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
@@ -191,7 +191,7 @@ async function removeInvite(inv: PoolInviteView) {
   background: var(--bg-base);
   color: var(--text);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   cursor: pointer;
 }

@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
   background: none;
   color: var(--text);
   font: inherit;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   text-align: left;
   cursor: pointer;

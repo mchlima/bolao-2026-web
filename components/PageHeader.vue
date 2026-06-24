@@ -34,7 +34,7 @@ const slots = useSlots();
 }
 .ph-title {
   font-weight: 700;
-  font-size: clamp(24px, 5vw, 32px);
+  font-size: clamp(1.5rem, 5vw, 2rem);
   text-transform: uppercase;
   line-height: 1;
   letter-spacing: 0.01em;
@@ -42,7 +42,7 @@ const slots = useSlots();
 .ph-sub {
   color: var(--muted);
   margin-top: 7px;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   max-width: 520px;
 }
 .ph-actions {

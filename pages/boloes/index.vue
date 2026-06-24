@@ -162,7 +162,7 @@ async function submitCreate() {
   background: var(--bg-surface);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 .inp:focus {
   outline: none;
@@ -210,7 +210,7 @@ async function submitCreate() {
   flex: 0 0 auto;
   font-weight: 700;
   color: #fff;
-  font-size: 15px;
+  font-size: var(--fs-base);
 }
 .c-info {
   min-width: 0;
@@ -218,14 +218,14 @@ async function submitCreate() {
 }
 .c-name {
   font-weight: 600;
-  font-size: 16.5px;
+  font-size: var(--fs-base);
   line-height: 1.1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .c-tour {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
   margin-top: 3px;
@@ -242,7 +242,7 @@ async function submitCreate() {
   border-top: 1px solid var(--border);
 }
 .pill {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -252,7 +252,7 @@ async function submitCreate() {
   padding: 3px 10px;
 }
 .members {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
 }
@@ -266,7 +266,7 @@ async function submitCreate() {
 }
 .lbl {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -274,7 +274,7 @@ async function submitCreate() {
   margin-bottom: 6px;
 }
 .hint {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   line-height: 1.4;
 }
 </style>

@@ -39,9 +39,9 @@ defineProps<{ node: MenuNode }>();
   transition: background-color 0.13s, color 0.13s;
 }
 .nvi-row:hover { background: var(--bg-surface); color: var(--azure); }
-.nvi-name { font-size: 13px; font-weight: 600; flex: 1; white-space: nowrap; }
+.nvi-name { font-size: var(--fs-sm); font-weight: 600; flex: 1; white-space: nowrap; }
 .nvi-count {
-  font-size: 10.5px; font-weight: 700; color: var(--muted);
+  font-size: var(--fs-xs); font-weight: 700; color: var(--muted);
   background: var(--bg-base); border-radius: 20px; padding: 0 6px;
 }
 .nvi-caret { color: var(--muted); margin-right: -2px; flex-shrink: 0; }

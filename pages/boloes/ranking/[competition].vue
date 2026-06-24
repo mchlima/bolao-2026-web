@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // Ranking PÚBLICO do bolão por competição (BOLÃO > Ranking > <competição>).
-// É indexável (SEO/GEO): o anônimo NÃO vê o ranking real (privacidade), vê uma
-// landing contextual sobre o bolão daquela competição + CTAs que dão vontade de
-// entrar. O logado vê o top-100 da temporada vigente (pódio animado + tabela com
-// pontos, cravadas e partidas pontuadas — a ordem do desempate).
-import type { CompetitionRankingResponse } from '~/types/api';
+// É indexável (SEO/GEO). O LOGADO vê o top-100 real da temporada vigente. O ANÔNIMO
+// vê o MESMO layout de ranking, porém com dados FICTÍCIOS (não expõe ninguém real),
+// levemente borrado, com um CTA por cima "escondendo mal" — pra dar desejo de criar
+// conta e participar, sem virar uma página de venda.
+import type { CompetitionRankingResponse, RankingResponse } from '~/types/api';
 
 const route = useRoute();
 const auth = useAuthStore();
@@ -34,6 +34,34 @@ const boardSub = computed(
   () => `Ranking do bolão${label.value ? ` · ${label.value}` : ''} · top 100`,
 );
 const crowd = computed(() => total.value);
+
+// Ranking FICTÍCIO pro anônimo (sem expor dados reais). Determinístico (estável no
+// SSR). Mostrado borrado, só pra dar desejo — o CTA por cima convida a criar conta.
+const FAKE = [
+  { name: 'Lucas Andrade', pts: 247 },
+  { name: 'Mariana Costa', pts: 231 },
+  { name: 'Rafael Oliveira', pts: 218 },
+  { name: 'Beatriz Souza', pts: 196 },
+  { name: 'Thiago Lima', pts: 180 },
+  { name: 'Camila Rocha', pts: 165 },
+  { name: 'Pedro Henrique', pts: 151 },
+  { name: 'Juliana Alves', pts: 138 },
+  { name: 'Gustavo Martins', pts: 120 },
+  { name: 'Fernanda Dias', pts: 104 },
+  { name: 'Bruno Carvalho', pts: 92 },
+];
+const fakeRanking = computed<RankingResponse>(() => ({
+  entries: FAKE.map((f, i) => ({
+    rank: i + 1,
+    user: { id: `demo-${i}`, name: f.name, avatarUrl: null },
+    points: f.pts,
+    exactCount: Math.round(f.pts / 45),
+    scoredCount: Math.round(f.pts / 9),
+    predictedCount: Math.round(f.pts / 9) + 4,
+  })),
+  currentUser: null,
+  totalParticipants: Math.max(crowd.value, FAKE.length),
+}));
 
 const canonical = computed(() => `${siteUrl}/boloes/ranking/${slug.value}`);
 const crumbs = computed(() => [
@@ -159,27 +187,22 @@ const steps = [
         detailed
       />
 
-      <!-- ANÔNIMO: teaser + CTA (sem expor dados de ninguém) -->
-      <section v-else class="locked">
-        <div class="locked-card">
-          <span class="locked-ico"><AppIcon name="trophy" :size="26" :stroke="1.8" /></span>
-          <h2>Quem está liderando o bolão de {{ compName }}?</h2>
-          <p>
-            O ranking completo — pódio, pontos e cravadas de cada participante — é
-            exclusivo para quem está na disputa.
-            <template v-if="crowd"> Já são <b>{{ crowd }}</b> palpiteiros no páreo.</template>
-          </p>
-          <div class="locked-cta">
-            <NuxtLink :to="authLink('/cadastro')" class="btn btn-gold">Criar conta grátis</NuxtLink>
-            <NuxtLink :to="authLink('/entrar')" class="btn">Entrar</NuxtLink>
-          </div>
+      <!-- ANÔNIMO: ranking (fictício) borrado + CTA por cima -->
+      <section v-else class="preview">
+        <div class="preview-blur" aria-hidden="true">
+          <RankingBoard :data="fakeRanking" :title="compName" :subtitle="boardSub" detailed />
         </div>
-
-        <!-- pódio "borrado" só ilustrativo (sem nomes reais) -->
-        <div class="ghost-podium" aria-hidden="true">
-          <div v-for="(h, i) in [64, 84, 50]" :key="i" class="gp-col">
-            <span class="gp-av" :class="{ champ: i === 1 }" />
-            <span class="gp-bar" :style="{ height: `${h}px` }">{{ [2, 1, 3][i] }}º</span>
+        <div class="preview-cta">
+          <div class="pc-card">
+            <span class="pc-ico"><AppIcon name="trophy" :size="26" :stroke="1.8" /></span>
+            <h2>Veja o ranking do bolão de {{ compName }}</h2>
+            <p>
+              Crie sua conta grátis pra ver o ranking de verdade e entrar na disputa<template v-if="crowd"> com <b>{{ crowd }}</b> {{ crowd === 1 ? 'palpiteiro' : 'palpiteiros' }}</template>.
+            </p>
+            <div class="pc-btns">
+              <NuxtLink :to="authLink('/cadastro')" class="btn btn-gold">Criar conta grátis</NuxtLink>
+              <NuxtLink :to="authLink('/entrar')" class="btn">Entrar</NuxtLink>
+            </div>
           </div>
         </div>
       </section>
@@ -221,44 +244,50 @@ const steps = [
   padding: 48px 16px;
   color: var(--muted);
 }
-.empty-state h2 { font-family: 'Oswald', sans-serif; font-size: 22px; color: var(--text); margin: 4px 0 0; }
-.empty-state p { max-width: 46ch; font-size: 14px; line-height: 1.55; margin: 0 0 6px; }
+.empty-state h2 { font-family: 'Oswald', sans-serif; font-size: var(--fs-2xl); color: var(--text); margin: 4px 0 0; }
+.empty-state p { max-width: 46ch; font-size: var(--fs-sm); line-height: 1.55; margin: 0 0 6px; }
 
-/* teaser do anônimo */
-.locked { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; align-items: center; margin-bottom: 8px; }
-.locked-card {
-  background: linear-gradient(150deg, color-mix(in srgb, var(--gold) 12%, var(--bg-surface)), var(--bg-surface) 62%);
-  border: 1px solid color-mix(in srgb, var(--gold) 35%, var(--border));
-  border-radius: 20px;
-  padding: 24px;
+/* anônimo: ranking fictício borrado + CTA sobreposto */
+.preview { position: relative; margin-bottom: 8px; }
+.preview-blur {
+  filter: blur(3.5px);
+  pointer-events: none;
+  user-select: none;
+  max-height: 540px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent);
+  mask-image: linear-gradient(to bottom, #000 60%, transparent);
 }
-.locked-ico {
+.preview-cta {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  /* leve foco no card sem esconder demais o ranking atrás */
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--bg-base) 35%, transparent), transparent 75%);
+}
+.pc-card {
+  text-align: center;
+  max-width: 440px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 26px 24px;
+  box-shadow: var(--shadow-lg, 0 22px 50px rgba(8, 12, 18, 0.28));
+}
+.pc-ico {
   display: inline-grid; place-items: center;
   width: 52px; height: 52px; border-radius: 14px;
   background: var(--bg-surface); border: 1px solid var(--border); color: var(--gold);
   margin-bottom: 12px;
 }
-.locked-card h2 { font-family: 'Oswald', sans-serif; font-size: clamp(20px, 3.6vw, 26px); line-height: 1.1; margin: 0 0 8px; }
-.locked-card p { font-size: 14.5px; line-height: 1.55; color: var(--muted); margin: 0 0 18px; max-width: 50ch; }
-.locked-cta { display: flex; gap: 10px; flex-wrap: wrap; }
-
-.ghost-podium { display: flex; align-items: flex-end; justify-content: center; gap: 12px; padding: 10px; filter: blur(0.5px); opacity: 0.85; }
-.gp-col { flex: 1; max-width: 110px; display: flex; flex-direction: column; align-items: center; }
-.gp-av {
-  width: 50px; height: 50px; border-radius: 50%;
-  background: repeating-linear-gradient(135deg, var(--bg-surface), var(--bg-surface) 6px, color-mix(in srgb, var(--muted) 18%, var(--bg-surface)) 6px, color-mix(in srgb, var(--muted) 18%, var(--bg-surface)) 12px);
-  border: 3px solid var(--border);
-}
-.gp-av.champ { border-color: var(--gold); box-shadow: 0 0 18px -4px var(--gold); }
-.gp-bar {
-  width: 100%; margin-top: 8px; border-radius: 12px 12px 0 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--muted) 30%, transparent), transparent);
-  display: flex; align-items: flex-start; justify-content: center; padding-top: 8px;
-  font-family: 'Oswald', sans-serif; font-weight: 700; color: var(--muted);
-}
+.pc-card h2 { font-family: 'Oswald', sans-serif; font-size: clamp(1.25rem, 3.6vw, 1.625rem); line-height: 1.1; margin: 0 0 8px; }
+.pc-card p { font-size: var(--fs-sm); line-height: 1.55; color: var(--muted); margin: 0 0 18px; }
+.pc-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
 /* seções de conteúdo */
-.sec-h { font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; margin: 28px 0 14px; }
+.sec-h { font-family: 'Oswald', sans-serif; font-size: var(--fs-lg); font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; margin: 28px 0 14px; }
 .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .how-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
 .how-n {
@@ -266,17 +295,16 @@ const steps = [
   background: var(--grad-trophy, linear-gradient(135deg, #ffb020, #ff7a59));
   color: #0a0e14; font-family: 'Oswald', sans-serif; font-weight: 700; margin-bottom: 10px;
 }
-.how-card h3 { font-size: 15px; font-weight: 700; margin: 0 0 5px; }
-.how-card p { font-size: 13.5px; line-height: 1.5; color: var(--muted); margin: 0; }
+.how-card h3 { font-size: var(--fs-base); font-weight: 700; margin: 0 0 5px; }
+.how-card p { font-size: var(--fs-sm); line-height: 1.5; color: var(--muted); margin: 0; }
 
 .faq-item { border: 1px solid var(--border); border-radius: 14px; padding: 4px 16px; margin-bottom: 8px; background: var(--bg-surface); }
-.faq-item summary { cursor: pointer; padding: 12px 0; font-size: 15px; font-weight: 700; list-style: none; }
+.faq-item summary { cursor: pointer; padding: 12px 0; font-size: var(--fs-base); font-weight: 700; list-style: none; }
 .faq-item summary::-webkit-details-marker { display: none; }
-.faq-item p { margin: 0 0 14px; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.faq-item p { margin: 0 0 14px; font-size: var(--fs-sm); line-height: 1.6; color: var(--muted); }
 
 @media (max-width: 720px) {
-  .locked { grid-template-columns: 1fr; }
-  .ghost-podium { order: -1; }
+  .preview-blur { max-height: 460px; }
   .how-grid { grid-template-columns: 1fr; }
 }
 </style>

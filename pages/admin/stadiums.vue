@@ -110,7 +110,7 @@ onMounted(load);
 
 <style scoped>
 .mb { margin-bottom: 14px; }
-.nm { font-weight: 700; font-size: 13.5px; }
-.loc { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.nm { font-weight: 700; font-size: var(--fs-sm); }
+.loc { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
 .acts { display: flex; gap: 6px; justify-content: flex-end; }
 </style>

@@ -47,9 +47,9 @@ const cta = computed(
 }
 .ctaband.inline { padding: 16px 18px; border-radius: 14px; }
 .cb-txt { flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.cb-head { font-weight: 700; font-size: 17px; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.01em; }
-.ctaband.inline .cb-head { font-size: 15.5px; }
-.cb-sub { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+.cb-head { font-weight: 700; font-size: var(--fs-lg); line-height: 1.2; text-transform: uppercase; letter-spacing: 0.01em; }
+.ctaband.inline .cb-head { font-size: var(--fs-base); }
+.cb-sub { font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
 .cb-btn { flex: none; white-space: nowrap; }
 @media (max-width: 520px) {
   .cb-btn { width: 100%; }

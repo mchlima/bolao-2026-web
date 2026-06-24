@@ -145,17 +145,17 @@ onMounted(load);
 
 <style scoped>
 .tx-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.tx-name { font-weight: 700; font-size: 14px; }
-.tx-desc { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-slug { font-size: 12px; color: var(--muted); font-family: ui-monospace, monospace; }
-.muted-txt { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.tx-name { font-weight: 700; font-size: var(--fs-sm); }
+.tx-desc { font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-slug { font-size: var(--fs-xs); color: var(--muted); font-family: ui-monospace, monospace; }
+.muted-txt { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
 .acts { display: flex; justify-content: flex-end; }
-.fl { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
+.fl { display: block; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
 .fl:first-child { margin-top: 0; }
 .fl .opt { font-weight: 600; opacity: 0.7; }
 .area { resize: vertical; }
-.slug-note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+.slug-note { font-size: var(--fs-xs); color: var(--muted); margin: 10px 0 0; }
 .slug-note code { font-family: ui-monospace, monospace; }
-.seo-sep { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
+.seo-sep { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
 .seo-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 </style>

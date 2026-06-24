@@ -108,13 +108,13 @@ onBeforeUnmount(() => {
 .tp { position: relative; }
 .tp-input { width: 100%; }
 .tp-sel { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 6px 0 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-surface); }
-.tp-sel-nm { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tp-x { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 17px; line-height: 1; width: 24px; height: 24px; border-radius: 6px; flex: none; }
+.tp-sel-nm { flex: 1; min-width: 0; font-size: var(--fs-sm); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tp-x { border: none; background: none; color: var(--muted); cursor: pointer; font-size: var(--fs-lg); line-height: 1; width: 24px; height: 24px; border-radius: 6px; flex: none; }
 .tp-x:hover { color: var(--scarlet); background: color-mix(in srgb, var(--scarlet) 12%, transparent); }
 .tp-menu { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 40; max-height: 260px; overflow-y: auto; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 11px; box-shadow: var(--shadow); padding: 5px; }
 .tp-opt { display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; border: none; background: none; cursor: pointer; padding: 7px 8px; border-radius: 8px; color: var(--text); }
 .tp-opt:hover { background: var(--bg-base); }
-.tp-nm { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tp-ab { font-size: 11px; font-weight: 700; color: var(--muted); flex: none; }
-.tp-msg { padding: 9px 10px; font-size: 12.5px; color: var(--muted); }
+.tp-nm { flex: 1; min-width: 0; font-size: var(--fs-sm); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tp-ab { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); flex: none; }
+.tp-msg { padding: 9px 10px; font-size: var(--fs-xs); color: var(--muted); }
 </style>

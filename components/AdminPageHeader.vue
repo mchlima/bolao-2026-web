@@ -35,7 +35,7 @@ const slots = useSlots();
 }
 .aph-title {
   font-weight: 700;
-  font-size: clamp(20px, 3.4vw, 27px);
+  font-size: clamp(1.25rem, 3.4vw, 1.6875rem);
   text-transform: uppercase;
   line-height: 1.04;
   letter-spacing: 0.01em;
@@ -43,7 +43,7 @@ const slots = useSlots();
 .aph-sub {
   color: var(--muted);
   margin-top: 8px;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   max-width: 720px;
 }

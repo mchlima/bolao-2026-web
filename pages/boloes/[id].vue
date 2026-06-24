@@ -129,18 +129,18 @@ const unavailable = computed(() => {
   border-radius: 18px;
   display: grid;
   place-items: center;
-  font-size: 28px;
+  font-size: var(--fs-3xl);
   background: var(--bg-surface);
   border: 1px solid var(--border);
 }
 .u-title {
   font-weight: 700;
-  font-size: clamp(20px, 5vw, 26px);
+  font-size: clamp(1.25rem, 5vw, 1.625rem);
   text-transform: uppercase;
   line-height: 1.1;
 }
 .u-msg {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   margin-bottom: 6px;
 }
@@ -167,7 +167,7 @@ const unavailable = computed(() => {
   background: var(--bg-surface);
   color: var(--muted);
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1;
   cursor: pointer;
   text-decoration: none;

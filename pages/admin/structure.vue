@@ -690,26 +690,26 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
 <style scoped>
 .toolbar { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; margin-bottom: 18px; }
 .tb-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.tb-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.tb-lbl { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
 .tb-field .input { min-width: 280px; }
 .tb-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .resolve-wrap { display: inline-flex; align-items: center; gap: 6px; }
 .help-btn { display: inline-flex; align-items: center; gap: 6px; }
-.help { font-size: 13.5px; line-height: 1.55; color: var(--text); }
+.help { font-size: var(--fs-sm); line-height: 1.55; color: var(--text); }
 .help-lead { margin: 0 0 14px; color: var(--muted); }
-.help h4 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 7px; }
+.help h4 { font-size: var(--fs-sm); font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; margin: 16px 0 7px; }
 .help ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
 .help li { color: var(--muted); }
 .help b { color: var(--text); font-weight: 700; }
-.input.sm { height: 38px; font-size: 13.5px; padding: 0 12px; line-height: normal; }
-.btn.xs { height: 34px; padding: 0 13px; font-size: 12.5px; }
+.input.sm { height: 38px; font-size: var(--fs-sm); padding: 0 12px; line-height: normal; }
+.btn.xs { height: 34px; padding: 0 13px; font-size: var(--fs-xs); }
 .primary-ghost { border-color: color-mix(in srgb, var(--emerald) 55%, var(--border)); color: var(--emerald); font-weight: 700; }
 
 /* Empty state */
 .empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 48px 24px; }
 .empty-ic { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; color: var(--azure); background: color-mix(in srgb, var(--azure) 12%, transparent); }
-.empty-t { font-size: 20px; font-weight: 700; text-transform: uppercase; }
-.empty-p { color: var(--muted); max-width: 460px; font-size: 14px; line-height: 1.55; }
+.empty-t { font-size: var(--fs-xl); font-weight: 700; text-transform: uppercase; }
+.empty-p { color: var(--muted); max-width: 460px; font-size: var(--fs-sm); line-height: 1.55; }
 .empty-p b, .hint b { color: var(--text); }
 .empty .btn { margin-top: 6px; }
 
@@ -724,25 +724,25 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
 .st-badge { width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center; color: #fff; background: var(--accent); }
 .st-main { flex: 1; min-width: 0; }
 .st-row1 { display: flex; flex-direction: column; gap: 3px; margin-bottom: 11px; }
-.st-tag { font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
-.st-name { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 19px; background: transparent; border: none; border-bottom: 1px dashed transparent; color: var(--text); padding: 2px 0; width: 100%; }
+.st-tag { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.st-name { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-xl); background: transparent; border: none; border-bottom: 1px dashed transparent; color: var(--text); padding: 2px 0; width: 100%; }
 .st-name:hover { border-bottom-color: var(--border); }
 .st-name:focus { outline: none; border-bottom-color: var(--accent); }
 .st-controls { display: flex; flex-wrap: wrap; gap: 14px 18px; }
 .field { display: flex; flex-direction: column; gap: 5px; }
 .field.inline { flex-direction: row; align-items: center; gap: 8px; }
 .st-controls .field .input.sm { min-width: 165px; }
-.field-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
-.chk-field .chk { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; height: 34px; }
+.field-lbl { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.chk-field .chk { display: inline-flex; align-items: center; gap: 7px; font-size: var(--fs-sm); font-weight: 600; height: 34px; }
 .st-actions { display: flex; align-items: center; gap: 8px; flex: none; }
 
 /* Section heads */
 .body { padding: 16px 18px 18px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.section-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
-.count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 7px; background: var(--bg-base); border: 1px solid var(--border); font-size: 12px; color: var(--muted); font-weight: 700; }
-.hint { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
-.hint-empty { font-size: 12.5px; color: var(--muted); padding: 14px; background: var(--bg-base); border: 1px dashed var(--border); border-radius: 10px; text-align: center; margin: 0; }
+.section-title { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+.count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 7px; background: var(--bg-base); border: 1px solid var(--border); font-size: var(--fs-xs); color: var(--muted); font-weight: 700; }
+.hint { font-size: var(--fs-xs); color: var(--muted); line-height: 1.5; margin: 0 0 12px; }
+.hint-empty { font-size: var(--fs-xs); color: var(--muted); padding: 14px; background: var(--bg-base); border: 1px dashed var(--border); border-radius: 10px; text-align: center; margin: 0; }
 
 /* Groups */
 /* Até 4 grupos por linha — evita linhas lotadas com nomes longos. */
@@ -753,15 +753,15 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
 .group { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 12px; padding: 11px; background: var(--bg-base); }
 .g-add { margin-top: auto; padding-top: 2px; }
 .g-head { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
-.g-name { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; text-transform: uppercase; }
-.g-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: color-mix(in srgb, var(--emerald) 16%, transparent); color: var(--emerald); font-size: 11px; font-weight: 800; }
+.g-name { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-sm); text-transform: uppercase; }
+.g-count { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: color-mix(in srgb, var(--emerald) 16%, transparent); color: var(--emerald); font-size: var(--fs-xs); font-weight: 800; }
 .g-head .ic { margin-left: auto; }
 .team-list { list-style: none; display: flex; flex-direction: column; gap: 5px; margin: 0 0 9px; padding: 0; }
 .tchip { display: flex; align-items: center; gap: 8px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 9px; padding: 4px 6px 4px 7px; }
-.tchip-nm { font-size: 12.5px; font-weight: 700; flex: 1; min-width: 0; line-height: 1.25; }
-.tchip-x { border: none; background: none; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; width: 22px; height: 22px; border-radius: 6px; flex: none; }
+.tchip-nm { font-size: var(--fs-xs); font-weight: 700; flex: 1; min-width: 0; line-height: 1.25; }
+.tchip-x { border: none; background: none; color: var(--muted); cursor: pointer; font-size: var(--fs-base); line-height: 1; width: 22px; height: 22px; border-radius: 6px; flex: none; }
 .tchip-x:hover { color: var(--scarlet); background: color-mix(in srgb, var(--scarlet) 12%, transparent); }
-.g-empty { font-size: 12px; color: var(--muted); padding: 6px 0 9px; }
+.g-empty { font-size: var(--fs-xs); color: var(--muted); padding: 6px 0 9px; }
 .add-team { width: 100%; }
 
 /* Rounds & ties */
@@ -769,26 +769,26 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
 .round:last-child { margin-bottom: 0; }
 .r-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
 .r-name { flex: 1; min-width: 160px; font-weight: 700; }
-.r-count { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); font-weight: 600; margin-left: auto; }
+.r-count { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-xs); color: var(--muted); font-weight: 600; margin-left: auto; }
 .ties { display: flex; flex-direction: column; gap: 6px; }
 .tie { display: flex; align-items: center; gap: 8px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 9px; padding: 6px 8px; }
-.tie-n { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 6px; background: var(--bg-base); border: 1px solid var(--border); font-size: 11px; font-weight: 800; color: var(--muted); }
-.tside { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; min-width: 0; flex: 1; }
+.tie-n { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 6px; background: var(--bg-base); border: 1px solid var(--border); font-size: var(--fs-xs); font-weight: 800; color: var(--muted); }
+.tside { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 700; min-width: 0; flex: 1; }
 .tside.away { justify-content: flex-end; }
 .tside.slot { color: var(--muted); font-weight: 600; }
 .tside.slot .slot-i { color: var(--gold); }
 .tside > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vs { color: var(--muted); font-weight: 800; font-size: 12px; flex: none; }
-.ties-empty { font-size: 12px; color: var(--muted); padding: 4px 2px; margin: 0; }
+.vs { color: var(--muted); font-weight: 800; font-size: var(--fs-xs); flex: none; }
+.ties-empty { font-size: var(--fs-xs); color: var(--muted); padding: 4px 2px; margin: 0; }
 .tie-del { margin-left: 2px; }
 
 /* Add tie */
 .tie-add { margin-top: 8px; padding: 11px; border: 1px dashed var(--border); border-radius: 10px; background: var(--bg-surface); }
-.ta-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 10px; }
+.ta-title { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 10px; }
 .ta-grid { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
 .ta-side { display: flex; flex-direction: column; gap: 6px; min-width: 190px; flex: 1; }
 .seg2 { display: inline-flex; background: var(--bg-base); border: 1px solid var(--border); border-radius: 8px; padding: 2px; gap: 2px; width: max-content; }
-.seg2 button { border: none; background: transparent; color: var(--muted); font: inherit; font-size: 11.5px; font-weight: 700; padding: 4px 12px; border-radius: 6px; cursor: pointer; }
+.seg2 button { border: none; background: transparent; color: var(--muted); font: inherit; font-size: var(--fs-xs); font-weight: 700; padding: 4px 12px; border-radius: 6px; cursor: pointer; }
 .seg2 button.on { background: var(--accent); color: #fff; }
 .ta-grid .vs { align-self: center; padding-bottom: 8px; }
 .ta-add { flex: none; }
@@ -797,19 +797,19 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
 .rounds-block { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border); }
 .matches { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
 .match { display: flex; align-items: center; gap: 8px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 9px; padding: 6px 8px; flex-wrap: wrap; }
-.m-grp { width: 24px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 6px; background: color-mix(in srgb, var(--emerald) 16%, transparent); color: var(--emerald); font-size: 11px; font-weight: 800; }
-.m-side { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; min-width: 0; flex: 1; }
+.m-grp { width: 24px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 6px; background: color-mix(in srgb, var(--emerald) 16%, transparent); color: var(--emerald); font-size: var(--fs-xs); font-weight: 800; }
+.m-side { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; min-width: 0; flex: 1; }
 .m-side.l { justify-content: flex-end; }
 .m-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.m-sc { font-size: 13px; flex: none; color: var(--muted); min-width: 26px; text-align: center; }
-.m-st { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; border-radius: 5px; padding: 2px 6px; flex: none; }
+.m-sc { font-size: var(--fs-sm); flex: none; color: var(--muted); min-width: 26px; text-align: center; }
+.m-st { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; border-radius: 5px; padding: 2px 6px; flex: none; }
 .m-st.live { color: #fff; background: var(--scarlet); }
 .m-st.finished { color: var(--muted); border: 1px solid var(--border); }
 .m-st.cancelled { color: var(--muted); border: 1px solid var(--border); text-decoration: line-through; }
-.input.xs { height: 32px; font-size: 12px; padding: 0 8px; width: auto; flex: none; }
+.input.xs { height: 32px; font-size: var(--fs-xs); padding: 0 8px; width: auto; flex: none; }
 .m-stad { max-width: 150px; }
 .match-add { margin-top: 6px; padding: 10px; border: 1px dashed var(--border); border-radius: 10px; background: var(--bg-surface); }
-.ma-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; }
+.ma-title { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 8px; }
 .ma-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .ma-grid .input.sm { flex: 1; min-width: 130px; }
 .ma-grid .vs { flex: none; }
@@ -819,8 +819,8 @@ const SLOT = ['M12 2l8 4.5v9L12 20l-8-4.5v-9z', 'M12 11v9', 'M20 6.5l-8 4.5-8-4.
 .tie-card .tie { background: none; border: none; border-radius: 0; padding: 2px 0; }
 .tie-legs { margin-top: 3px; padding-top: 6px; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 6px; }
 .leg { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.leg-n { font-size: 10.5px; font-weight: 800; text-transform: uppercase; color: var(--gold); flex: none; }
-.leg-sc { font-size: 13px; color: var(--muted); flex: none; min-width: 26px; text-align: center; }
+.leg-n { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; color: var(--gold); flex: none; }
+.leg-sc { font-size: var(--fs-sm); color: var(--muted); flex: none; min-width: 26px; text-align: center; }
 .leg-add { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 /* Icon buttons */

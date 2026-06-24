@@ -61,7 +61,7 @@ function step(delta: number) {
   border: 1px solid var(--border);
   background: var(--bg-surface);
   color: var(--text);
-  font-size: 20px;
+  font-size: var(--fs-xl);
   font-weight: 700;
   cursor: pointer;
 }
@@ -87,7 +87,7 @@ function step(delta: number) {
   background: var(--bg-surface);
   color: var(--muted);
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   white-space: nowrap;
   cursor: pointer;
 }

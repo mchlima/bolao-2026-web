@@ -558,7 +558,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   color: var(--muted);
   font: inherit;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   cursor: pointer;
   padding: 0;
   flex: none;
@@ -639,7 +639,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   border-radius: 999px;
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--text);
@@ -703,7 +703,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   align-items: center;
   gap: 3px;
   max-width: 72%;
-  font-size: 8.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.58);
   text-decoration: none;
@@ -737,14 +737,14 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   border-radius: 14px;
 }
 .rpred-lbl {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--text);
 }
 .rpred-score {
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0.04em;
@@ -754,7 +754,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -790,7 +790,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   min-width: 0;
 }
 .tname {
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   text-align: center;
   max-width: 100%;
@@ -800,7 +800,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 .side.win .tname { font-weight: 800; }
 .big {
-  font-size: 56px;
+  font-size: 3.5rem;
   line-height: 0.8;
   display: flex;
   align-items: baseline;
@@ -824,16 +824,16 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   margin-bottom: 20px;
 }
 .mp-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
-.mp-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); }
-.mp-hint { font-size: 10.5px; font-weight: 600; color: var(--muted); }
+.mp-title { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); }
+.mp-hint { font-size: var(--fs-xs); font-weight: 600; color: var(--muted); }
 .mp-stepper { display: flex; align-items: center; justify-content: center; gap: 16px; }
 .mp-col { display: flex; align-items: center; gap: 10px; }
 .mp-step { width: 30px; height: 44px; border-radius: 9px; border: none; background: none; padding: 0; color: var(--muted); cursor: pointer; display: grid; place-items: center; transition: color 0.13s ease, transform 0.05s ease; }
 .mp-step:hover { color: var(--text); }
 .mp-step:active { transform: scale(0.86); color: var(--emerald); }
-.mp-num { font-size: 48px; line-height: 0.85; min-width: 30px; text-align: center; }
-.mp-colon { font-size: 40px; color: var(--muted); }
-.mp-save { margin-top: 14px; font-size: 14px; padding: 11px; }
+.mp-num { font-size: 3rem; line-height: 0.85; min-width: 30px; text-align: center; }
+.mp-colon { font-size: 2.5rem; color: var(--muted); }
+.mp-save { margin-top: 14px; font-size: var(--fs-sm); padding: 11px; }
 
 /* Convite ao cadastro — substitui o pódio/ranking para quem está deslogado. */
 .join {
@@ -855,13 +855,13 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   margin-bottom: 14px;
 }
 .join-title {
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   line-height: 1.1;
   font-weight: 700;
   margin: 0 0 8px;
 }
 .join-lead {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--muted);
   max-width: 36ch;
@@ -883,7 +883,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   display: flex;
   align-items: center;
   gap: 11px;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 600;
 }
 .jf-ic { flex: none; color: var(--emerald); }
@@ -896,7 +896,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 .join-trust {
   margin: 14px 0 0;
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
 }
@@ -923,10 +923,10 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 }
 .pv-item { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
 .pv-ic { flex: none; color: var(--muted); }
-.pv-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-.pv-pts { font-size: 24px; line-height: 1; }
+.pv-lbl { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.pv-pts { font-size: var(--fs-2xl); line-height: 1; }
 .pred-vs.live .pv-pts { animation: ignite 0.5s ease both; }
-.pv-wait { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+.pv-wait { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; color: var(--muted); }
 /* share trigger sits centered under the prediction summary */
 .share-cta { display: flex; justify-content: center; margin: -8px 0 20px; }
 
@@ -939,13 +939,13 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   border-radius: 14px;
   padding: 13px 16px;
   margin-bottom: 20px;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
 }
 
 .tier {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -954,49 +954,49 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   padding: 4px 11px;
 }
 .tier.ignite { animation: ignite 0.6s ease both; }
-.tier.sm { font-size: 9.5px; padding: 3px 8px; border-width: 1px; }
+.tier.sm { font-size: var(--fs-xs); padding: 3px 8px; border-width: 1px; }
 
 /* ranking */
 .mr-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-.mr-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
-.mr-count { font-size: 11px; font-weight: 700; color: var(--muted); flex: none; }
-.mr-note { font-size: 11.5px; color: var(--scarlet); font-weight: 600; margin-bottom: 14px; }
-.locknote { font-size: 13px; font-weight: 600; color: var(--muted); background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+.mr-title { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+.mr-count { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); flex: none; }
+.mr-note { font-size: var(--fs-xs); color: var(--scarlet); font-weight: 600; margin-bottom: 14px; }
+.locknote { font-size: var(--fs-sm); font-weight: 600; color: var(--muted); background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
 
 .podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin: 8px 0 18px; }
 .pcol { flex: 1; max-width: 130px; display: flex; flex-direction: column; align-items: center; }
-.pav { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 14px; border: 3px solid; }
+.pav { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-sm); border: 3px solid; }
 .av-img { width: 100%; height: 100%; object-fit: cover; }
-.pname { font-size: 12px; font-weight: 700; margin-top: 7px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.pname { font-size: var(--fs-xs); font-weight: 700; margin-top: 7px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .pcol.me .pname { color: var(--gold); }
-.pscore { font-size: 18px; letter-spacing: 0.04em; }
-.ppts { font-size: 11px; font-weight: 800; }
+.pscore { font-size: var(--fs-lg); letter-spacing: 0.04em; }
+.ppts { font-size: var(--fs-xs); font-weight: 800; }
 .pbar { width: 100%; margin-top: 7px; border-radius: 11px 11px 0 0; display: flex; align-items: flex-start; justify-content: center; padding-top: 8px; }
-.prank { font-size: 26px; color: #0a0e14; }
+.prank { font-size: var(--fs-2xl); color: #0a0e14; }
 
 .rows { display: flex; flex-direction: column; gap: 7px; }
 .row { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 10px; padding: 9px 12px; background: var(--bg-base); border: 1px solid var(--border); border-radius: 13px; }
 .row.me { border-color: var(--gold); background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 16%, var(--bg-surface)), var(--bg-surface)); }
-.pos { font-size: 17px; color: var(--muted); text-align: center; }
+.pos { font-size: var(--fs-lg); color: var(--muted); text-align: center; }
 .pos.gold { color: var(--gold); }
 .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 11px; flex: 0 0 auto; }
+.av { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-xs); flex: 0 0 auto; }
 .av.pitch { background: var(--grad-pitch); }
-.nm { font-size: 13.5px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.youtag { font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #0a0e14; background: var(--gold); border-radius: 5px; padding: 2px 6px; flex: 0 0 auto; }
+.nm { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.youtag { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #0a0e14; background: var(--gold); border-radius: 5px; padding: 2px 6px; flex: 0 0 auto; }
 .rscore { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; }
-.gscore { font-size: 18px; letter-spacing: 0.04em; }
-.rp { font-size: 12px; font-weight: 800; min-width: 36px; text-align: right; }
+.gscore { font-size: var(--fs-lg); letter-spacing: 0.04em; }
+.rp { font-size: var(--fs-xs); font-weight: 800; min-width: 36px; text-align: right; }
 .rp.gold { color: var(--gold); }
-.empty { font-size: 12.5px; color: var(--muted); text-align: center; padding: 14px; }
+.empty { font-size: var(--fs-xs); color: var(--muted); text-align: center; padding: 14px; }
 
 .sticky { position: sticky; bottom: 14px; margin-top: 12px; z-index: 15; }
-.sticky-cap { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); text-align: center; margin-bottom: 6px; }
+.sticky-cap { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); text-align: center; margin-bottom: 6px; }
 .row.big { box-shadow: 0 12px 30px -10px rgba(244, 184, 30, 0.5); }
 
 @media (max-width: 420px) {
-  .pv-score { font-size: 26px; }
-  .pv-pts { font-size: 30px; }
+  .pv-score { font-size: var(--fs-2xl); }
+  .pv-pts { font-size: var(--fs-3xl); }
 }
 /* Mobile: hide the tier tag (ex.: "Não pontuou") in the ranking rows — keep them compact. */
 @media (max-width: 560px) {
@@ -1025,14 +1025,14 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   color: var(--muted);
 }
 .cd-label {
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 .cd-value {
   font-weight: 800;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
@@ -1041,7 +1041,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   color: var(--gold);
 }
 .countdown.soon .cd-value {
-  font-size: 17px;
+  font-size: var(--fs-lg);
   letter-spacing: 0.02em;
   color: var(--gold);
 }
@@ -1072,7 +1072,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   background: var(--bg-surface);
   color: var(--muted);
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1;
   white-space: nowrap;
   text-decoration: none;
@@ -1133,7 +1133,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1145,12 +1145,12 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .venue-name {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 25px;
+  font-size: var(--fs-2xl);
   line-height: 1;
   text-transform: uppercase;
   margin: 0;
 }
-.venue-loc { font-size: 13px; font-weight: 600; margin: 4px 0 0; }
+.venue-loc { font-size: var(--fs-sm); font-weight: 600; margin: 4px 0 0; }
 .venue.has-photo .venue-loc { color: rgba(255, 255, 255, 0.9); }
 .venue:not(.has-photo) .venue-loc { color: var(--muted); }
 .venue-credit {
@@ -1162,7 +1162,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   align-items: center;
   gap: 3px;
   max-width: 70%;
-  font-size: 8.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.58);
   text-decoration: none;
@@ -1193,7 +1193,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1203,7 +1203,7 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
 .mt-val {
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 18px;
+  font-size: var(--fs-lg);
   line-height: 1.1;
   color: var(--text);
   word-break: break-word;

@@ -313,11 +313,11 @@ const sideName = (s: 'home' | 'away' | null) =>
 .scorebar.live { border-color: color-mix(in srgb, var(--scarlet) 40%, var(--border)); }
 .sb-team { display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1; }
 .sb-team.end { justify-content: flex-end; }
-.sb-name { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-name { font-weight: 800; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sb-mid { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 0 0 auto; }
-.sb-score { font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 700; line-height: 1; }
-.sb-x { color: var(--muted); font-size: 18px; }
-.sb-status { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.sb-score { font-family: 'Oswald', sans-serif; font-size: var(--fs-2xl); font-weight: 700; line-height: 1; }
+.sb-x { color: var(--muted); font-size: var(--fs-lg); }
+.sb-status { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
 .ld { width: 7px; height: 7px; border-radius: 50%; background: var(--scarlet); box-shadow: 0 0 0 0 color-mix(in srgb, var(--scarlet) 60%, transparent); animation: pulse 1.4s infinite; }
 .ld.sm { width: 6px; height: 6px; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--scarlet) 55%, transparent); } 70% { box-shadow: 0 0 0 6px transparent; } }
@@ -327,14 +327,14 @@ const sideName = (s: 'home' | 'away' | null) =>
 
 .adm-panel { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 .col-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--bg-surface); }
-.col-h { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0; }
-.col-tag { font-size: 10.5px; font-weight: 700; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.col-h { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0; }
+.col-tag { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
 .col-tag.gold { color: var(--gold); }
 .col-tag.liveon { color: var(--scarlet); }
 
 .stream { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 @media (max-width: 980px) { .stream { max-height: 52vh; } }
-.empty { color: var(--muted); font-size: 13px; line-height: 1.5; margin: auto; text-align: center; max-width: 320px; }
+.empty { color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; margin: auto; text-align: center; max-width: 320px; }
 
 /* seus comentários — MESMO cartão da narração ESPN (.eline), com borda dourada
    marcando que é seu, e ações editar/excluir revelando no hover. */
@@ -344,16 +344,16 @@ const sideName = (s: 'home' | 'away' | null) =>
 .msg-act.del:hover { color: var(--scarlet); }
 .eline.mine.editing { background: var(--bg-surface); }
 .edit-row { display: flex; gap: 6px; }
-.edit-min { flex: 0 0 70px; font-size: 12px; padding: 6px 8px; }
-.edit-ta { flex: 1; resize: none; font-size: 14px; }
+.edit-min { flex: 0 0 70px; font-size: var(--fs-xs); padding: 6px 8px; }
+.edit-ta { flex: 1; resize: none; font-size: var(--fs-sm); }
 .edit-acts { display: flex; justify-content: flex-end; gap: 6px; margin-top: 6px; }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-sm { padding: 4px 10px; font-size: var(--fs-xs); }
 .composer { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-top: 1px solid var(--border); background: var(--bg-surface); }
 .time-ctl { display: flex; align-items: center; gap: 10px; }
-.autochk { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--text); cursor: pointer; user-select: none; white-space: nowrap; }
+.autochk { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; color: var(--text); cursor: pointer; user-select: none; white-space: nowrap; }
 .autochk input { cursor: pointer; accent-color: var(--azure); }
-.auto-hint { font-size: 11.5px; color: var(--muted); font-weight: 600; }
-.time-in { flex: 1; max-width: 260px; font-size: 13px; padding: 6px 10px; }
+.auto-hint { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
+.time-in { flex: 1; max-width: 260px; font-size: var(--fs-sm); padding: 6px 10px; }
 .composer-row { display: flex; gap: 8px; }
 .ta { resize: none; flex: 1; }
 .send { flex: 0 0 auto; align-self: stretch; padding: 0 16px; }
@@ -369,25 +369,25 @@ const sideName = (s: 'home' | 'away' | null) =>
 .eline.sub { border-left-color: var(--emerald); }
 .eline.var { border-left-color: var(--azure); }
 .eline-top { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; }
-.eline-min { font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
-.eline-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; border-radius: 4px; padding: 1px 6px; color: var(--muted); border: 1px solid var(--border); }
+.eline-min { font-family: 'Oswald', sans-serif; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.eline-tag { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; border-radius: 4px; padding: 1px 6px; color: var(--muted); border: 1px solid var(--border); }
 .eline-tag.goal { color: var(--emerald); border-color: color-mix(in srgb, var(--emerald) 45%, transparent); }
 .eline-tag.shot { color: var(--azure); border-color: color-mix(in srgb, var(--azure) 45%, transparent); }
 .eline-tag.card { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
 .eline-tag.red { color: var(--scarlet); border-color: color-mix(in srgb, var(--scarlet) 45%, transparent); }
 .eline-tag.foul { color: #e07b39; border-color: color-mix(in srgb, #e07b39 45%, transparent); }
 .eline-tag.var { color: var(--azure); border-color: color-mix(in srgb, var(--azure) 45%, transparent); }
-.eline-side { font-size: 10.5px; font-weight: 700; color: var(--muted); }
+.eline-side { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); }
 /* variante "seu comentário": mesmo cartão, acento dourado */
 .eline.mine { border-left-color: var(--gold); }
 .eline-tag.mine { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
-.eline-time { margin-left: auto; font-size: 10px; font-weight: 600; color: var(--muted); }
+.eline-time { margin-left: auto; font-size: var(--fs-xs); font-weight: 600; color: var(--muted); }
 .eline-acts { display: inline-flex; align-items: center; gap: 4px; }
-.eline-use { margin-left: auto; display: inline-flex; align-items: center; gap: 3px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--muted); font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 2px 8px; cursor: pointer; transition: color 0.12s, border-color 0.12s; }
+.eline-use { margin-left: auto; display: inline-flex; align-items: center; gap: 3px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--muted); font-size: var(--fs-xs); font-weight: 700; border-radius: 999px; padding: 2px 8px; cursor: pointer; transition: color 0.12s, border-color 0.12s; }
 .eline-use:hover { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 50%, var(--border)); }
-.eline-text { font-size: 13px; line-height: 1.45; color: var(--text); margin: 0; word-break: break-word; }
+.eline-text { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); margin: 0; word-break: break-word; }
 
 .spin { animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.muted-txt { font-size: 13px; color: var(--muted); }
+.muted-txt { font-size: var(--fs-sm); color: var(--muted); }
 </style>

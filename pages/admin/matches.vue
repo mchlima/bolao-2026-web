@@ -213,8 +213,8 @@ onMounted(async () => {
 <style scoped>
 .mb { margin-bottom: 14px; }
 .mt { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.vs { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
-.dt, .vn { font-size: 11.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vs { font-weight: 700; font-size: var(--fs-xs); white-space: nowrap; }
+.dt, .vn { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acts { display: flex; gap: 6px; justify-content: flex-end; }
 .tzhint { font-weight: 600; text-transform: none; color: var(--muted); }
 </style>

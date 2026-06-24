@@ -175,7 +175,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   margin-top: 22px;
 }
 .sec-lbl {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.07em;
@@ -229,10 +229,10 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 }
 .t-name {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-base);
 }
 .t-badge {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -250,7 +250,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
   align-items: center;
   gap: 6px;
   margin-top: 5px;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
 }
@@ -269,7 +269,7 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 }
 .champ-name {
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   flex: 1;
   min-width: 0;
   white-space: nowrap;
@@ -278,20 +278,20 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 }
 .champ-pts {
   font-weight: 800;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--gold);
   font-variant-numeric: tabular-nums;
 }
 .champ-none {
   margin-top: 10px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 .t-link {
   display: inline-flex;
   align-items: center;
   gap: 3px;
   margin-top: 12px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--azure);
 }

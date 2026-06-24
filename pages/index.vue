@@ -182,8 +182,8 @@ useHead({
 .greet { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 .greet-av { box-shadow: 0 0 0 2px var(--bg-surface), 0 0 0 4px color-mix(in srgb, var(--emerald) 55%, transparent); }
 .greet-txt { display: flex; flex-direction: column; line-height: 1.1; min-width: 0; }
-.greet-hi { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.01em; }
-.greet-name { font-size: clamp(21px, 5.5vw, 26px); font-weight: 800; line-height: 1.12; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.greet-hi { font-size: var(--fs-sm); font-weight: 600; color: var(--muted); letter-spacing: 0.01em; }
+.greet-name { font-size: clamp(1.3125rem, 5.5vw, 1.625rem); font-weight: 800; line-height: 1.12; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* seção: cabeçalho com título + link "ver tudo" */
 .hubstrip { margin: 14px 0; }
@@ -191,47 +191,47 @@ useHead({
 .mm-ic { color: var(--gold); }
 .mm-ic.blue { color: var(--azure); }
 .hs-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-.hs-head h2 { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: clamp(18px, 3vw, 24px); text-transform: uppercase; }
-.hs-live { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--scarlet); border: 1px solid var(--scarlet); border-radius: 999px; padding: 3px 9px; }
+.hs-head h2 { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: clamp(1.125rem, 3vw, 1.5rem); text-transform: uppercase; }
+.hs-live { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--scarlet); border: 1px solid var(--scarlet); border-radius: 999px; padding: 3px 9px; }
 .hs-live .d { width: 6px; height: 6px; border-radius: 50%; background: var(--scarlet); animation: liveDot 1.1s ease-in-out infinite; }
-.hs-all { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 700; color: var(--azure); white-space: nowrap; }
+.hs-all { display: inline-flex; align-items: center; gap: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--azure); white-space: nowrap; }
 
 /* "Seus jogos" agrupado por time */
 .mm-group + .mm-group { margin-top: 16px; }
 .mm-team { display: flex; align-items: center; gap: 9px; margin-bottom: 9px; }
-.mm-team-nm { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.mm-team-nm { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .mm-team-ic { flex: none; display: grid; place-items: center; width: 22px; height: 22px; color: var(--gold); }
-.mm-crave { display: inline-flex; align-items: center; gap: 3px; margin-top: 14px; font-size: 13px; font-weight: 800; color: #0a0e14; background: var(--gold); border-radius: 999px; padding: 8px 15px; text-decoration: none; }
+.mm-crave { display: inline-flex; align-items: center; gap: 3px; margin-top: 14px; font-size: var(--fs-sm); font-weight: 800; color: #0a0e14; background: var(--gold); border-radius: 999px; padding: 8px 15px; text-decoration: none; }
 
 /* "Seus jogos" vazio — CTA pra escolher times */
 .mm-cta { position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 16px; padding: 18px 20px; border-radius: 18px; border: 1px solid color-mix(in srgb, var(--emerald) 34%, var(--border)); background: linear-gradient(135deg, color-mix(in srgb, var(--emerald) 10%, var(--bg-surface)), var(--bg-surface) 70%); transition: border-color 0.15s, transform 0.15s; text-decoration: none; }
 .mm-cta:hover { border-color: color-mix(in srgb, var(--emerald) 55%, var(--border)); transform: translateY(-1px); }
 .mm-cta-ic { position: relative; flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 15px; background: var(--grad-pitch); color: #fff; }
 .mm-cta-txt { position: relative; flex: 1 1 240px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.mm-cta-txt b { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.01em; color: var(--text); }
-.mm-cta-txt span { font-size: 13px; color: var(--muted); line-height: 1.5; }
-.mm-cta-go { position: relative; flex: none; margin-left: auto; display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 11px 17px; border-radius: 11px; background: var(--gold); color: #0a0e14; font-size: 13px; font-weight: 800; white-space: nowrap; }
+.mm-cta-txt b { font-size: var(--fs-base); font-weight: 700; text-transform: uppercase; letter-spacing: 0.01em; color: var(--text); }
+.mm-cta-txt span { font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; }
+.mm-cta-go { position: relative; flex: none; margin-left: auto; display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 11px 17px; border-radius: 11px; background: var(--gold); color: #0a0e14; font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
 @media (max-width: 520px) { .mm-cta-go { flex-basis: 100%; margin-left: 0; } }
 
 /* "Seus jogos" vazio — segue times, mas sem jogo agendado */
 .mm-rest { display: flex; align-items: center; gap: 12px; padding: 15px 18px; border-radius: 16px; border: 1px dashed var(--border); background: var(--bg-surface); }
 .mm-rest-ic { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px; background: color-mix(in srgb, var(--azure) 12%, transparent); color: var(--azure); }
 .mm-rest-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.mm-rest-txt b { font-size: 14px; font-weight: 700; }
-.mm-rest-txt span { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.mm-rest-txt b { font-size: var(--fs-sm); font-weight: 700; }
+.mm-rest-txt span { font-size: var(--fs-xs); color: var(--muted); line-height: 1.5; }
 .mm-rest-txt a { color: var(--azure); font-weight: 700; }
 
 /* portal: campeonatos em destaque */
 .hubnav-wrap { margin: 22px 0; }
 .hubnav-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-.hubnav-head h2 { font-weight: 600; font-size: clamp(18px, 3vw, 24px); text-transform: uppercase; }
-.hubnav-all { display: inline-flex; align-items: center; gap: 2px; flex: none; font-size: 13px; font-weight: 700; color: var(--azure); white-space: nowrap; }
+.hubnav-head h2 { font-weight: 600; font-size: clamp(1.125rem, 3vw, 1.5rem); text-transform: uppercase; }
+.hubnav-all { display: inline-flex; align-items: center; gap: 2px; flex: none; font-size: var(--fs-sm); font-weight: 700; color: var(--azure); white-space: nowrap; }
 .hubnav { display: grid; grid-template-columns: 1fr; gap: 10px; }
 @media (min-width: 560px) { .hubnav { grid-template-columns: repeat(2, 1fr); } }
 .hubtile { display: flex; align-items: center; gap: 13px; padding: 14px 15px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-surface); transition: border-color 0.14s, transform 0.14s, box-shadow 0.14s; }
 .hubtile:hover { border-color: color-mix(in srgb, var(--azure) 40%, var(--border)); transform: translateY(-1px); box-shadow: var(--shadow); }
 .ht-logo { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 12px; background: var(--bg-base); border: 1px solid var(--border); }
-.ht-name { flex: 1; min-width: 0; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 17px; line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ht-name { flex: 1; min-width: 0; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: var(--fs-lg); line-height: 1.15; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ht-go { flex: none; color: var(--muted); }
 @media (max-width: 420px) { .hubnav { gap: 8px; } .hubtile { padding: 12px; gap: 11px; } }
 

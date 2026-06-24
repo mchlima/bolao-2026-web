@@ -192,13 +192,13 @@ async function del() {
 }
 .b-title {
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--fs-base);
   font-family: 'Oswald', sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
 .b-desc {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--muted);
   margin-top: 4px;
@@ -214,7 +214,7 @@ async function del() {
   gap: 7px;
 }
 .lbl {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -222,7 +222,7 @@ async function del() {
 }
 /* Texto de apoio (muted) explicando o campo. */
 .hint {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   line-height: 1.45;
   color: var(--muted);
   margin-top: -2px;
@@ -235,7 +235,7 @@ async function del() {
   background: var(--bg-base);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 .inp:focus {
   outline: none;
@@ -251,7 +251,7 @@ async function del() {
 .count {
   align-self: flex-end;
   margin-top: -2px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
@@ -277,11 +277,11 @@ async function del() {
   gap: 2px;
 }
 .dr-txt b {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 .dr-txt small {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .btn.danger {

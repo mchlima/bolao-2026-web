@@ -103,7 +103,7 @@ const { count: liveCount } = useLiveCount();
 }
 .auth-cta .btn {
   padding: 8px 14px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 /* Gatilho de conta no header = só avatar + chevron (nome/e-mail ficam no menu). */
 .acct-slot :deep(.who.as-btn) {
@@ -139,7 +139,7 @@ const { count: liveCount } = useLiveCount();
   display: block;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 22px;
+  font-size: var(--fs-2xl);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -169,7 +169,7 @@ const { count: liveCount } = useLiveCount();
   animation: live-pulse 1.5s ease-out infinite;
 }
 .live-num {
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   color: var(--scarlet);
   font-variant-numeric: tabular-nums;

@@ -47,7 +47,7 @@ const hasCats = computed(() => tree.value.length > 0);
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--muted);
   padding: 7px 11px;

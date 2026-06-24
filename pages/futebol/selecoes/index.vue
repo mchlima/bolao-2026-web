@@ -86,7 +86,7 @@ useHead({
   transition: border-color 0.14s, transform 0.14s;
 }
 .sel-card:hover { border-color: color-mix(in srgb, var(--azure) 40%, var(--border)); transform: translateY(-1px); }
-.sel-name { flex: 1; min-width: 0; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sel-name { flex: 1; min-width: 0; font-family: 'Oswald', sans-serif; font-weight: 600; font-size: var(--fs-base); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sel-go { color: var(--muted); flex: none; }
 
 .sel-empty {
@@ -94,7 +94,7 @@ useHead({
   padding: 64px 24px; text-align: center; color: var(--muted);
   border: 1px dashed var(--border); border-radius: 18px;
 }
-.sel-empty h2 { font-family: 'Oswald', sans-serif; font-size: 21px; font-weight: 700; color: var(--text); margin: 4px 0 0; }
-.sel-empty p { font-size: 14px; margin: 0; }
+.sel-empty h2 { font-family: 'Oswald', sans-serif; font-size: var(--fs-xl); font-weight: 700; color: var(--text); margin: 4px 0 0; }
+.sel-empty p { font-size: var(--fs-sm); margin: 0; }
 .sel-empty .btn { margin-top: 8px; }
 </style>

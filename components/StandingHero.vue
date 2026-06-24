@@ -71,7 +71,7 @@ withDefaults(
   gap: 10px;
 }
 .sh-cap {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -84,7 +84,7 @@ withDefaults(
 .sh-chip {
   flex: none;
   max-width: 50%;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -103,7 +103,7 @@ withDefaults(
   margin-top: 6px;
 }
 .sh-rank .num {
-  font-size: 46px;
+  font-size: 2.875rem;
   font-weight: 700;
   line-height: 1;
 }
@@ -111,11 +111,11 @@ withDefaults(
   opacity: 0.7;
 }
 .sh-rank .ord {
-  font-size: 26px;
+  font-size: var(--fs-2xl);
   font-weight: 700;
 }
 .sh-of {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.72);
   margin-left: 10px;
@@ -138,12 +138,12 @@ withDefaults(
   padding-left: 16px;
 }
 .sh-statn {
-  font-size: 23px;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   line-height: 1;
 }
 .sh-statl {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -154,7 +154,7 @@ withDefaults(
   align-items: center;
   gap: 3px;
   margin-top: 16px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   color: #fff;
   text-decoration: underline;

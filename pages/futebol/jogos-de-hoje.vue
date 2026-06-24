@@ -98,18 +98,19 @@ useHead({
         <NuxtLink to="/futebol/agenda">Agenda completa</NuxtLink>
         <NuxtLink to="/futebol/campeonato">Torneios</NuxtLink>
       </div>
+      <MatchesSeoBlock :matches="sorted" scope="today" :canonical="url" />
     </template>
   </div>
 </template>
 
 <style scoped>
 .jh { padding: 10px; }
-.jh-intro { font-size: 15px; line-height: 1.6; color: var(--text); margin: 0 0 16px; }
+.jh-intro { font-size: var(--fs-base); line-height: 1.6; color: var(--text); margin: 0 0 16px; }
 .jh-intro a { color: var(--azure); text-decoration: none; font-weight: 600; }
 .jh-intro a:hover { text-decoration: underline; }
 .jh-intro strong { font-weight: 800; }
 .jh-empty { padding: 2.5rem 0; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .jh-more { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
-.jh-more a { font-size: 13px; font-weight: 700; color: var(--azure); border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; text-decoration: none; transition: border-color 0.14s; }
+.jh-more a { font-size: var(--fs-sm); font-weight: 700; color: var(--azure); border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; text-decoration: none; transition: border-color 0.14s; }
 .jh-more a:hover { border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); }
 </style>

@@ -135,7 +135,7 @@ const spotlightSeason = computed(() => {
   flex: 1;
   min-width: 0;
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--fs-base);
   line-height: 1.15;
   text-transform: uppercase;
   overflow: hidden;
@@ -154,7 +154,7 @@ const spotlightSeason = computed(() => {
   flex: 1;
   text-align: center;
   padding: 10px;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--azure);
   text-decoration: none;

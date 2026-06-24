@@ -63,7 +63,7 @@ const emit = defineEmits<{ bump: [delta: number] }>();
   padding: 1px 0;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 18px;
+  font-size: var(--fs-lg);
   line-height: 1;
 }
 /* placeholder "–" (sem palpite) em muted, igual ao traço do placar real */

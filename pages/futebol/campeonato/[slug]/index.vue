@@ -121,14 +121,14 @@ useHead({
 }
 .sec-head h2 {
   font-weight: 600;
-  font-size: clamp(19px, 3vw, 26px);
+  font-size: clamp(1.1875rem, 3vw, 1.625rem);
   text-transform: uppercase;
 }
 .sec-all {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--azure);
   white-space: nowrap;

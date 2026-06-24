@@ -224,10 +224,10 @@ async function submitNew() {
 }
 .run-name {
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: var(--fs-sm);
 }
 .run-badge {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -245,7 +245,7 @@ async function submitNew() {
   border-color: var(--gold);
 }
 .run-sub {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   margin-top: 4px;
   line-height: 1.4;
@@ -264,7 +264,7 @@ async function submitNew() {
 }
 .lbl {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -279,7 +279,7 @@ async function submitNew() {
   background: var(--bg-surface);
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
 }
 .inp:focus {
   outline: none;
@@ -289,7 +289,7 @@ async function submitNew() {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--text);
 }
 </style>

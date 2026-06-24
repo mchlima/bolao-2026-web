@@ -216,7 +216,7 @@ onMounted(() => nextTick(onScroll));
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 800;
   letter-spacing: 0.02em;
 }
@@ -238,7 +238,7 @@ onMounted(() => nextTick(onScroll));
 .sq-name {
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -250,7 +250,7 @@ onMounted(() => nextTick(onScroll));
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.02em;

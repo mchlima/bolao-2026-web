@@ -110,7 +110,7 @@ function active(it: { to: string; match?: string }) {
   align-items: center;
   gap: 3px;
   padding: 6px 0;
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   background: none;
   border: 0;
@@ -134,7 +134,7 @@ function active(it: { to: string; match?: string }) {
   border-radius: 8px;
   background: var(--scarlet, #e8362b);
   color: #fff;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   display: flex;

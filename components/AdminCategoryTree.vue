@@ -148,23 +148,23 @@ onMounted(load);
 </template>
 
 <style scoped>
-.empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 13px; }
+.empty { padding: 40px 20px; text-align: center; color: var(--muted); font-size: var(--fs-sm); }
 .ctree { list-style: none; margin: 0; padding: 0; }
 .crow { display: flex; align-items: center; gap: 12px; padding: 11px 4px; border-top: 1px solid var(--border); }
 .crow:first-child { border-top: none; }
 .cguide { width: 0; }
 .cguide.child { width: 10px; border-left: 2px solid var(--border); border-bottom: 2px solid var(--border); height: 10px; margin-right: -4px; border-bottom-left-radius: 4px; }
 .cinfo { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
-.cname { font-weight: 700; font-size: 14px; }
-.cdesc { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cslug { font-size: 12px; color: var(--muted); font-family: ui-monospace, monospace; }
-.ccount { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 1px 8px; min-width: 22px; text-align: center; }
-.fl { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
+.cname { font-weight: 700; font-size: var(--fs-sm); }
+.cdesc { font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cslug { font-size: var(--fs-xs); color: var(--muted); font-family: ui-monospace, monospace; }
+.ccount { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 1px 8px; min-width: 22px; text-align: center; }
+.fl { display: block; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); margin: 12px 0 5px; }
 .fl:first-child { margin-top: 0; }
 .fl .opt { font-weight: 600; opacity: 0.7; }
 .area { resize: vertical; }
-.slug-note { font-size: 12px; color: var(--muted); margin: 10px 0 0; }
+.slug-note { font-size: var(--fs-xs); color: var(--muted); margin: 10px 0 0; }
 .slug-note code { font-family: ui-monospace, monospace; }
-.seo-sep { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
+.seo-sep { display: flex; align-items: center; gap: 10px; margin: 18px 0 12px; font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--azure); }
 .seo-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 </style>

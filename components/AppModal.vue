@@ -70,7 +70,7 @@ const emit = defineEmits<{ close: [] }>();
 }
 .m-head h3 {
   font-weight: 700;
-  font-size: 18px;
+  font-size: var(--fs-lg);
   text-transform: uppercase;
 }
 .x {

@@ -70,7 +70,7 @@ const slots = useSlots();
 .hh-txt { min-width: 0; flex: 1; }
 .hh-eyebrow {
   display: block;
-  font-size: 11px;
+  font-size: var(--fs-2xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -79,14 +79,14 @@ const slots = useSlots();
 }
 .hub-head h1 {
   min-width: 0;
-  font-size: clamp(26px, 6vw, 44px);
+  font-size: clamp(1.625rem, 6vw, 2.75rem);
   font-weight: 700;
   line-height: 1.02;
   text-transform: uppercase;
 }
 .hh-sub {
   margin: 7px 0 0;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--muted);
   max-width: 60ch;

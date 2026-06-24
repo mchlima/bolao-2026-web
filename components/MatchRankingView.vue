@@ -455,22 +455,22 @@ useHead({
 /* Bloco SEO/GEO abaixo do board. Surface neutra, largura de leitura confortável. */
 .match-seo { border-top: 1px solid var(--border); background: var(--bg-base); padding: 28px 16px 40px; }
 .ms-in { max-width: 720px; margin: 0 auto; }
-.ms-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(20px, 4vw, 26px); text-transform: uppercase; letter-spacing: 0.01em; margin: 0 0 6px; }
-.ms-meta { font-size: 12.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.ms-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: clamp(1.25rem, 4vw, 1.625rem); text-transform: uppercase; letter-spacing: 0.01em; margin: 0 0 6px; }
+.ms-meta { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
 .ms-sep { opacity: 0.6; }
-.ms-about { font-size: 15.5px; line-height: 1.7; color: var(--text); margin: 0; }
-.ms-watch { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0 0; font-size: 14.5px; }
+.ms-about { font-size: var(--fs-base); line-height: 1.7; color: var(--text); margin: 0; }
+.ms-watch { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0 0; font-size: var(--fs-sm); }
 .ms-watch-l { font-weight: 800; }
 .ms-watch a { color: var(--azure); font-weight: 700; }
 .ms-watch a:hover { text-decoration: underline; }
-.ms-watch-yt { color: var(--muted); font-size: 13px; }
+.ms-watch-yt { color: var(--muted); font-size: var(--fs-sm); }
 .ms-watch-yt::before { content: '· '; }
 .ms-faq { margin-top: 26px; }
-.ms-faq h3 { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 17px; text-transform: uppercase; margin: 0 0 12px; }
+.ms-faq h3 { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: var(--fs-lg); text-transform: uppercase; margin: 0 0 12px; }
 .ms-faq details { border: 1px solid var(--border); border-radius: 12px; background: var(--bg-surface); padding: 13px 15px; margin-bottom: 8px; }
-.ms-faq summary { font-weight: 700; font-size: 14.5px; cursor: pointer; }
-.ms-faq details p { margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.ms-faq summary { font-weight: 700; font-size: var(--fs-sm); cursor: pointer; }
+.ms-faq details p { margin: 8px 0 0; font-size: var(--fs-sm); line-height: 1.6; color: var(--muted); }
 .ms-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
-.ms-links a { font-size: 13px; font-weight: 700; color: var(--azure); border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; transition: border-color 0.14s; }
+.ms-links a { font-size: var(--fs-sm); font-weight: 700; color: var(--azure); border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; transition: border-color 0.14s; }
 .ms-links a:hover { border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); }
 </style>

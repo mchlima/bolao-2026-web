@@ -145,9 +145,9 @@ onMounted(load);
 
 <style scoped>
 .cinfo { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ctitle { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cbody { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.aud, .chs, .sch, .dlv { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.ctitle { font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cbody { font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aud, .chs, .sch, .dlv { font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
 .sch, .chs { color: var(--muted); }
 .acts { display: flex; justify-content: flex-end; }
 .empty-state {
@@ -168,7 +168,7 @@ onMounted(load);
   background: color-mix(in srgb, var(--gold) 14%, transparent);
   border: 1px solid color-mix(in srgb, var(--gold) 30%, var(--border));
 }
-.es-title { font-weight: 700; font-size: clamp(18px, 3vw, 22px); text-transform: uppercase; }
-.es-text { max-width: 420px; color: var(--muted); font-size: 14px; line-height: 1.55; margin: 0; }
-.empty-state .btn.big { margin-top: 6px; font-size: 14.5px; padding: 12px 20px; }
+.es-title { font-weight: 700; font-size: clamp(1.125rem, 3vw, 1.375rem); text-transform: uppercase; }
+.es-text { max-width: 420px; color: var(--muted); font-size: var(--fs-sm); line-height: 1.55; margin: 0; }
+.empty-state .btn.big { margin-top: 6px; font-size: var(--fs-sm); padding: 12px 20px; }
 </style>

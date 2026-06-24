@@ -38,7 +38,7 @@ const links = [
 .snav::-webkit-scrollbar { display: none; }
 .snav-link {
   flex: 0 0 auto;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--muted);
   text-decoration: none;

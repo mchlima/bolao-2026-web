@@ -26,7 +26,7 @@ useSeoMeta({ title: 'Meus times — Cravei' });
 .page-title {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin: 0 0 16px;
@@ -36,6 +36,6 @@ useSeoMeta({ title: 'Meus times — Cravei' });
 }
 .ph {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 </style>

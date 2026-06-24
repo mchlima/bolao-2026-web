@@ -300,41 +300,41 @@ onMounted(() => { load(); loadFacets(); });
 
 /* filters popover (team-specific) */
 .fmenu { position: relative; }
-.fbtn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: 13px; cursor: pointer; }
+.fbtn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font-weight: 700; font-size: var(--fs-sm); cursor: pointer; }
 .fbtn:hover { border-color: var(--muted); }
 .fbtn.on { border-color: var(--gold); }
 .fbtn .cv { color: var(--muted); }
-.fbadge { min-width: 18px; height: 18px; padding: 0 5px; display: grid; place-items: center; border-radius: 999px; background: var(--gold); color: #0a0e14; font-size: 11px; font-weight: 800; }
+.fbadge { min-width: 18px; height: 18px; padding: 0 5px; display: grid; place-items: center; border-radius: 999px; background: var(--gold); color: #0a0e14; font-size: var(--fs-xs); font-weight: 800; }
 .fback { position: fixed; inset: 0; z-index: 30; }
 .fdrop { position: absolute; left: 0; top: calc(100% + 6px); z-index: 31; width: 290px; max-width: 86vw; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); padding: 12px; display: flex; flex-direction: column; gap: 13px; }
 .fgroup { display: flex; flex-direction: column; gap: 7px; }
-.fgl { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.fgl { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
 .fchips { display: flex; gap: 6px; flex-wrap: wrap; }
-.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: 12px; cursor: pointer; }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-base); color: var(--muted); font-weight: 700; font-size: var(--fs-xs); cursor: pointer; }
 .fchip.on { background: var(--gold); color: #0a0e14; border-color: transparent; }
-.fgroup .input { width: 100%; padding: 9px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
-.fclear { border: 1px solid var(--border); background: var(--bg-base); color: var(--scarlet); font-weight: 700; font-size: 12.5px; padding: 9px; border-radius: 9px; cursor: pointer; }
+.fgroup .input { width: 100%; padding: 9px 10px; border-radius: 9px; border: 1px solid var(--border); background: var(--bg-base); color: var(--text); font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+.fclear { border: 1px solid var(--border); background: var(--bg-base); color: var(--scarlet); font-weight: 700; font-size: var(--fs-xs); padding: 9px; border-radius: 9px; cursor: pointer; }
 .fclear:disabled { color: var(--muted); cursor: default; opacity: 0.55; }
-.ct { font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: color-mix(in srgb, currentColor 14%, transparent); }
+.ct { font-size: var(--fs-xs); padding: 1px 6px; border-radius: 999px; background: color-mix(in srgb, currentColor 14%, transparent); }
 
 /* cells */
 .tn { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.nm { min-width: 0; font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sg { font-weight: 700; font-size: 13px; }
-.tb { font-size: 10.5px; font-weight: 800; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
+.nm { min-width: 0; font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sg { font-weight: 700; font-size: var(--fs-sm); }
+.tb { font-size: var(--fs-xs); font-weight: 800; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
 .tb.nat { color: var(--azure); background: color-mix(in srgb, var(--azure) 14%, transparent); }
 .tb.club { color: var(--emerald); background: color-mix(in srgb, var(--emerald) 14%, transparent); }
-.lc { font-size: 12.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lc { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cl { display: flex; gap: 4px; align-items: center; }
 .sw { width: 16px; height: 16px; border-radius: 5px; border: 1px solid var(--border); flex: 0 0 auto; }
-.muted-mini { color: var(--muted); font-size: 12px; }
+.muted-mini { color: var(--muted); font-size: var(--fs-xs); }
 .acts { display: flex; gap: 6px; justify-content: flex-end; }
 
 /* form */
 .seg { display: flex; background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 3px; margin-bottom: 4px; }
-.seg-b { flex: 1; padding: 9px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 700; font-size: 13px; cursor: pointer; }
+.seg-b { flex: 1; padding: 9px; border: none; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 700; font-size: var(--fs-sm); cursor: pointer; }
 .seg-b.on { background: var(--bg-surface); color: var(--text); box-shadow: var(--shadow); }
 .clr { display: flex; align-items: center; gap: 8px; }
 .csw { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); flex: 0 0 auto; }
-.espnote { font-size: 11px; color: var(--muted); margin-top: 10px; }
+.espnote { font-size: var(--fs-xs); color: var(--muted); margin-top: 10px; }
 </style>

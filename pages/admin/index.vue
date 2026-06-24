@@ -1,6 +1,15 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 
+// Período selecionado (reflete no gráfico). Padrão: mês atual desde o dia 1 → hoje.
+const ymd = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const _now = new Date();
+const range = ref({
+  from: ymd(new Date(_now.getFullYear(), _now.getMonth(), 1)),
+  to: ymd(_now),
+});
+
 // Live presence (quem está conectado no SSE agora). Polled — presence isn't
 // an emitted event. The endpoint identifies whoever it can; the rest only
 // counts toward the total.
@@ -31,7 +40,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <AdminPageHeader title="Dashboard" subtitle="Visão geral do torneio e atalhos rápidos." />
+    <AdminPageHeader title="Dashboard" subtitle="Visão geral do torneio e atalhos rápidos.">
+      <template #actions>
+        <AdminDateRange v-model="range" />
+      </template>
+    </AdminPageHeader>
+
+    <AdminPredictionsChart :from="range.from" :to="range.to" />
 
     <div class="card online">
       <div class="on-head">
@@ -108,12 +123,12 @@ onBeforeUnmount(() => {
   100% { box-shadow: 0 0 0 0 transparent; }
 }
 .on-num {
-  font-size: 30px;
+  font-size: var(--fs-3xl);
   line-height: 1;
   font-weight: 800;
 }
 .on-lbl {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
@@ -137,7 +152,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--bg-base);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 600;
   max-width: 100%;
 }
@@ -147,7 +162,7 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 .on-tabs {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--muted);
   background: var(--bg-surface);
@@ -161,13 +176,13 @@ onBeforeUnmount(() => {
   padding: 0 12px;
   border-radius: 999px;
   border: 1px dashed var(--border);
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
 }
 .on-empty {
   margin-top: 10px;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   color: var(--muted);
 }
 .shortcuts {
@@ -176,7 +191,7 @@ onBeforeUnmount(() => {
 }
 .shortcuts h3 {
   font-weight: 600;
-  font-size: 16px;
+  font-size: var(--fs-base);
   text-transform: uppercase;
   margin-bottom: 14px;
 }
@@ -222,11 +237,11 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 .sc-tx b {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 .sc-tx small {
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
 }

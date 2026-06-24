@@ -353,8 +353,8 @@ const COLS: AdminColumn[] = [
 <style scoped>
 .teams { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .tline { display: flex; align-items: center; gap: 7px; min-width: 0; }
-.tn { flex: 1; font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tsc { flex: none; width: 18px; text-align: center; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 15px; line-height: 1; }
+.tn { flex: 1; font-weight: 700; font-size: var(--fs-base); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tsc { flex: none; width: 18px; text-align: center; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-base); line-height: 1; }
 .tsc.none { color: var(--muted); }
 /* date+time (left) + status chip (right) above the teams, within the Partida column */
 .when { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
@@ -390,18 +390,18 @@ const COLS: AdminColumn[] = [
   background: color-mix(in srgb, var(--scarlet) 7%, transparent);
   box-shadow: inset 3px 0 0 var(--scarlet);
 }
-.dd { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
-.hh { font-weight: 700; font-size: 12.5px; white-space: nowrap; }
+.dd { font-weight: 700; font-size: var(--fs-xs); white-space: nowrap; }
+.hh { font-weight: 700; font-size: var(--fs-xs); white-space: nowrap; }
 .phcell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.3; }
 .ph-season {
-  font-size: 12px; font-weight: 700; color: var(--text);
+  font-size: var(--fs-xs); font-weight: 700; color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.ph-main { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ph-sub { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph-main { font-size: var(--fs-xs); font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ph-sub { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .stcell { display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.3; }
-.st-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.st-loc { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-name { font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-loc { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* palpite na linha do time (mesma orientação do card): placar real + stepper.
    Editável é elevado acima do link da linha pra os chevrons continuarem clicáveis;
    o read-only NÃO é elevado, então o clique cai no link da partida. */
@@ -411,12 +411,12 @@ const COLS: AdminColumn[] = [
 .mt-cta { margin-top: 7px; }
 .cta {
   position: relative; z-index: 2;
-  display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; color: var(--gold);
+  display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 700; color: var(--gold);
 }
 .pts {
   display: inline-grid; place-items: center; min-width: 30px; padding: 3px 8px;
   border-radius: 999px; background: color-mix(in srgb, var(--emerald) 16%, transparent);
-  color: var(--emerald); font-weight: 800; font-size: 13px;
+  color: var(--emerald); font-weight: 800; font-size: var(--fs-sm);
 }
 .pts-none { color: var(--muted); }
 
@@ -464,21 +464,21 @@ const COLS: AdminColumn[] = [
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   margin-bottom: 12px;
 }
-.mc-when { font-size: 12.5px; font-weight: 700; }
+.mc-when { font-size: var(--fs-xs); font-weight: 700; }
 .mc-head-r { position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 4px; }
 /* season/fase à esquerda; pontos (cima) + tipo de acerto (baixo) à direita */
 .mc-meta { margin-top: 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .mc-meta-info { min-width: 0; }
-.mc-season { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
-.mc-phase { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.mc-season { font-size: var(--fs-sm); font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.mc-phase { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
 .mc-score { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 .mc-ptschip {
   display: inline-grid; place-items: center; min-width: 34px; padding: 3px 10px;
-  border-radius: 999px; font-weight: 800; font-size: 14px; line-height: 1;
+  border-radius: 999px; font-weight: 800; font-size: var(--fs-sm); line-height: 1;
   color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent);
 }
 .mc-tierchip {
-  font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+  font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
   border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); border-radius: 999px;
   padding: 2px 8px; color: var(--c); white-space: nowrap;
 }
@@ -498,7 +498,7 @@ const COLS: AdminColumn[] = [
   row-gap: 8px;
 }
 .b-cap {
-  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase;
   letter-spacing: 0.06em; color: var(--muted);
 }
 /* "PLACAR" alinhado à direita, sobre o placar real (fim da linha do time) */
@@ -514,7 +514,7 @@ const COLS: AdminColumn[] = [
 }
 .mc-body.login .b-foot { justify-content: center; }
 .mc-trow { display: flex; align-items: center; gap: 9px; min-width: 0; }
-.mc-tn { flex: 1; min-width: 0; font-weight: 700; font-size: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-tn { flex: 1; min-width: 0; font-weight: 700; font-size: var(--fs-lg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* placar real com a mesma caixa do número do palpite (ScoreStepper horizontal):
    Oswald 18px, 22px de largura centralizada, pra alinhar e combinar visualmente. */
 .mc-sc {
@@ -523,7 +523,7 @@ const COLS: AdminColumn[] = [
   text-align: center;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 18px;
+  font-size: var(--fs-lg);
   line-height: 1;
 }
 .mc-sc.none { color: var(--muted); }

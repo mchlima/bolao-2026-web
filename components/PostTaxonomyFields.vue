@@ -134,19 +134,19 @@ function onTagEnter() {
 <style scoped>
 .tax { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 @media (max-width: 680px) { .tax { grid-template-columns: 1fr; } }
-.tax-head { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 7px; }
-.manage { display: inline-block; margin-top: 6px; font-size: 11.5px; color: var(--azure); text-decoration: none; }
+.tax-head { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 7px; }
+.manage { display: inline-block; margin-top: 6px; font-size: var(--fs-xs); color: var(--azure); text-decoration: none; }
 .manage:hover { text-decoration: underline; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 3px 6px 3px 11px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-xs); font-weight: 600; background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 3px 6px 3px 11px; }
 .chip-x { display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border: none; border-radius: 50%; background: var(--border); color: var(--text); cursor: pointer; }
 .chip-x:hover { background: var(--scarlet); color: #fff; }
 .tag-add { position: relative; }
 .ac { position: absolute; z-index: 5; top: calc(100% + 2px); left: 0; right: 0; list-style: none; margin: 0; padding: 4px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
-.ac li button { width: 100%; text-align: left; background: none; border: none; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ac li button { width: 100%; text-align: left; background: none; border: none; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: var(--fs-sm); color: var(--text); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .ac li button:hover { background: var(--bg-base); }
-.ac-count { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 0 7px; }
+.ac-count { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 0 7px; }
 .ac-new button { color: var(--azure); font-weight: 600; }
-.ac-empty { padding: 8px 10px; font-size: 12.5px; color: var(--muted); }
-.muted-txt { font-size: 12.5px; color: var(--muted); }
+.ac-empty { padding: 8px 10px; font-size: var(--fs-xs); color: var(--muted); }
+.muted-txt { font-size: var(--fs-xs); color: var(--muted); }
 </style>

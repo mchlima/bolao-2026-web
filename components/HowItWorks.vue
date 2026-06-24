@@ -100,7 +100,7 @@ function toggle() {
 .howto-title {
   flex: 1;
   min-width: 0;
-  font-size: clamp(16px, 4vw, 20px);
+  font-size: clamp(1rem, 4vw, 1.25rem);
   font-weight: 700;
   text-transform: uppercase;
   margin: 0;
@@ -118,7 +118,7 @@ function toggle() {
 }
 .howto-lead {
   margin: 0 0 14px;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   line-height: 1.6;
   color: var(--muted);
 }
@@ -174,7 +174,7 @@ function toggle() {
   display: grid;
   place-items: center;
   font-family: 'Oswald', sans-serif;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: #fff;
   background: var(--c, var(--azure));
@@ -190,13 +190,13 @@ function toggle() {
   gap: 8px;
 }
 .step-h b {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   line-height: 1.25;
 }
 .step-tag {
   flex: none;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   color: var(--c, var(--azure));
   background: color-mix(in srgb, var(--c, var(--azure)) 14%, transparent);
@@ -208,7 +208,7 @@ function toggle() {
 }
 .step-tx p {
   margin: 4px 0 0;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   line-height: 1.5;
   color: var(--muted);
 }
@@ -219,7 +219,7 @@ function toggle() {
 .step-ex {
   display: block;
   margin-top: 6px;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-style: italic;
   color: color-mix(in srgb, var(--c, var(--azure)) 75%, var(--muted));
 }
@@ -245,7 +245,7 @@ function toggle() {
 }
 .howto-ex p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   line-height: 1.55;
   color: var(--text);
 }

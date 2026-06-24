@@ -123,13 +123,13 @@ const ABBR: [string, string][] = [
 }
 .block h3 {
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--fs-base);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 .hint {
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   margin: 2px 0 10px;
 }
 .groups {
@@ -153,7 +153,7 @@ const ABBR: [string, string][] = [
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 16px;
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   margin-top: 12px;
 }
@@ -188,7 +188,7 @@ const ABBR: [string, string][] = [
   display: inline-flex;
   align-items: baseline;
   gap: 5px;
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .abbr dt {

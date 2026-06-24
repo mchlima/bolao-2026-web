@@ -202,7 +202,7 @@ async function onLinkGoogle(idToken: string) {
 .page-title {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin: 0 0 16px;
@@ -223,7 +223,7 @@ async function onLinkGoogle(idToken: string) {
 }
 .lbl {
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   padding: 10px 16px;
 }
 .lbl.off {
@@ -235,7 +235,7 @@ async function onLinkGoogle(idToken: string) {
   background: none;
   color: var(--scarlet);
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   cursor: pointer;
   padding: 2px 4px;
@@ -258,7 +258,7 @@ async function onLinkGoogle(idToken: string) {
   margin-top: 18px;
 }
 .field-lbl {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -270,21 +270,21 @@ async function onLinkGoogle(idToken: string) {
   gap: 10px;
 }
 .name-val {
-  font-size: 16px;
+  font-size: var(--fs-base);
   font-weight: 600;
 }
 .name-row .input {
   flex: 1;
 }
 .ro {
-  font-size: 15px;
+  font-size: var(--fs-base);
   color: var(--text);
 }
 .conn {
   margin-top: 16px;
 }
 .sec-title {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -308,11 +308,11 @@ async function onLinkGoogle(idToken: string) {
   flex-direction: column;
 }
 .conn-name {
-  font-size: 15px;
+  font-size: var(--fs-base);
   font-weight: 600;
 }
 .conn-state {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .conn-state.on {
@@ -323,7 +323,7 @@ async function onLinkGoogle(idToken: string) {
   align-items: center;
   gap: 5px;
   color: var(--emerald);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
 }
 </style>

@@ -101,7 +101,7 @@ async function confirmJoin() {
   color: #fff;
 }
 .cap {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -109,31 +109,31 @@ async function confirmJoin() {
 }
 .title {
   font-weight: 700;
-  font-size: clamp(22px, 5vw, 30px);
+  font-size: clamp(1.375rem, 5vw, 1.875rem);
   text-transform: uppercase;
   line-height: 1.05;
 }
 .tour {
   font-weight: 600;
-  font-size: 14.5px;
+  font-size: var(--fs-sm);
   color: var(--azure);
 }
 .desc {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.45;
   color: var(--text);
   white-space: pre-line;
   margin-top: 2px;
 }
 .members {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   margin-bottom: 8px;
 }
 .btn-gold {
   width: 100%;
 }
 .link {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   margin-top: 2px;
 }

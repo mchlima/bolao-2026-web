@@ -92,6 +92,9 @@ const strip = computed(() =>
         date: g.date,
         weekday: isToday ? 'Hoje' : g.date === tomorrow ? 'Amanhã' : wd.charAt(0).toUpperCase() + wd.slice(1),
         daynum: d.toLocaleDateString('pt-BR', { day: '2-digit', timeZone: 'America/Sao_Paulo' }),
+        month: d
+          .toLocaleDateString('pt-BR', { month: 'short', timeZone: 'America/Sao_Paulo' })
+          .replace(/\./g, ''),
         isToday,
       };
     }),
@@ -175,13 +178,24 @@ function nudge(dir: number) {
   const el = stripEl.value;
   if (el) el.scrollBy({ left: dir * el.clientWidth * 0.7, behavior: 'smooth' });
 }
+// Roda do mouse vertical → rola a tira na horizontal (quando há overflow). Gestos
+// predominantemente horizontais (trackpad) seguem o comportamento nativo.
+function onWheel(e: WheelEvent) {
+  const el = stripEl.value;
+  if (!el || el.scrollWidth <= el.clientWidth) return;
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+  el.scrollLeft += e.deltaY;
+  e.preventDefault();
+}
 onMounted(() => {
   updateArrows();
   stripEl.value?.addEventListener('scroll', updateArrows, { passive: true });
+  stripEl.value?.addEventListener('wheel', onWheel, { passive: false });
   if (typeof window !== 'undefined') window.addEventListener('resize', updateArrows);
 });
 onUnmounted(() => {
   stripEl.value?.removeEventListener('scroll', updateArrows);
+  stripEl.value?.removeEventListener('wheel', onWheel);
   if (typeof window !== 'undefined') window.removeEventListener('resize', updateArrows);
 });
 // Re-mede quando a tira muda (carregar mais / realtime) e garante uma ativa válida.
@@ -288,6 +302,7 @@ const hasAny = computed(() => groups.value.length > 0 || liveMatches.value.lengt
           >
             <span class="pwd">{{ d.weekday }}</span>
             <span class="pdn">{{ d.daynum }}</span>
+            <span class="pmon">{{ d.month }}</span>
           </button>
         </div>
         <button v-show="canRight" type="button" class="snav-arrow right" aria-label="Próximas datas" @click="nudge(1)">
@@ -419,8 +434,8 @@ const hasAny = computed(() => groups.value.length > 0 || liveMatches.value.lengt
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  width: 52px;
-  padding: 8px 0 7px;
+  width: 62px;
+  padding: 8px 6px 7px;
   border: 1px solid var(--border);
   border-radius: 13px;
   background: var(--bg-surface);
@@ -433,17 +448,25 @@ const hasAny = computed(() => groups.value.length > 0 || liveMatches.value.lengt
   border-color: color-mix(in srgb, var(--azure) 40%, var(--border));
 }
 .pwd {
-  font-size: 10.5px;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 .pdn {
   font-family: 'Oswald', sans-serif;
-  font-size: 16px;
+  font-size: var(--fs-base);
   font-weight: 700;
   line-height: 1;
   color: var(--text);
+}
+.pmon {
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1;
 }
 .pill.today .pwd {
   color: var(--emerald);
@@ -453,7 +476,8 @@ const hasAny = computed(() => groups.value.length > 0 || liveMatches.value.lengt
   background: var(--azure);
 }
 .pill.on .pwd,
-.pill.on .pdn {
+.pill.on .pdn,
+.pill.on .pmon {
   color: #fff;
 }
 /* atalho LIVE: quadrado fixo no início, acento escarlate + dot pulsante */
@@ -467,7 +491,7 @@ const hasAny = computed(() => groups.value.length > 0 || liveMatches.value.lengt
   border-color: color-mix(in srgb, var(--scarlet) 75%, var(--border));
 }
 .lp-txt {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--scarlet);
@@ -511,13 +535,13 @@ const hasAny = computed(() => groups.value.length > 0 || liveMatches.value.lengt
 .gh-main {
   font-family: 'Oswald', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--text);
 }
 .gh-sub {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
 }
@@ -525,7 +549,7 @@ const hasAny = computed(() => groups.value.length > 0 || liveMatches.value.lengt
   color: var(--scarlet);
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   align-items: center;

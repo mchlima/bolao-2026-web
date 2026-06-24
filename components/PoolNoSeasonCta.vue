@@ -53,12 +53,12 @@ const emit = defineEmits<{ changed: [] }>();
 }
 .er-title {
   font-weight: 700;
-  font-size: clamp(20px, 4vw, 24px);
+  font-size: clamp(1.25rem, 4vw, 1.5rem);
   text-transform: uppercase;
   margin: 4px 0 0;
 }
 .er-sub {
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.55;
   color: var(--muted);
   max-width: 46ch;

@@ -104,15 +104,15 @@ onMounted(load);
 
 <style scoped>
 .seg-tabs { display: flex; gap: 4px; margin-bottom: 16px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; width: fit-content; }
-.seg-t { padding: 8px 14px; border: none; background: transparent; border-radius: 7px; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.seg-t { padding: 8px 14px; border: none; background: transparent; border-radius: 7px; font-size: var(--fs-sm); font-weight: 700; color: var(--muted); cursor: pointer; }
 .seg-t.on { background: var(--grad-pitch); color: #fff; }
-.tab-help { font-size: 13px; color: var(--muted); line-height: 1.5; margin: -6px 0 16px; max-width: 820px; }
+.tab-help { font-size: var(--fs-sm); color: var(--muted); line-height: 1.5; margin: -6px 0 16px; max-width: 820px; }
 .mb { margin-bottom: 14px; }
 .pinfo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.ptitle { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ptitle { font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pmeta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.pend { font-size: 11px; font-weight: 700; color: var(--gold); }
-.feat { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 800; color: #0a0e14; background: var(--gold); border-radius: 999px; padding: 1px 8px; }
-.origin { font-size: 11px; font-weight: 600; color: var(--muted); }
-.muted-txt { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.pend { font-size: var(--fs-xs); font-weight: 700; color: var(--gold); }
+.feat { display: inline-flex; align-items: center; gap: 3px; font-size: var(--fs-xs); font-weight: 800; color: #0a0e14; background: var(--gold); border-radius: 999px; padding: 1px 8px; }
+.origin { font-size: var(--fs-xs); font-weight: 600; color: var(--muted); }
+.muted-txt { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
 </style>

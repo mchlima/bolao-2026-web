@@ -74,19 +74,19 @@ function count(v: unknown): number {
 <style scoped>
 .ft-prim { color: var(--text); }
 .ft-tree { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.ft-node { font-size: 13px; }
+.ft-node { font-size: var(--fs-sm); }
 .ft-toggle { display: flex; align-items: center; gap: 6px; width: 100%; background: none; border: none; padding: 4px 0; cursor: pointer; color: var(--text); text-align: left; border-radius: 6px; }
 .ft-toggle:hover { color: var(--azure); }
-.ft-key { font-weight: 700; color: var(--muted); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.05em; }
+.ft-key { font-weight: 700; color: var(--muted); text-transform: uppercase; font-size: var(--fs-xs); letter-spacing: 0.05em; }
 .ft-toggle .ft-key { color: var(--text); }
-.ft-badge { font-size: 10px; font-weight: 700; color: var(--muted); background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 0 7px; line-height: 16px; }
+.ft-badge { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); background: var(--bg-base); border: 1px solid var(--border); border-radius: 20px; padding: 0 7px; line-height: 16px; }
 .ft-children { border-left: 2px solid var(--border); padding-left: 12px; margin: 2px 0 6px 6px; }
 .ft-leaf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; padding: 3px 0; }
-.ft-leaf-v { font-size: 13px; }
+.ft-leaf-v { font-size: var(--fs-sm); }
 .ft-arr { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.ft-li { font-size: 13px; }
-.ft-inline { display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: 13px; line-height: 1.5; }
+.ft-li { font-size: var(--fs-sm); }
+.ft-inline { display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: var(--fs-sm); line-height: 1.5; }
 .ft-pair { color: var(--text); }
-.ft-pair .ft-k { font-weight: 700; color: var(--muted); margin-right: 4px; text-transform: none; font-size: 12px; letter-spacing: 0; }
+.ft-pair .ft-k { font-weight: 700; color: var(--muted); margin-right: 4px; text-transform: none; font-size: var(--fs-xs); letter-spacing: 0; }
 .ft-pair .ft-k::after { content: ':'; }
 </style>

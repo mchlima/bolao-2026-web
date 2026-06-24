@@ -16,7 +16,7 @@
 }
 .adm-form label {
   display: block;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--muted);
   margin-top: 8px;
@@ -67,7 +67,7 @@
   background: var(--bg-base);
   color: var(--text);
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   cursor: pointer;
 }
@@ -88,7 +88,7 @@
   background: var(--bg-base);
   color: var(--muted);
   font-weight: 700;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   cursor: pointer;
   transition: border-color 0.13s, color 0.13s;
 }
@@ -102,7 +102,7 @@
   border-color: transparent;
 }
 .adm-chip .ct {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   padding: 1px 6px;
   border-radius: 999px;
   background: color-mix(in srgb, currentColor 14%, transparent);
@@ -112,7 +112,7 @@
 .adm-results {
   min-height: 16px;
   margin-bottom: 10px;
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
 }

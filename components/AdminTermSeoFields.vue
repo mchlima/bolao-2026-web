@@ -82,15 +82,15 @@ function removeFaq(i: number) {
 
 <style scoped>
 .tseo { display: flex; flex-direction: column; gap: 14px; }
-.tseo-hint { font-size: 12px; color: var(--muted); margin: 0; line-height: 1.5; }
+.tseo-hint { font-size: var(--fs-xs); color: var(--muted); margin: 0; line-height: 1.5; }
 .serp { background: var(--bg-base); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
-.serp-url { font-size: 12px; color: var(--muted); }
-.serp-title { font-size: 16px; color: #1a0dab; font-weight: 600; line-height: 1.3; margin-top: 2px; }
+.serp-url { font-size: var(--fs-xs); color: var(--muted); }
+.serp-title { font-size: var(--fs-base); color: #1a0dab; font-weight: 600; line-height: 1.3; margin-top: 2px; }
 [data-theme='dark'] .serp-title { color: #8ab4f8; }
-.serp-desc { font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+.serp-desc { font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; line-height: 1.4; }
 .tseo-grid { display: flex; flex-direction: column; gap: 10px; }
 .fld { display: flex; flex-direction: column; gap: 5px; }
-.fl { font-size: 12px; font-weight: 700; color: var(--muted); }
+.fl { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); }
 .fl .opt { font-weight: 600; opacity: 0.7; }
 .fl em { font-style: normal; font-weight: 700; margin-left: 4px; }
 .cc-muted { color: var(--muted); opacity: 0.6; }
@@ -99,8 +99,8 @@ function removeFaq(i: number) {
 .area { resize: vertical; }
 .faq-block { display: flex; flex-direction: column; gap: 8px; }
 .faq-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
-.faq-empty { font-size: 12px; color: var(--muted); margin: 0; }
+.btn-sm { padding: 4px 10px; font-size: var(--fs-xs); }
+.faq-empty { font-size: var(--fs-xs); color: var(--muted); margin: 0; }
 .faq-row { display: flex; gap: 8px; align-items: flex-start; }
 .faq-fields { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 .faq-del { flex-shrink: 0; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--danger, #dc2626); cursor: pointer; }

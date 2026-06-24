@@ -88,7 +88,7 @@ async function onTimezone(tz: string) {
 .page-title {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 24px;
+  font-size: var(--fs-2xl);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin: 0 0 16px;
@@ -107,7 +107,7 @@ async function onTimezone(tz: string) {
   gap: 9px;
 }
 .field-lbl {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -115,7 +115,7 @@ async function onTimezone(tz: string) {
 }
 .hint {
   margin: -3px 0 2px;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .seg {
@@ -133,7 +133,7 @@ async function onTimezone(tz: string) {
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--muted);
   background: transparent;
@@ -148,7 +148,7 @@ async function onTimezone(tz: string) {
   color: var(--muted);
 }
 .saving {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .pushbtn {
@@ -158,7 +158,7 @@ async function onTimezone(tz: string) {
   border: 1px solid var(--border);
   background: var(--grad-pitch);
   color: #fff;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   cursor: pointer;
 }

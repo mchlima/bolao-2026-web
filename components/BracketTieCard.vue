@@ -186,7 +186,7 @@ const champion = computed(() =>
   background: linear-gradient(135deg, #f6c945, #b8860b);
   color: #1a1205;
   font-weight: 800;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 4px 16px;
@@ -201,14 +201,14 @@ const champion = computed(() =>
   margin-bottom: 12px;
 }
 .jogo {
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
 }
 .status {
-  font-size: 10.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -252,18 +252,18 @@ const champion = computed(() =>
 }
 .team .nm {
   font-weight: 700;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   line-height: 1.15;
   max-width: 100%;
 }
 .tcard.final .team .nm {
-  font-size: 16px;
+  font-size: var(--fs-base);
 }
 .team.tbd .nm {
   color: var(--muted);
   font-weight: 500;
   font-style: italic;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
 }
 .team.win .nm {
   color: var(--text);
@@ -278,7 +278,7 @@ const champion = computed(() =>
   opacity: 0.92;
 }
 .provtag {
-  font-size: 8.5px;
+  font-size: var(--fs-xs);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -312,13 +312,13 @@ const champion = computed(() =>
 .sc {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 30px;
+  font-size: var(--fs-3xl);
   line-height: 1;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 .tcard.final .sc {
-  font-size: 38px;
+  font-size: 2.375rem;
 }
 .sc.win {
   color: var(--text);
@@ -333,7 +333,7 @@ const champion = computed(() =>
   min-height: 30px;
 }
 .when {
-  font-size: 11.5px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--text);
   text-align: center;
@@ -342,11 +342,11 @@ const champion = computed(() =>
 .vstxt {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 18px;
+  font-size: var(--fs-lg);
   color: var(--muted);
 }
 .resnote {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -358,7 +358,7 @@ const champion = computed(() =>
 .champ {
   margin-top: 14px;
   text-align: center;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: #8a6300;
   background: rgba(246, 201, 69, 0.18);
@@ -384,12 +384,12 @@ const champion = computed(() =>
   grid-template-columns: 46px 1fr auto;
   gap: 8px;
   align-items: center;
-  font-size: 12px;
+  font-size: var(--fs-xs);
 }
 .lglabel {
   font-weight: 800;
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .lgmatch b {
@@ -397,7 +397,7 @@ const champion = computed(() =>
 }
 .lgwhen {
   color: var(--muted);
-  font-size: 11px;
+  font-size: var(--fs-xs);
 }
 
 /* single-match info */
@@ -411,7 +411,7 @@ const champion = computed(() =>
   gap: 6px 16px;
 }
 .meta-i {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
 }

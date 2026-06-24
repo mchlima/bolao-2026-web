@@ -143,17 +143,17 @@ useHead({
   padding: clamp(22px, 4vw, 36px);
   margin-bottom: 24px;
 }
-.eyebrow { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--azure); }
-.copa-hero h1 { font-size: clamp(30px, 6vw, 48px); font-weight: 700; line-height: 1; text-transform: uppercase; margin: 8px 0 10px; }
-.lead { color: var(--muted); font-size: 15px; line-height: 1.55; max-width: 62ch; margin: 0 0 16px; }
+.eyebrow { font-size: var(--fs-2xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--azure); }
+.copa-hero h1 { font-size: clamp(1.875rem, 6vw, 3rem); font-weight: 700; line-height: 1; text-transform: uppercase; margin: 8px 0 10px; }
+.lead { color: var(--muted); font-size: var(--fs-base); line-height: 1.55; max-width: 62ch; margin: 0 0 16px; }
 .sc-links { display: flex; flex-wrap: wrap; gap: 8px; }
 .sc-chip {
-  font-size: 13px; font-weight: 700; color: var(--text);
+  font-size: var(--fs-sm); font-weight: 700; color: var(--text);
   background: var(--bg-surface); border: 1px solid var(--border); border-radius: 999px;
   padding: 8px 15px; text-decoration: none; transition: border-color 0.14s, color 0.14s;
 }
 .sc-chip:hover { border-color: var(--emerald); color: var(--emerald); }
-.watch { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13.5px; }
+.watch { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: var(--fs-sm); }
 .watch-lbl { font-weight: 700; color: var(--muted); }
 .watch-link { color: var(--azure); font-weight: 700; text-decoration: none; }
 .watch-link:hover { text-decoration: underline; }
@@ -161,6 +161,6 @@ useHead({
 
 .copa-sec { margin: 26px 0; }
 .sec-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
-.sec-head h2 { font-weight: 600; font-size: clamp(19px, 3vw, 26px); text-transform: uppercase; }
-.sec-all { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 700; color: var(--azure); white-space: nowrap; }
+.sec-head h2 { font-weight: 600; font-size: clamp(1.1875rem, 3vw, 1.625rem); text-transform: uppercase; }
+.sec-all { display: inline-flex; align-items: center; gap: 2px; font-size: var(--fs-sm); font-weight: 700; color: var(--azure); white-space: nowrap; }
 </style>

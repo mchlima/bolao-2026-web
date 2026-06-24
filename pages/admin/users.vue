@@ -229,25 +229,25 @@ onMounted(load);
 
 <style scoped>
 .who { display: flex; align-items: center; gap: 11px; min-width: 0; }
-.av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 12px; flex: 0 0 auto; }
+.av { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; color: #fff; font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-xs); flex: 0 0 auto; }
 .av-img { width: 100%; height: 100%; object-fit: cover; }
 .info { min-width: 0; }
-.nm { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.metag { font-size: 8.5px; font-weight: 800; text-transform: uppercase; color: #0a0e14; background: var(--gold); border-radius: 5px; padding: 1px 5px; }
-.em { display: block; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.comum { font-size: 12px; color: var(--muted); font-weight: 600; }
-.since { display: flex; flex-direction: column; gap: 2px; font-size: 12px; font-weight: 600; color: var(--text); }
-.tz { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nm { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.metag { font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; color: #0a0e14; background: var(--gold); border-radius: 5px; padding: 1px 5px; }
+.em { display: block; font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.comum { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
+.since { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-xs); font-weight: 600; color: var(--text); }
+.tz { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .acts { display: flex; gap: 5px; justify-content: flex-end; }
 .nt-form { display: flex; flex-direction: column; gap: 6px; }
-.nt-form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 6px; }
+.nt-form label { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); margin-top: 6px; }
 .nt-area { resize: vertical; min-height: 70px; font: inherit; }
-.nt-hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.nt-hint { font-size: var(--fs-xs); color: var(--muted); margin-top: 4px; }
 .nt-warn {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   line-height: 1.45;
   color: var(--text);
   background: color-mix(in srgb, var(--gold) 12%, var(--bg-base));
@@ -257,6 +257,6 @@ onMounted(load);
   margin-bottom: 14px;
 }
 .nt-warn :deep(svg) { color: var(--gold); flex: none; margin-top: 1px; }
-.tp-msg { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
-.tp-box { font-size: 28px; letter-spacing: 0.1em; text-align: center; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.tp-msg { color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; margin-bottom: 14px; }
+.tp-box { font-size: var(--fs-3xl); letter-spacing: 0.1em; text-align: center; background: var(--bg-base); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
 </style>

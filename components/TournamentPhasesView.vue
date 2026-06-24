@@ -160,7 +160,7 @@ const leagueRounds = computed(() => {
   background: color-mix(in srgb, var(--azure) 7%, transparent);
 }
 .projnote {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
   min-width: 0;
@@ -175,7 +175,7 @@ const leagueRounds = computed(() => {
   background: var(--bg-surface);
   color: var(--text);
   font: inherit;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   font-weight: 700;
   padding: 6px 12px;
   border-radius: 9px;
@@ -200,7 +200,7 @@ const leagueRounds = computed(() => {
   border: 0;
   background: transparent;
   color: var(--muted);
-  font-size: 26px;
+  font-size: var(--fs-2xl);
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -220,7 +220,7 @@ const leagueRounds = computed(() => {
 }
 .title {
   font-weight: 700;
-  font-size: clamp(16px, 4vw, 22px);
+  font-size: clamp(1rem, 4vw, 1.375rem);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   line-height: 1.1;

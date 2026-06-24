@@ -246,7 +246,7 @@ onMounted(() => {
   margin-bottom: 14px;
 }
 .hint {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   line-height: 1.45;
   margin: 2px 0 6px;
@@ -259,11 +259,11 @@ onMounted(() => {
 }
 .bcast-del {
   padding: 0 12px;
-  font-size: 18px;
+  font-size: var(--fs-lg);
   line-height: 1;
 }
 .bcast-add {
-  font-size: 13px;
+  font-size: var(--fs-sm);
   padding: 8px 14px;
 }
 .tn {
@@ -290,29 +290,29 @@ onMounted(() => {
 }
 .logo-fb {
   font-weight: 700;
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
 }
 .nm {
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .dt {
-  font-size: 12.5px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
 }
 .mc {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
 }
 .mc b {
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--fs-sm);
   margin-right: 3px;
 }
 .acts {

@@ -88,9 +88,9 @@ async function save() {
 <style scoped>
 .form-wrap { max-width: 680px; }
 .adm-form { display: flex; flex-direction: column; gap: 6px; }
-.adm-form label { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 10px; }
+.adm-form label { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); margin-top: 10px; }
 .area { resize: vertical; line-height: 1.5; }
-.hint { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+.hint { font-size: var(--fs-xs); color: var(--muted); margin: 6px 0 0; }
 .check { display: flex; align-items: center; gap: 8px; flex-direction: row !important; margin-top: 14px; font-weight: 600; color: var(--text); }
 .form-actions { margin-top: 18px; display: flex; justify-content: flex-end; }
 </style>

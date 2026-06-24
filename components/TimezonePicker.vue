@@ -124,7 +124,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
   font-weight: 600;
 }
 .tzp-off {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   flex: none;
@@ -153,7 +153,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
   background: none;
   color: var(--text);
   font: inherit;
-  font-size: 13.5px;
+  font-size: var(--fs-sm);
   padding: 10px 0;
   outline: none;
 }
@@ -174,7 +174,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
   background: none;
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--fs-sm);
   padding: 8px 10px;
   border-radius: 9px;
   cursor: pointer;
@@ -197,6 +197,6 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocClick));
   padding: 14px 10px;
   text-align: center;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 </style>

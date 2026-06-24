@@ -61,7 +61,7 @@ function go(n: number) {
   border-top: 1px solid var(--border);
 }
 .info {
-  font-size: 12px;
+  font-size: var(--fs-xs);
   color: var(--muted);
   font-weight: 600;
 }
@@ -78,7 +78,7 @@ function go(n: number) {
   color: var(--text);
   cursor: pointer;
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--fs-sm);
 }
 .pg:disabled {
   opacity: 0.35;
