@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { Match, MatchNote, MatchStats, MatchTimeline, StatRow, TimelineEvent } from '~/types/api';
 
-definePageMeta({ layout: 'admin', middleware: 'admin' });
+// key por id → ao trocar de partida na barra, a página remonta e recarrega tudo.
+definePageMeta({ layout: 'admin', middleware: 'admin', key: (route) => route.params.id as string });
 const route = useRoute();
 const ui = useUiStore();
 const tz = useTz();
@@ -38,6 +39,8 @@ const manualTime = ref('');
 // lista plana, sem cabeçalho de times nem títulos de grupo (o lado já é inferido).
 const stats = ref<StatRow[]>([]);
 const statsOk = ref(false);
+// Partidas ao vivo (barra de troca acima do placar).
+const liveMatches = ref<Match[]>([]);
 // Edição inline de um comentário (mantém a posição — ordena por createdAt, que não muda).
 const editingId = ref<string | null>(null);
 const editText = ref('');
@@ -68,7 +71,9 @@ async function loadEspn() {
 async function loadEvents() {
   try {
     const tl = await useApi()<MatchTimeline>(`/matches/${matchId}/events`);
-    events.value = (tl.periods ?? []).flatMap((p) => p.events).filter((e) => KEY_TYPES.includes(e.type));
+    // Guarda TODOS os eventos: o feed filtra gols/cartões; as substituições vão pra
+    // barra de placar.
+    events.value = (tl.periods ?? []).flatMap((p) => p.events);
   } catch { /* feed opcional — silencioso */ }
 }
 async function loadStats() {
@@ -91,19 +96,28 @@ function statFmt(v: string | null, key: string): string {
   if (v == null) return '—';
   return key === 'possessionPct' ? `${v}%` : v;
 }
+async function loadLive() {
+  try {
+    const r = await useApi()<{ days: { matches: Match[] }[] }>(`/agenda?scope=live`);
+    liveMatches.value = (r.days ?? []).flatMap((d) => d.matches);
+  } catch { /* silencioso */ }
+}
 function scrollDown(el: typeof streamEl) {
   nextTick(() => { if (el.value) el.value.scrollTop = el.value.scrollHeight; });
 }
 
-onMounted(() => { void loadMatch(); void loadNotes(); void loadEspn(); void loadEvents(); void loadStats(); });
+onMounted(() => { void loadMatch(); void loadNotes(); void loadEspn(); void loadEvents(); void loadStats(); void loadLive(); });
 
 // Placar/relógio + novos lances ao vivo: o robô emite no canal da partida → re-busca.
-useRealtime(() => [`match:${matchId}`], () => { void loadMatch(); void loadEspn(); void loadEvents(); void loadStats(); });
+useRealtime(() => [`match:${matchId}`], () => { void loadMatch(); void loadEspn(); void loadEvents(); void loadStats(); void loadLive(); });
 // Rede de segurança: re-puxa a narração da ESPN a cada 20s enquanto o jogo rola
 // (o feed pode chegar sem um evento de realtime correspondente).
 let poll: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
-  poll = setInterval(() => { if (match.value?.status === 'LIVE') { void loadEspn(); void loadEvents(); void loadStats(); } }, 20_000);
+  poll = setInterval(() => {
+    void loadLive(); // a barra de partidas ao vivo atualiza mesmo se a atual não estiver LIVE
+    if (match.value?.status === 'LIVE') { void loadEspn(); void loadEvents(); void loadStats(); }
+  }, 20_000);
 });
 onBeforeUnmount(() => clearInterval(poll));
 
@@ -215,7 +229,9 @@ const sideTeam = (s: 'home' | 'away' | null) =>
 
 // Linhas do feed de eventos-chave: ícone (bola/cartão), nome, minuto, time.
 const keyRows = computed(() =>
-  events.value.map((e) => {
+  events.value
+    .filter((e) => KEY_TYPES.includes(e.type))
+    .map((e) => {
     const goal = e.type.includes('GOAL');
     let cls = 'goal';
     let card: 'yellow' | 'red' | 'two' | null = null;
@@ -225,9 +241,32 @@ const keyRows = computed(() =>
     else if (e.type === 'SECOND_YELLOW') { cls = 'red'; card = 'two'; tag = '2º amarelo'; }
     else if (e.type === 'OWN_GOAL') { tag = 'contra'; }
     else if (e.type === 'PENALTY_GOAL') { tag = 'pênalti'; }
-    return { minute: e.minute, player: e.player || 'A definir', team: sideName(e.side), goal, cls, card, tag };
+    return { minute: e.minute, player: e.player || 'A definir', side: e.side, goal, cls, card, tag };
   }),
 );
+const homeRows = computed(() => keyRows.value.filter((r) => r.side === 'home'));
+const awayRows = computed(() => keyRows.value.filter((r) => r.side === 'away'));
+
+// Substituições (barra de placar): entrou (player) / saiu (related), por lado.
+function surname(name: string | null): string {
+  if (!name) return '';
+  const parts = name.trim().split(/\s+/);
+  return parts[parts.length - 1] || name;
+}
+const subs = computed(() =>
+  events.value
+    .filter((e) => e.type === 'SUBSTITUTION')
+    .map((e) => ({ in: surname(e.player), out: surname(e.related), minute: e.minute, side: e.side })),
+);
+const homeSubs = computed(() => subs.value.filter((s) => s.side === 'home'));
+const awaySubs = computed(() => subs.value.filter((s) => s.side === 'away'));
+// Scroll lateral das barras de substituição com a roda do mouse.
+function onSubWheel(e: WheelEvent) {
+  const el = e.currentTarget as HTMLElement;
+  if (el.scrollWidth <= el.clientWidth) return;
+  el.scrollLeft += e.deltaY;
+  e.preventDefault();
+}
 
 // Totais do footer: gols vêm do PLACAR (trata gol contra/pênalti certo); amarelos
 // e vermelhos (incl. 2º amarelo) contados dos eventos por lado. Sempre 0 no vazio.
@@ -267,6 +306,25 @@ const totals = computed(() => {
       </template>
     </AdminPageHeader>
 
+    <!-- Barra de troca entre partidas ao vivo (sempre visível) -->
+    <div class="livebar">
+      <span class="lb-label" :class="{ off: !liveMatches.length }"><span class="ld" />Ao vivo</span>
+      <div v-if="liveMatches.length" class="lb-scroll">
+        <NuxtLink
+          v-for="m in liveMatches" :key="m.id"
+          :to="`/admin/narracao/${m.id}`"
+          class="lb-chip" :class="{ active: m.id === matchId }"
+          :title="`${m.homeTeam?.name ?? '—'} x ${m.awayTeam?.name ?? '—'}`"
+        >
+          <TeamBadge :team="m.homeTeam" :size="16" />
+          <span class="lb-sc">{{ m.homeScore ?? 0 }}-{{ m.awayScore ?? 0 }}</span>
+          <TeamBadge :team="m.awayTeam" :size="16" />
+          <span v-if="m.liveClock" class="lb-clock">{{ m.liveClock }}</span>
+        </NuxtLink>
+      </div>
+      <span v-else class="lb-empty">Nenhuma partida ao vivo agora.</span>
+    </div>
+
     <!-- Faixa de placar ao vivo -->
     <div class="scorebar" :class="{ live: isLive }">
       <div class="sb-team">
@@ -286,8 +344,18 @@ const totals = computed(() => {
     </div>
 
     <div class="cols">
-      <!-- COLUNA 1 — seus comentários (viram fatos) -->
-      <section class="card adm-panel chat">
+      <!-- COLUNA 1 — substituições da casa (esq.) + seus comentários -->
+      <div class="sidecol">
+        <div v-if="homeSubs.length" class="subbar2 left" @wheel="onSubWheel">
+          <span v-for="(s, i) in homeSubs" :key="`sh${i}`" class="subcard">
+            <span class="sub-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="up" d="M17 7v12M17 7l-3 3M17 7l3 3" /><path class="down" d="M7 17V5M7 17l-3-3M7 17l3-3" /></svg>
+            </span>
+            <span class="sub-names"><span class="sub-in">{{ s.in }}</span><span class="sub-out">{{ s.out }}</span></span>
+            <span v-if="s.minute" class="sub-min">{{ s.minute }}</span>
+          </span>
+        </div>
+        <section class="card adm-panel chat">
         <header class="col-head">
           <h3 class="col-h">Seus comentários</h3>
           <span class="col-tag gold">vira fato da matéria</span>
@@ -344,7 +412,8 @@ const totals = computed(() => {
             </button>
           </div>
         </div>
-      </section>
+        </section>
+      </div>
 
       <!-- COLUNA 2 — quadro de gols/cartões EM CIMA do quadro da narração ESPN -->
       <div class="midcol">
@@ -357,16 +426,28 @@ const totals = computed(() => {
             </span>
           </header>
           <div class="kf-body">
-            <div v-if="keyRows.length" class="kf-list">
-              <div v-for="(r, i) in keyRows" :key="i" class="kf-row" :class="{ goalrow: r.goal }">
-                <span class="kf-min">{{ r.minute || '—' }}</span>
-                <span class="kf-ico">
-                  <span v-if="r.goal" class="kf-ball">⚽</span>
-                  <span v-else-if="r.card === 'two'" class="kf-card2" aria-hidden="true"><i class="kf-card yellow" /><i class="kf-card red" /></span>
-                  <i v-else class="kf-card" :class="r.card" />
-                </span>
-                <span class="kf-name">{{ r.player }}<small v-if="r.tag" class="kf-tag" :class="{ danger: r.cls === 'red' }">{{ r.tag }}</small></span>
-                <span class="kf-team">{{ r.team }}</span>
+            <div v-if="keyRows.length" class="kf-grid">
+              <div class="kf-col">
+                <div v-for="(r, i) in homeRows" :key="`h${i}`" class="kf-row" :class="{ goalrow: r.goal }">
+                  <span class="kf-min">{{ r.minute || '—' }}</span>
+                  <span class="kf-ico">
+                    <span v-if="r.goal" class="kf-ball">⚽</span>
+                    <span v-else-if="r.card === 'two'" class="kf-card2" aria-hidden="true"><i class="kf-card yellow" /><i class="kf-card red" /></span>
+                    <i v-else class="kf-card" :class="r.card" />
+                  </span>
+                  <span class="kf-name">{{ r.player }}<small v-if="r.tag" class="kf-tag" :class="{ danger: r.cls === 'red' }">{{ r.tag }}</small></span>
+                </div>
+              </div>
+              <div class="kf-col away">
+                <div v-for="(r, i) in awayRows" :key="`a${i}`" class="kf-row mirror" :class="{ goalrow: r.goal }">
+                  <span class="kf-name">{{ r.player }}<small v-if="r.tag" class="kf-tag" :class="{ danger: r.cls === 'red' }">{{ r.tag }}</small></span>
+                  <span class="kf-ico">
+                    <span v-if="r.goal" class="kf-ball">⚽</span>
+                    <span v-else-if="r.card === 'two'" class="kf-card2" aria-hidden="true"><i class="kf-card yellow" /><i class="kf-card red" /></span>
+                    <i v-else class="kf-card" :class="r.card" />
+                  </span>
+                  <span class="kf-min">{{ r.minute || '—' }}</span>
+                </div>
               </div>
             </div>
             <p v-else class="empty">
@@ -424,8 +505,18 @@ const totals = computed(() => {
         </section>
       </div>
 
-      <!-- COLUNA 3 — narração humana da ESPN (ingerida, read-only) -->
-      <section class="card adm-panel espn">
+      <!-- COLUNA 3 — substituições do visitante (dir.) + narração ESPN -->
+      <div class="sidecol">
+        <div v-if="awaySubs.length" class="subbar2 right" @wheel="onSubWheel">
+          <span v-for="(s, i) in awaySubs" :key="`sa${i}`" class="subcard">
+            <span v-if="s.minute" class="sub-min">{{ s.minute }}</span>
+            <span class="sub-names end"><span class="sub-in">{{ s.in }}</span><span class="sub-out">{{ s.out }}</span></span>
+            <span class="sub-ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="up" d="M17 7v12M17 7l-3 3M17 7l3 3" /><path class="down" d="M7 17V5M7 17l-3-3M7 17l3-3" /></svg>
+            </span>
+          </span>
+        </div>
+        <section class="card adm-panel espn">
         <header class="col-head">
           <h3 class="col-h">Narração ESPN</h3>
           <span class="col-tag" :class="{ liveon: isLive }">
@@ -448,7 +539,8 @@ const totals = computed(() => {
             <p class="eline-text">{{ l.text }}</p>
           </div>
         </div>
-      </section>
+        </section>
+      </div>
     </div>
   </div>
   <div v-else class="muted-txt">Carregando…</div>
@@ -456,7 +548,34 @@ const totals = computed(() => {
 
 <style scoped>
 .narr-page { display: flex; flex-direction: column; gap: 14px; }
+/* barra de troca entre partidas ao vivo */
+.livebar { display: flex; align-items: center; gap: 10px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 7px 12px; }
+.lb-label { flex: none; display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--scarlet); }
+.lb-label.off { color: var(--muted); }
+.lb-label.off .ld { background: var(--muted); animation: none; box-shadow: none; }
+.lb-empty { font-size: var(--fs-xs); font-weight: 600; color: var(--muted); }
+.lb-scroll { display: flex; gap: 8px; overflow-x: auto; min-width: 0; }
+.lb-chip { flex: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; padding: 4px 10px; text-decoration: none; color: var(--text); background: var(--bg-base); transition: border-color 0.14s, background 0.14s; }
+.lb-chip:hover { border-color: color-mix(in srgb, var(--scarlet) 40%, var(--border)); }
+.lb-chip.active { border-color: var(--scarlet); background: color-mix(in srgb, var(--scarlet) 10%, var(--bg-base)); }
+.lb-sc { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
+.lb-clock { font-size: var(--fs-2xs); font-weight: 800; color: var(--scarlet); font-variant-numeric: tabular-nums; }
 .scorebar { display: flex; align-items: center; justify-content: center; gap: 18px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 16px; }
+/* substituições — 2 barras (1 por time) acima das colunas laterais; scroll lateral
+   pela roda do mouse, sem barra de rolagem visível. Casa à esq., visitante à dir. */
+.subbar2 { flex: 0 0 auto; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 7px 10px; scrollbar-width: none; }
+.subbar2::-webkit-scrollbar { display: none; }
+.subbar2.right { justify-content: flex-end; }
+.subbar2.right > .subcard:first-child { margin-inline-start: auto; }
+.subcard { flex: none; display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-base); padding: 4px 9px; }
+.sub-ico { display: grid; place-items: center; flex: none; }
+.sub-ico .up { stroke: var(--emerald); }
+.sub-ico .down { stroke: var(--scarlet, #e23744); }
+.sub-names { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.sub-names.end { text-align: right; }
+.sub-in { font-size: var(--fs-xs); font-weight: 800; color: var(--emerald); white-space: nowrap; }
+.sub-out { font-size: var(--fs-2xs); font-weight: 700; color: var(--muted); white-space: nowrap; }
+.sub-min { font-family: 'Oswald', sans-serif; font-size: var(--fs-2xs); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; flex: none; }
 .scorebar.live { border-color: color-mix(in srgb, var(--scarlet) 40%, var(--border)); }
 .sb-team { display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1; }
 .sb-team.end { justify-content: flex-end; }
@@ -519,31 +638,38 @@ const totals = computed(() => {
 
 /* coluna do meio = dois quadros empilhados (gols/cartões EM CIMA + narração ESPN) */
 .midcol { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
-.kfeed-card { flex: 0 0 auto; max-height: 42%; min-height: 128px; }
+/* colunas laterais: barra de substituição (topo) + card preenchendo o resto */
+.sidecol { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
+.sidecol > .card { flex: 1 1 auto; min-height: 0; }
+.kfeed-card { flex: 0 0 auto; max-height: 180px; min-height: 96px; }
 .midcol .stats-col { flex: 1 1 auto; min-height: 0; }
 .kf-body { flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; }
 @media (max-width: 1180px) { .kfeed-card { max-height: none; } .kf-body { max-height: 38vh; } }
 
-/* feed de eventos-chave (gols/cartões) */
-.kf-list { display: flex; flex-direction: column; }
-.kf-row { display: grid; grid-template-columns: 34px 22px minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 7px 14px; border-top: 1px solid var(--border); }
-.kf-list .kf-row:first-child { border-top: none; }
+/* feed de eventos-chave (gols/cartões) — 2 colunas: casa | visitante */
+.kf-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+.kf-col { display: flex; flex-direction: column; min-width: 0; }
+.kf-col.away { border-left: 1px solid var(--border); }
+.kf-row { display: grid; grid-template-columns: auto 18px minmax(0, 1fr); align-items: center; gap: 6px; padding: 3px 10px; border-top: 1px solid var(--border); }
+/* coluna do visitante espelhada: nome · ícone · minuto, alinhada à direita */
+.kf-row.mirror { grid-template-columns: minmax(0, 1fr) 18px auto; }
+.kf-row.mirror .kf-name { text-align: right; }
+.kf-col .kf-row:first-child { border-top: none; }
 .kf-row.goalrow { background: color-mix(in srgb, var(--emerald) 8%, transparent); }
-.kf-min { font-family: 'Oswald', sans-serif; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; text-align: center; }
+.kf-min { font-family: 'Oswald', sans-serif; font-size: var(--fs-2xs); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; text-align: center; }
 .kf-row.goalrow .kf-min { color: var(--emerald); }
-.kf-ico { display: grid; place-items: center; width: 22px; height: 22px; }
-.kf-ball { font-size: var(--fs-base); line-height: 1; }
-.kf-card { display: inline-block; width: 11px; height: 14px; border-radius: 2px; border: 1px solid rgba(0, 0, 0, 0.3); }
+.kf-ico { display: grid; place-items: center; width: 18px; height: 18px; }
+.kf-ball { font-size: var(--fs-sm); line-height: 1; }
+.kf-card { display: inline-block; width: 10px; height: 13px; border-radius: 2px; border: 1px solid rgba(0, 0, 0, 0.3); }
 .kf-card.yellow { background: #f5c518; }
 .kf-card.red { background: var(--scarlet, #e23744); }
 .kf-card2 { position: relative; width: 16px; height: 16px; }
 .kf-card2 .kf-card { position: absolute; }
 .kf-card2 .yellow { top: 0; left: 1px; transform: rotate(-14deg); }
 .kf-card2 .red { bottom: 0; right: 1px; transform: rotate(10deg); }
-.kf-name { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kf-name { font-size: var(--fs-xs); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .kf-tag { margin-left: 6px; font-size: var(--fs-2xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gold); border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-radius: 4px; padding: 1px 4px; vertical-align: middle; }
 .kf-tag.danger { color: var(--scarlet, #e23744); border-color: color-mix(in srgb, var(--scarlet, #e23744) 45%, transparent); }
-.kf-team { font-size: var(--fs-xs); font-weight: 700; color: var(--muted); white-space: nowrap; }
 /* footer de totais: time A | total | time B */
 .kf-foot { flex: 0 0 auto; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 8px 14px; border-top: 1px solid var(--border); background: var(--bg-surface); }
 .kff-side { display: flex; align-items: center; gap: 11px; min-width: 0; }
