@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, MatchNote, MatchStats, MatchTimeline, StatRow, TimelineEvent } from '~/types/api';
+import type { Match, MatchNote, MatchStats, MatchTimeline, Paginated, StatRow, TimelineEvent, Tournament } from '~/types/api';
 
 // key por id → ao trocar de partida na barra, a página remonta e recarrega tudo.
 definePageMeta({ layout: 'admin', middleware: 'admin', key: (route) => route.params.id as string });
@@ -44,6 +44,65 @@ const panelView = ref<'stats' | 'lista' | 'campo'>('stats');
 const lineupOk = ref(false);
 // Partidas ao vivo (barra de troca acima do placar).
 const liveMatches = ref<Match[]>([]);
+// Finder: painel pra TROCAR de partida mesmo sem nenhuma ao vivo — filtra por
+// situação (agendadas/ao vivo/encerradas) via /agenda e busca por texto.
+const finderOpen = ref(false);
+const finderWrap = ref<HTMLElement | null>(null);
+function onFinderDocClick(e: MouseEvent) {
+  if (finderOpen.value && finderWrap.value && !finderWrap.value.contains(e.target as Node)) {
+    finderOpen.value = false;
+  }
+}
+onMounted(() => document.addEventListener('click', onFinderDocClick));
+onBeforeUnmount(() => document.removeEventListener('click', onFinderDocClick));
+const FINDER_TABS = [
+  { v: 'upcoming', label: 'Agendadas', status: 'SCHEDULED' },
+  { v: 'live', label: 'Ao vivo', status: 'LIVE' },
+  { v: 'past', label: 'Encerradas', status: 'FINISHED' },
+] as const;
+const finderTab = ref<(typeof FINDER_TABS)[number]['v']>('upcoming');
+const finderMatches = ref<Match[]>([]);
+const finderLoading = ref(false);
+const finderSearch = ref('');
+// Competições pra escopar a busca da agenda (seasonId).
+const competitions = ref<Tournament[]>([]);
+const finderSeasonId = ref('');
+async function loadCompetitions() {
+  if (competitions.value.length) return;
+  try {
+    const r = await useApi()<Paginated<Tournament>>('/seasons?pageSize=100');
+    competitions.value = r.data;
+  } catch { /* silencioso */ }
+}
+async function loadFinder() {
+  finderLoading.value = true;
+  try {
+    const tab = FINDER_TABS.find((t) => t.v === finderTab.value)!;
+    const q = new URLSearchParams({ scope: tab.v, limit: '100' });
+    if (finderSeasonId.value) q.set('seasonId', finderSeasonId.value);
+    const r = await useApi()<{ days: { matches: Match[] }[] }>(`/agenda?${q.toString()}`);
+    finderMatches.value = (r.days ?? [])
+      .flatMap((d) => d.matches)
+      .filter((m) => m.homeTeam && m.awayTeam && m.status === tab.status);
+  } catch {
+    finderMatches.value = [];
+  } finally {
+    finderLoading.value = false;
+  }
+}
+watch(finderOpen, (open) => { if (open) void loadCompetitions(); });
+watch([finderOpen, finderTab, finderSeasonId], () => { if (finderOpen.value) void loadFinder(); });
+const finderFiltered = computed(() => {
+  const q = finderSearch.value.trim().toLowerCase();
+  if (!q) return finderMatches.value;
+  return finderMatches.value.filter((m) =>
+    [m.homeTeam?.name, m.homeTeam?.shortName, m.awayTeam?.name, m.awayTeam?.shortName, m.season?.name, m.phaseLabel]
+      .filter(Boolean).join(' ').toLowerCase().includes(q),
+  );
+});
+function finderTime(iso: string): string {
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: tz.value }).format(new Date(iso));
+}
 // Edição inline de um comentário (mantém a posição — ordena por createdAt, que não muda).
 const editingId = ref<string | null>(null);
 const editText = ref('');
@@ -335,6 +394,57 @@ const totals = computed(() => {
         </NuxtLink>
       </div>
       <span v-else class="lb-empty">Nenhuma partida ao vivo agora.</span>
+
+      <!-- Finder suspenso: escolhe qualquer partida (agendada/ao vivo/encerrada) pra narrar -->
+      <div ref="finderWrap" class="lb-finderwrap">
+        <button class="lb-filter" :class="{ on: finderOpen }" :aria-expanded="finderOpen" @click="finderOpen = !finderOpen">
+          <AppIcon name="filter" :size="14" :stroke="2.2" />
+          <span>Trocar partida</span>
+          <AppIcon name="chevronDown" class="lbf-caret" :class="{ up: finderOpen }" :size="13" :stroke="2.4" />
+        </button>
+        <div v-if="finderOpen" class="finder">
+          <div class="finder-head">
+        <div class="fseg" role="tablist" aria-label="Situação da partida">
+          <button
+            v-for="t in FINDER_TABS" :key="t.v"
+            class="fseg-b" :class="{ on: finderTab === t.v }"
+            role="tab" :aria-selected="finderTab === t.v" @click="finderTab = t.v"
+          >
+            <span v-if="t.v === 'live'" class="ld sm" />{{ t.label }}
+          </button>
+        </div>
+        <select v-model="finderSeasonId" class="input finder-comp">
+          <option value="">Todas as competições</option>
+          <option v-for="c in competitions" :key="c.id" :value="c.id">{{ c.name }}</option>
+        </select>
+        <input v-model="finderSearch" class="input finder-search" placeholder="Buscar time, fase, torneio…" />
+      </div>
+      <div class="finder-list">
+        <p v-if="finderLoading" class="finder-empty">Carregando…</p>
+        <template v-else-if="finderFiltered.length">
+          <NuxtLink
+            v-for="m in finderFiltered" :key="m.id"
+            :to="`/admin/narracao/${m.id}`"
+            class="frow" :class="{ active: m.id === matchId }"
+            @click="finderOpen = false"
+          >
+            <span class="fr-when">{{ finderTime(m.kickoffAt) }}</span>
+            <span class="fr-teams">
+              <TeamBadge :team="m.homeTeam" :size="18" />
+              <span class="fr-name">{{ m.homeTeam?.shortName ?? m.homeTeam?.name }}</span>
+              <span class="fr-sc">{{ m.homeScore ?? 0 }}-{{ m.awayScore ?? 0 }}</span>
+              <span class="fr-name r">{{ m.awayTeam?.shortName ?? m.awayTeam?.name }}</span>
+              <TeamBadge :team="m.awayTeam" :size="18" />
+            </span>
+            <span v-if="m.season" class="fr-tour">{{ m.season.name }}</span>
+          </NuxtLink>
+        </template>
+        <p v-else class="finder-empty">
+          {{ finderSearch ? `Nenhuma partida para “${finderSearch}”.` : 'Nenhuma partida nesta situação.' }}
+        </p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Faixa de placar ao vivo -->
@@ -620,6 +730,35 @@ const totals = computed(() => {
 .lb-chip.active { border-color: var(--scarlet); background: color-mix(in srgb, var(--scarlet) 10%, var(--bg-base)); }
 .lb-sc { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 .lb-clock { font-size: var(--fs-2xs); font-weight: 800; color: var(--scarlet); font-variant-numeric: tabular-nums; }
+/* botão "Trocar partida" + painel finder suspenso */
+.lb-finderwrap { position: relative; flex: none; margin-left: auto; }
+.lb-filter { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 999px; padding: 5px 11px; background: var(--bg-base); color: var(--text); font-size: var(--fs-xs); font-weight: 700; cursor: pointer; transition: border-color 0.12s, background 0.12s; }
+.lb-filter:hover { border-color: color-mix(in srgb, var(--azure) 45%, var(--border)); }
+.lb-filter.on { border-color: color-mix(in srgb, var(--azure) 55%, var(--border)); background: color-mix(in srgb, var(--azure) 8%, var(--bg-base)); }
+.lbf-caret { color: var(--muted); transition: transform 0.16s; }
+.lbf-caret.up { transform: rotate(180deg); }
+/* suspenso: ancorado abaixo do botão, à direita, sem empurrar o conteúdo */
+.finder { position: absolute; top: calc(100% + 8px); right: 0; z-index: 50; width: min(460px, 92vw); display: flex; flex-direction: column; gap: 10px; background: var(--bg-elevated, var(--bg-surface)); border: 1px solid var(--border); border-radius: 12px; padding: 12px; box-shadow: 0 18px 44px -14px rgba(15, 22, 32, 0.34); }
+.finder::before { content: ''; position: absolute; top: -6px; right: 18px; width: 11px; height: 11px; background: var(--bg-elevated, var(--bg-surface)); border-left: 1px solid var(--border); border-top: 1px solid var(--border); transform: rotate(45deg); }
+.finder-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.finder-comp { flex: 1 1 160px; min-width: 150px; font-size: var(--fs-sm); padding: 8px 11px; }
+.fseg { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-base); }
+.fseg-b { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: var(--muted); font-weight: 700; font-size: var(--fs-xs); padding: 6px 13px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: background 0.16s, color 0.16s; }
+.fseg-b:hover:not(.on) { color: var(--text); }
+.fseg-b.on { background: var(--text); color: #fff; }
+.finder-search { flex: 1; min-width: 180px; font-size: var(--fs-sm); padding: 8px 11px; }
+.finder-list { display: flex; flex-direction: column; gap: 4px; max-height: 320px; overflow-y: auto; }
+.finder-empty { font-size: var(--fs-sm); color: var(--muted); padding: 14px 6px; text-align: center; }
+.frow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 11px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-base); text-decoration: none; color: var(--text); transition: border-color 0.12s, background 0.12s; }
+.frow:hover { border-color: color-mix(in srgb, var(--azure) 40%, var(--border)); }
+.frow.active { border-color: var(--scarlet); background: color-mix(in srgb, var(--scarlet) 10%, var(--bg-base)); }
+.fr-when { font-family: 'Oswald', sans-serif; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fr-teams { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr) auto; align-items: center; gap: 7px; min-width: 0; }
+.fr-name { font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+.fr-name.r { text-align: left; }
+.fr-sc { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; color: var(--text); }
+.fr-tour { font-size: var(--fs-2xs); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--azure); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+@media (max-width: 760px) { .fr-tour { display: none; } .frow { grid-template-columns: auto minmax(0, 1fr); } }
 .scorebar { display: flex; align-items: center; justify-content: center; gap: 18px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 16px; }
 /* substituições — 2 barras (1 por time) acima das colunas laterais; scroll lateral
    pela roda do mouse, sem barra de rolagem visível. Casa à esq., visitante à dir. */
