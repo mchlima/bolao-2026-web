@@ -260,13 +260,22 @@ const subs = computed(() =>
 );
 const homeSubs = computed(() => subs.value.filter((s) => s.side === 'home'));
 const awaySubs = computed(() => subs.value.filter((s) => s.side === 'away'));
-// Scroll lateral das barras de substituição com a roda do mouse.
-function onSubWheel(e: WheelEvent) {
-  const el = e.currentTarget as HTMLElement;
-  if (el.scrollWidth <= el.clientWidth) return;
-  el.scrollLeft += e.deltaY;
-  e.preventDefault();
-}
+// Diretiva: roda do mouse (vertical) rola o elemento na horizontal. Listener
+// NÃO-passivo (preventDefault precisa); reanexa sozinho quando a barra (v-if) monta.
+const vHscroll = {
+  mounted(el: HTMLElement) {
+    const onWheel = (e: WheelEvent) => {
+      if (el.scrollWidth <= el.clientWidth || !e.deltaY) return;
+      el.scrollLeft += e.deltaY;
+      e.preventDefault();
+    };
+    (el as HTMLElement & { _hscroll?: (e: WheelEvent) => void })._hscroll = onWheel;
+    el.addEventListener('wheel', onWheel, { passive: false });
+  },
+  unmounted(el: HTMLElement & { _hscroll?: (e: WheelEvent) => void }) {
+    if (el._hscroll) el.removeEventListener('wheel', el._hscroll);
+  },
+};
 
 // Totais do footer: gols vêm do PLACAR (trata gol contra/pênalti certo); amarelos
 // e vermelhos (incl. 2º amarelo) contados dos eventos por lado. Sempre 0 no vazio.
@@ -346,7 +355,7 @@ const totals = computed(() => {
     <div class="cols">
       <!-- COLUNA 1 — substituições da casa (esq.) + seus comentários -->
       <div class="sidecol">
-        <div v-if="homeSubs.length" class="subbar2 left" @wheel="onSubWheel">
+        <div v-if="homeSubs.length" v-hscroll class="subbar2 left">
           <span v-for="(s, i) in homeSubs" :key="`sh${i}`" class="subcard">
             <span class="sub-ico" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="up" d="M17 7v12M17 7l-3 3M17 7l3 3" /><path class="down" d="M7 17V5M7 17l-3-3M7 17l3-3" /></svg>
@@ -507,7 +516,7 @@ const totals = computed(() => {
 
       <!-- COLUNA 3 — substituições do visitante (dir.) + narração ESPN -->
       <div class="sidecol">
-        <div v-if="awaySubs.length" class="subbar2 right" @wheel="onSubWheel">
+        <div v-if="awaySubs.length" v-hscroll class="subbar2 right">
           <span v-for="(s, i) in awaySubs" :key="`sa${i}`" class="subcard">
             <span v-if="s.minute" class="sub-min">{{ s.minute }}</span>
             <span class="sub-names end"><span class="sub-in">{{ s.in }}</span><span class="sub-out">{{ s.out }}</span></span>
@@ -565,7 +574,7 @@ const totals = computed(() => {
    pela roda do mouse, sem barra de rolagem visível. Casa à esq., visitante à dir. */
 .subbar2 { flex: 0 0 auto; display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 7px 10px; scrollbar-width: none; }
 .subbar2::-webkit-scrollbar { display: none; }
-.subbar2.right { justify-content: flex-end; }
+/* alinha o grupo à direita sem quebrar o scroll (evita o bug do justify flex-end) */
 .subbar2.right > .subcard:first-child { margin-inline-start: auto; }
 .subcard { flex: none; display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-base); padding: 4px 9px; }
 .sub-ico { display: grid; place-items: center; flex: none; }
