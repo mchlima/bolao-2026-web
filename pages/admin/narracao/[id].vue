@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Match, MatchNote, MatchTimeline, TimelineEvent } from '~/types/api';
+import type { Match, MatchNote, MatchStats, MatchTimeline, StatRow, TimelineEvent } from '~/types/api';
 
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 const route = useRoute();
@@ -34,8 +34,10 @@ const composerEl = ref<HTMLTextAreaElement | null>(null);
 // Tempo automático ligado = usa o relógio ao vivo; desligado = input manual (pode ir vazio).
 const autoTime = ref(true);
 const manualTime = ref('');
-// Estatísticas ao vivo (coluna 3) — MatchStats emite quando há dados ingeridos.
-const statsAvailable = ref(false);
+// Estatísticas da partida (do nosso banco) — renderização própria desta tela:
+// lista plana, sem cabeçalho de times nem títulos de grupo (o lado já é inferido).
+const stats = ref<StatRow[]>([]);
+const statsOk = ref(false);
 // Edição inline de um comentário (mantém a posição — ordena por createdAt, que não muda).
 const editingId = ref<string | null>(null);
 const editText = ref('');
@@ -69,19 +71,39 @@ async function loadEvents() {
     events.value = (tl.periods ?? []).flatMap((p) => p.events).filter((e) => KEY_TYPES.includes(e.type));
   } catch { /* feed opcional — silencioso */ }
 }
+async function loadStats() {
+  try {
+    const s = await useApi()<MatchStats>(`/matches/${matchId}/stats`);
+    statsOk.value = !!s.available;
+    stats.value = s.rows ?? [];
+  } catch { /* feed opcional — silencioso */ }
+}
+function statNum(v: string | null): number {
+  const n = parseFloat((v ?? '').replace(',', '.'));
+  return Number.isNaN(n) ? 0 : n;
+}
+function statHomePct(r: StatRow): number {
+  const h = statNum(r.home);
+  const a = statNum(r.away);
+  return h + a <= 0 ? 50 : Math.round((h / (h + a)) * 100);
+}
+function statFmt(v: string | null, key: string): string {
+  if (v == null) return '—';
+  return key === 'possessionPct' ? `${v}%` : v;
+}
 function scrollDown(el: typeof streamEl) {
   nextTick(() => { if (el.value) el.value.scrollTop = el.value.scrollHeight; });
 }
 
-onMounted(() => { void loadMatch(); void loadNotes(); void loadEspn(); void loadEvents(); });
+onMounted(() => { void loadMatch(); void loadNotes(); void loadEspn(); void loadEvents(); void loadStats(); });
 
 // Placar/relógio + novos lances ao vivo: o robô emite no canal da partida → re-busca.
-useRealtime(() => [`match:${matchId}`], () => { void loadMatch(); void loadEspn(); void loadEvents(); });
+useRealtime(() => [`match:${matchId}`], () => { void loadMatch(); void loadEspn(); void loadEvents(); void loadStats(); });
 // Rede de segurança: re-puxa a narração da ESPN a cada 20s enquanto o jogo rola
 // (o feed pode chegar sem um evento de realtime correspondente).
 let poll: ReturnType<typeof setInterval> | undefined;
 onMounted(() => {
-  poll = setInterval(() => { if (match.value?.status === 'LIVE') { void loadEspn(); void loadEvents(); } }, 20_000);
+  poll = setInterval(() => { if (match.value?.status === 'LIVE') { void loadEspn(); void loadEvents(); void loadStats(); } }, 20_000);
 });
 onBeforeUnmount(() => clearInterval(poll));
 
@@ -188,6 +210,8 @@ const sideName = (s: 'home' | 'away' | null) =>
   s === 'home' ? (match.value?.homeTeam?.shortName ?? match.value?.homeTeam?.name ?? '')
   : s === 'away' ? (match.value?.awayTeam?.shortName ?? match.value?.awayTeam?.name ?? '')
   : '';
+const sideTeam = (s: 'home' | 'away' | null) =>
+  s === 'home' ? (match.value?.homeTeam ?? null) : s === 'away' ? (match.value?.awayTeam ?? null) : null;
 
 // Linhas do feed de eventos-chave: ícone (bola/cartão), nome, minuto, time.
 const keyRows = computed(() =>
@@ -371,46 +395,58 @@ const totals = computed(() => {
           </footer>
         </section>
 
-        <!-- Quadro 2: narração humana da ESPN (ingerida, read-only) -->
-        <section class="card adm-panel espn">
+        <!-- Quadro 2: estatísticas da partida em tempo real (do nosso banco) -->
+        <section class="card adm-panel stats-col">
           <header class="col-head">
-            <h3 class="col-h">Narração ESPN</h3>
+            <h3 class="col-h">Estatísticas</h3>
             <span class="col-tag" :class="{ liveon: isLive }">
-              <span v-if="isLive" class="ld sm" />{{ espn.length }} {{ espn.length === 1 ? 'lance' : 'lances' }}
+              <span v-if="isLive" class="ld sm" />{{ isLive ? 'ao vivo' : 'partida' }}
             </span>
           </header>
-          <div ref="espnEl" class="stream espn-stream">
-            <p v-if="!espn.length" class="empty">
-              Sem narração da ESPN ainda. O robô captura o feed humano lance a lance durante o jogo (em produção) — aparece aqui e alimenta os fatos da matéria.
-            </p>
-            <div v-for="l in espn" :key="l.id" class="eline" :class="espnMeta(l.type)?.cls">
-              <div class="eline-top">
-                <span v-if="l.minute" class="eline-min">{{ l.minute }}</span>
-                <span v-if="espnMeta(l.type)" class="eline-tag" :class="espnMeta(l.type)?.cls">{{ espnMeta(l.type)?.label }}</span>
-                <span v-if="l.side" class="eline-side">{{ sideName(l.side) }}</span>
-                <button class="eline-use" title="Usar como base de um comentário seu" @click="useLine(l)">
-                  <AppIcon name="arrowUp" :size="11" :stroke="2.4" /> usar
-                </button>
+          <div class="stream stats-stream">
+            <div v-if="statsOk && stats.length" class="nstats">
+              <div v-for="r in stats" :key="r.key" class="nst-row">
+                <div class="nst-head">
+                  <span class="nst-val">{{ statFmt(r.home, r.key) }}</span>
+                  <span class="nst-lbl">{{ r.label }}</span>
+                  <span class="nst-val">{{ statFmt(r.away, r.key) }}</span>
+                </div>
+                <div class="nst-bar">
+                  <span class="bh" :style="{ width: `${statHomePct(r)}%` }" />
+                  <span class="ba" :style="{ width: `${100 - statHomePct(r)}%` }" />
+                </div>
               </div>
-              <p class="eline-text">{{ l.text }}</p>
             </div>
+            <p v-else class="empty">
+              Sem estatísticas ainda. O robô ingere posse, finalizações, faltas e cartões durante o jogo (em produção) — aparecem aqui e atualizam ao vivo.
+            </p>
           </div>
         </section>
       </div>
 
-      <!-- COLUNA 3 — estatísticas da partida em tempo real (do nosso banco) -->
-      <section class="card adm-panel stats-col">
+      <!-- COLUNA 3 — narração humana da ESPN (ingerida, read-only) -->
+      <section class="card adm-panel espn">
         <header class="col-head">
-          <h3 class="col-h">Estatísticas</h3>
+          <h3 class="col-h">Narração ESPN</h3>
           <span class="col-tag" :class="{ liveon: isLive }">
-            <span v-if="isLive" class="ld sm" />{{ isLive ? 'ao vivo' : 'partida' }}
+            <span v-if="isLive" class="ld sm" />{{ espn.length }} {{ espn.length === 1 ? 'lance' : 'lances' }}
           </span>
         </header>
-        <div class="stream stats-stream">
-          <MatchStats :match="match" @available="statsAvailable = $event" />
-          <p v-if="!statsAvailable" class="empty">
-            Sem estatísticas ainda. O robô ingere posse, finalizações, faltas e cartões durante o jogo (em produção) — aparecem aqui e atualizam ao vivo.
+        <div ref="espnEl" class="stream espn-stream">
+          <p v-if="!espn.length" class="empty">
+            Sem narração da ESPN ainda. O robô captura o feed humano lance a lance durante o jogo (em produção) — aparece aqui e alimenta os fatos da matéria.
           </p>
+          <div v-for="l in espn" :key="l.id" class="eline" :class="espnMeta(l.type)?.cls">
+            <div class="eline-top">
+              <span v-if="l.minute" class="eline-min">{{ l.minute }}</span>
+              <span v-if="espnMeta(l.type)" class="eline-tag" :class="espnMeta(l.type)?.cls">{{ espnMeta(l.type)?.label }}</span>
+              <TeamBadge v-if="sideTeam(l.side)" :team="sideTeam(l.side)" :size="16" class="eline-flag" :title="sideName(l.side)" />
+              <button class="eline-use" title="Usar como base de um comentário seu" @click="useLine(l)">
+                <AppIcon name="arrowUp" :size="11" :stroke="2.4" /> usar
+              </button>
+            </div>
+            <p class="eline-text">{{ l.text }}</p>
+          </div>
         </div>
       </section>
     </div>
@@ -437,6 +473,16 @@ const totals = computed(() => {
 @media (max-width: 1180px) { .cols { grid-template-columns: 1fr 1fr; height: auto; } }
 @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
 .stats-stream { padding: 14px; }
+/* estatísticas — lista plana desta tela (sem cabeçalho de times nem grupos) */
+.nstats { display: flex; flex-direction: column; gap: 13px; }
+.nst-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; margin-bottom: 5px; }
+.nst-val { font-size: var(--fs-sm); font-weight: 800; font-variant-numeric: tabular-nums; }
+.nst-val:first-child { text-align: left; }
+.nst-val:last-child { text-align: right; }
+.nst-lbl { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); text-align: center; }
+.nst-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: var(--bg-base); gap: 2px; }
+.nst-bar .bh { background: var(--azure, #2b7fff); border-radius: 3px 0 0 3px; }
+.nst-bar .ba { background: var(--scarlet, #e23744); border-radius: 0 3px 3px 0; }
 
 .adm-panel { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 .col-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--bg-surface); }
@@ -474,7 +520,7 @@ const totals = computed(() => {
 /* coluna do meio = dois quadros empilhados (gols/cartões EM CIMA + narração ESPN) */
 .midcol { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: 0; }
 .kfeed-card { flex: 0 0 auto; max-height: 42%; min-height: 128px; }
-.espn { flex: 1 1 auto; min-height: 0; }
+.midcol .stats-col { flex: 1 1 auto; min-height: 0; }
 .kf-body { flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; }
 @media (max-width: 1180px) { .kfeed-card { max-height: none; } .kf-body { max-height: 38vh; } }
 
