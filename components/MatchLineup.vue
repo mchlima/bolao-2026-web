@@ -10,7 +10,10 @@ import type { LineupPlayer, LineupTeam, Match, MatchLineup, MatchTimeline, Timel
 // `active` is the tab gate: while this tab is hidden it neither subscribes to the
 // realtime stream nor polls; it catches up with one refetch when opened. Defaults
 // on for standalone use.
-const props = defineProps<{ match: Match; active?: boolean }>();
+// `view`/`flat` enable a controlled, chromeless embed (e.g. the narração panel):
+// when `view` is passed the internal Campo↔Lista toggle is hidden and the parent
+// drives the mode; `flat` drops the card chrome so it sits inside another panel.
+const props = defineProps<{ match: Match; active?: boolean; view?: 'campo' | 'lista'; flat?: boolean }>();
 const emit = defineEmits<{ available: [boolean] }>();
 
 const { data, refresh } = await useAsyncData(
@@ -60,7 +63,9 @@ const awayColor = computed(() => teamColor(props.match.awayTeam?.color, 'var(--s
 
 // View toggle: the tactical pitch ("campo") is the default; the list stays as the
 // alternate. The pitch shows one team at a time, picked by the team toggle.
-const view = ref<'campo' | 'lista'>('campo');
+// When the parent passes `view`, it wins (controlled mode) and the toggle hides.
+const internalView = ref<'campo' | 'lista'>('campo');
+const view = computed(() => props.view ?? internalView.value);
 const pitchSide = ref<'home' | 'away'>('home');
 
 const LINE_RANK: Record<string, number> = { GK: 0, DEF: 1, MID: 2, FWD: 3 };
@@ -171,15 +176,16 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
 </script>
 
 <template>
-  <section v-if="available" class="lineup">
-    <!-- Campo ↔ Lista segmented control (dark fill = active). -->
-    <div class="seg" role="tablist" aria-label="Modo de visualização da escalação">
+  <section v-if="available" class="lineup" :class="{ flat }">
+    <!-- Campo ↔ Lista segmented control (dark fill = active). Hidden when the
+         parent controls the view (props.view set). -->
+    <div v-if="props.view == null" class="seg" role="tablist" aria-label="Modo de visualização da escalação">
       <button
         class="segbtn"
         :class="{ on: view === 'campo' }"
         role="tab"
         :aria-selected="view === 'campo'"
-        @click="view = 'campo'"
+        @click="internalView = 'campo'"
       >
         <AppIcon name="stadium" :size="14" :stroke="2.4" />
         <span>Campo</span>
@@ -189,7 +195,7 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
         :class="{ on: view === 'lista' }"
         role="tab"
         :aria-selected="view === 'lista'"
-        @click="view = 'lista'"
+        @click="internalView = 'lista'"
       >
         <AppIcon name="list" :size="14" :stroke="2.4" />
         <span>Lista</span>
@@ -370,6 +376,14 @@ const pkey = (p: LineupPlayer) => `${p.jersey}-${p.name}`;
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px;
+}
+/* chromeless embed: drops the card so it sits flush inside another panel. */
+.lineup.flat {
+  margin-top: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
 }
 /* Campo↔Lista segmented control — pill track, dark fill on the active cell. */
 .seg {

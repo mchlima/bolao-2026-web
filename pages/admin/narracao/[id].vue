@@ -39,6 +39,9 @@ const manualTime = ref('');
 // lista plana, sem cabeçalho de times nem títulos de grupo (o lado já é inferido).
 const stats = ref<StatRow[]>([]);
 const statsOk = ref(false);
+// Quadro 2 (coluna do meio) alterna entre números, escalação lado a lado e em campo.
+const panelView = ref<'stats' | 'lista' | 'campo'>('stats');
+const lineupOk = ref(false);
 // Partidas ao vivo (barra de troca acima do placar).
 const liveMatches = ref<Match[]>([]);
 // Edição inline de um comentário (mantém a posição — ordena por createdAt, que não muda).
@@ -502,31 +505,62 @@ const totals = computed(() => {
           </footer>
         </section>
 
-        <!-- Quadro 2: estatísticas da partida em tempo real (do nosso banco) -->
+        <!-- Quadro 2: alterna entre estatísticas, escalação lado a lado e em campo -->
         <section class="card adm-panel stats-col">
           <header class="col-head">
-            <h3 class="col-h">Estatísticas</h3>
-            <span class="col-tag" :class="{ liveon: isLive }">
-              <span v-if="isLive" class="ld sm" />{{ isLive ? 'ao vivo' : 'partida' }}
-            </span>
+            <div class="pv-seg" role="tablist" aria-label="Modo de visualização do quadro">
+              <button
+                class="pv-btn" :class="{ on: panelView === 'stats' }"
+                role="tab" :aria-selected="panelView === 'stats'" @click="panelView = 'stats'"
+              >
+                <AppIcon name="dashboard" :size="13" :stroke="2.2" /><span>Estatísticas</span>
+              </button>
+              <button
+                class="pv-btn" :class="{ on: panelView === 'lista' }"
+                role="tab" :aria-selected="panelView === 'lista'" @click="panelView = 'lista'"
+              >
+                <AppIcon name="list" :size="13" :stroke="2.2" /><span>Esc. lista</span>
+              </button>
+              <button
+                class="pv-btn" :class="{ on: panelView === 'campo' }"
+                role="tab" :aria-selected="panelView === 'campo'" @click="panelView = 'campo'"
+              >
+                <AppIcon name="stadium" :size="13" :stroke="2.2" /><span>Esc. campo</span>
+              </button>
+            </div>
           </header>
           <div class="stream stats-stream">
-            <div v-if="statsOk && stats.length" class="nstats">
-              <div v-for="r in stats" :key="r.key" class="nst-row">
-                <div class="nst-head">
-                  <span class="nst-val">{{ statFmt(r.home, r.key) }}</span>
-                  <span class="nst-lbl">{{ r.label }}</span>
-                  <span class="nst-val">{{ statFmt(r.away, r.key) }}</span>
-                </div>
-                <div class="nst-bar">
-                  <span class="bh" :style="{ width: `${statHomePct(r)}%` }" />
-                  <span class="ba" :style="{ width: `${100 - statHomePct(r)}%` }" />
+            <!-- ESTATÍSTICAS -->
+            <template v-if="panelView === 'stats'">
+              <div v-if="statsOk && stats.length" class="nstats">
+                <div v-for="r in stats" :key="r.key" class="nst-row">
+                  <div class="nst-head">
+                    <span class="nst-val">{{ statFmt(r.home, r.key) }}</span>
+                    <span class="nst-lbl">{{ r.label }}</span>
+                    <span class="nst-val">{{ statFmt(r.away, r.key) }}</span>
+                  </div>
+                  <div class="nst-bar">
+                    <span class="bh" :style="{ width: `${statHomePct(r)}%` }" />
+                    <span class="ba" :style="{ width: `${100 - statHomePct(r)}%` }" />
+                  </div>
                 </div>
               </div>
-            </div>
-            <p v-else class="empty">
-              Sem estatísticas ainda. O robô ingere posse, finalizações, faltas e cartões durante o jogo (em produção) — aparecem aqui e atualizam ao vivo.
-            </p>
+              <p v-else class="empty">
+                Sem estatísticas ainda. O robô ingere posse, finalizações, faltas e cartões durante o jogo (em produção) — aparecem aqui e atualizam ao vivo.
+              </p>
+            </template>
+            <!-- ESCALAÇÃO (lado a lado / em campo) — MatchLineup controlado e sem card -->
+            <template v-else>
+              <MatchLineup
+                :match="match"
+                :view="panelView === 'campo' ? 'campo' : 'lista'"
+                flat
+                @available="lineupOk = $event"
+              />
+              <p v-if="!lineupOk" class="empty">
+                Escalação ainda não disponível. As formações chegam cerca de 1h antes do apito inicial (em produção) e atualizam com as substituições ao vivo.
+              </p>
+            </template>
           </div>
         </section>
       </div>
@@ -618,6 +652,14 @@ const totals = computed(() => {
 @media (max-width: 1180px) { .cols { grid-template-columns: 1fr 1fr; height: auto; } }
 @media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
 .stats-stream { padding: 14px; }
+/* switch de 3 estados do quadro do meio (estatísticas / lado a lado / campo) */
+.pv-seg { display: inline-flex; flex: 1 1 auto; min-width: 0; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 999px; background: var(--bg-base); }
+.pv-btn { flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: 0; background: transparent; color: var(--muted); font-weight: 700; font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: 0.03em; padding: 5px 6px; border-radius: 999px; cursor: pointer; white-space: nowrap; transition: background 0.16s, color 0.16s; }
+.pv-btn svg { flex: none; }
+.pv-btn:hover:not(.on) { color: var(--text); }
+.pv-btn.on { background: var(--text); color: #fff; }
+.stats-col .col-tag { flex: none; }
+@media (max-width: 1320px) { .pv-btn span { display: none; } .pv-btn { padding: 6px 8px; } }
 /* estatísticas — lista plana desta tela (sem cabeçalho de times nem grupos) */
 .nstats { display: flex; flex-direction: column; gap: 13px; }
 .nst-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; margin-bottom: 5px; }
