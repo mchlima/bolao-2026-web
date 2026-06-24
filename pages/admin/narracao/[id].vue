@@ -435,35 +435,52 @@ const totals = computed(() => {
             </span>
           </header>
           <div class="kf-body">
-            <div v-if="keyRows.length" class="kf-grid">
+            <div class="kf-grid">
               <div class="kf-col">
-                <div v-for="(r, i) in homeRows" :key="`h${i}`" class="kf-row" :class="{ goalrow: r.goal }">
-                  <span class="kf-min">{{ r.minute || '—' }}</span>
-                  <span class="kf-ico">
-                    <span v-if="r.goal" class="kf-ball">⚽</span>
-                    <span v-else-if="r.card === 'two'" class="kf-card2" aria-hidden="true"><i class="kf-card yellow" /><i class="kf-card red" /></span>
-                    <i v-else class="kf-card" :class="r.card" />
-                  </span>
-                  <span class="kf-name">{{ r.player }}<small v-if="r.tag" class="kf-tag" :class="{ danger: r.cls === 'red' }">{{ r.tag }}</small></span>
+                <template v-if="homeRows.length">
+                  <div v-for="(r, i) in homeRows" :key="`h${i}`" class="kf-row" :class="{ goalrow: r.goal }">
+                    <span class="kf-min">{{ r.minute || '—' }}</span>
+                    <span class="kf-ico">
+                      <span v-if="r.goal" class="kf-ball">⚽</span>
+                      <span v-else-if="r.card === 'two'" class="kf-card2" aria-hidden="true"><i class="kf-card yellow" /><i class="kf-card red" /></span>
+                      <i v-else class="kf-card" :class="r.card" />
+                    </span>
+                    <span class="kf-name">{{ r.player }}<small v-if="r.tag" class="kf-tag" :class="{ danger: r.cls === 'red' }">{{ r.tag }}</small></span>
+                  </div>
+                </template>
+                <div v-else class="kf-empty">
+                  <svg class="kf-sleep" viewBox="0 0 48 48" width="38" height="38" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="21" cy="29" r="12" />
+                    <path d="M13 27q3 2.6 6 0M23 27q3 2.6 6 0M17 34h7" />
+                    <text x="33" y="16" font-size="9" font-weight="700" stroke="none" fill="currentColor">z</text>
+                    <text x="39" y="11" font-size="12" font-weight="700" stroke="none" fill="currentColor">Z</text>
+                  </svg>
+                  <span class="kf-zzz">zzzZZZ</span>
                 </div>
               </div>
               <div class="kf-col away">
-                <div v-for="(r, i) in awayRows" :key="`a${i}`" class="kf-row mirror" :class="{ goalrow: r.goal }">
-                  <span class="kf-name">{{ r.player }}<small v-if="r.tag" class="kf-tag" :class="{ danger: r.cls === 'red' }">{{ r.tag }}</small></span>
-                  <span class="kf-ico">
-                    <span v-if="r.goal" class="kf-ball">⚽</span>
-                    <span v-else-if="r.card === 'two'" class="kf-card2" aria-hidden="true"><i class="kf-card yellow" /><i class="kf-card red" /></span>
-                    <i v-else class="kf-card" :class="r.card" />
-                  </span>
-                  <span class="kf-min">{{ r.minute || '—' }}</span>
+                <template v-if="awayRows.length">
+                  <div v-for="(r, i) in awayRows" :key="`a${i}`" class="kf-row mirror" :class="{ goalrow: r.goal }">
+                    <span class="kf-name">{{ r.player }}<small v-if="r.tag" class="kf-tag" :class="{ danger: r.cls === 'red' }">{{ r.tag }}</small></span>
+                    <span class="kf-ico">
+                      <span v-if="r.goal" class="kf-ball">⚽</span>
+                      <span v-else-if="r.card === 'two'" class="kf-card2" aria-hidden="true"><i class="kf-card yellow" /><i class="kf-card red" /></span>
+                      <i v-else class="kf-card" :class="r.card" />
+                    </span>
+                    <span class="kf-min">{{ r.minute || '—' }}</span>
+                  </div>
+                </template>
+                <div v-else class="kf-empty">
+                  <svg class="kf-sleep" viewBox="0 0 48 48" width="38" height="38" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="21" cy="29" r="12" />
+                    <path d="M13 27q3 2.6 6 0M23 27q3 2.6 6 0M17 34h7" />
+                    <text x="33" y="16" font-size="9" font-weight="700" stroke="none" fill="currentColor">z</text>
+                    <text x="39" y="11" font-size="12" font-weight="700" stroke="none" fill="currentColor">Z</text>
+                  </svg>
+                  <span class="kf-zzz">zzzZZZ</span>
                 </div>
               </div>
             </div>
-            <p v-else class="empty">
-              {{ isFinished
-                ? 'Sem gols ou cartões registrados nesta partida.'
-                : 'Sem gols ou cartões ainda. Gols, cartões amarelos e vermelhos aparecem aqui com nome e minuto assim que acontecem.' }}
-            </p>
           </div>
           <!-- Footer: totais por time (cada lado) + total da partida no meio -->
           <footer class="kf-foot">
@@ -656,8 +673,12 @@ const totals = computed(() => {
 @media (max-width: 1180px) { .kfeed-card { max-height: none; } .kf-body { max-height: 38vh; } }
 
 /* feed de eventos-chave (gols/cartões) — 2 colunas: casa | visitante */
-.kf-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+.kf-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: stretch; flex: 1; min-height: 0; }
 .kf-col { display: flex; flex-direction: column; min-width: 0; }
+/* empty state por coluna — carinha dormindo + zzzZZZ */
+.kf-empty { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--muted); padding: 14px 8px; }
+.kf-sleep { opacity: 0.65; }
+.kf-zzz { font-size: var(--fs-2xs); font-weight: 800; letter-spacing: 0.12em; color: var(--muted); }
 .kf-col.away { border-left: 1px solid var(--border); }
 .kf-row { display: grid; grid-template-columns: auto 18px minmax(0, 1fr); align-items: center; gap: 6px; padding: 3px 10px; border-top: 1px solid var(--border); }
 /* coluna do visitante espelhada: nome · ícone · minuto, alinhada à direita */
