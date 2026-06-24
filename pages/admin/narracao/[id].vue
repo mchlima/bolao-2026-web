@@ -31,6 +31,8 @@ const composerEl = ref<HTMLTextAreaElement | null>(null);
 // Tempo automático ligado = usa o relógio ao vivo; desligado = input manual (pode ir vazio).
 const autoTime = ref(true);
 const manualTime = ref('');
+// Estatísticas ao vivo (coluna 3) — MatchStats emite quando há dados ingeridos.
+const statsAvailable = ref(false);
 // Edição inline de um comentário (mantém a posição — ordena por createdAt, que não muda).
 const editingId = ref<string | null>(null);
 const editText = ref('');
@@ -302,6 +304,22 @@ const sideName = (s: 'home' | 'away' | null) =>
           </div>
         </div>
       </section>
+
+      <!-- COLUNA 3 — estatísticas da partida em tempo real (do nosso banco) -->
+      <section class="card adm-panel stats-col">
+        <header class="col-head">
+          <h3 class="col-h">Estatísticas</h3>
+          <span class="col-tag" :class="{ liveon: isLive }">
+            <span v-if="isLive" class="ld sm" />{{ isLive ? 'ao vivo' : 'partida' }}
+          </span>
+        </header>
+        <div class="stream stats-stream">
+          <MatchStats :match="match" @available="statsAvailable = $event" />
+          <p v-if="!statsAvailable" class="empty">
+            Sem estatísticas ainda. O robô ingere posse, finalizações, faltas e cartões durante o jogo (em produção) — aparecem aqui e atualizam ao vivo.
+          </p>
+        </div>
+      </section>
     </div>
   </div>
   <div v-else class="muted-txt">Carregando…</div>
@@ -322,8 +340,10 @@ const sideName = (s: 'home' | 'away' | null) =>
 .ld.sm { width: 6px; height: 6px; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--scarlet) 55%, transparent); } 70% { box-shadow: 0 0 0 6px transparent; } }
 
-.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; height: calc(100vh - 250px); min-height: 440px; }
-@media (max-width: 980px) { .cols { grid-template-columns: 1fr; height: auto; } }
+.cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; height: calc(100vh - 250px); min-height: 440px; }
+@media (max-width: 1180px) { .cols { grid-template-columns: 1fr 1fr; height: auto; } }
+@media (max-width: 760px) { .cols { grid-template-columns: 1fr; } }
+.stats-stream { padding: 14px; }
 
 .adm-panel { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 .col-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--bg-surface); }
@@ -333,7 +353,7 @@ const sideName = (s: 'home' | 'away' | null) =>
 .col-tag.liveon { color: var(--scarlet); }
 
 .stream { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-@media (max-width: 980px) { .stream { max-height: 52vh; } }
+@media (max-width: 1180px) { .stream { max-height: 52vh; } }
 .empty { color: var(--muted); font-size: var(--fs-sm); line-height: 1.5; margin: auto; text-align: center; max-width: 320px; }
 
 /* seus comentários — MESMO cartão da narração ESPN (.eline), com borda dourada
