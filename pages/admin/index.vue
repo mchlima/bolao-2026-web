@@ -48,6 +48,8 @@ onBeforeUnmount(() => {
 
     <AdminPredictionsChart :from="range.from" :to="range.to" />
 
+    <AdminSpendChart :from="range.from" :to="range.to" />
+
     <div class="card online">
       <div class="on-head">
         <span class="on-dot" />
