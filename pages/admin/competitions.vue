@@ -23,12 +23,20 @@ const COLS: AdminColumn[] = [
 
 const modalOpen = ref(false);
 const editing = ref<Competition | null>(null);
+const ARTICLES: { v: string; l: string }[] = [
+  { v: '', l: 'Sem artigo' },
+  { v: 'o', l: 'o — masculino (o Brasileirão)' },
+  { v: 'a', l: 'a — feminino (a Copa do Mundo)' },
+  { v: 'os', l: 'os — masculino plural' },
+  { v: 'as', l: 'as — feminino plural (as Eliminatórias)' },
+];
 const form = reactive({
   name: '',
   slug: '',
   type: 'LEAGUE_CUP' as CompetitionType,
   country: '',
   confederation: '',
+  article: '',
   espnLeagueSlug: '',
   logoUrl: '',
 });
@@ -38,7 +46,7 @@ function openNew() {
   editing.value = null;
   Object.assign(form, {
     name: '', slug: '', type: 'LEAGUE_CUP', country: '', confederation: '',
-    espnLeagueSlug: '', logoUrl: '',
+    article: '', espnLeagueSlug: '', logoUrl: '',
   });
   modalOpen.value = true;
 }
@@ -46,7 +54,8 @@ function openEdit(c: Competition) {
   editing.value = c;
   Object.assign(form, {
     name: c.name, slug: c.slug, type: c.type, country: c.country ?? '',
-    confederation: c.confederation ?? '', espnLeagueSlug: c.externalIds?.espn?.slug ?? '',
+    confederation: c.confederation ?? '', article: c.article ?? '',
+    espnLeagueSlug: c.externalIds?.espn?.slug ?? '',
     logoUrl: c.logoUrl ?? '',
   });
   modalOpen.value = true;
@@ -62,6 +71,7 @@ async function submit() {
     type: form.type,
     country: form.country || undefined,
     confederation: form.confederation || undefined,
+    article: form.article || null,
     espnLeagueSlug: form.espnLeagueSlug || undefined,
     logoUrl: form.logoUrl || undefined,
   };
@@ -147,6 +157,11 @@ onMounted(load);
           <div><label>País</label><input v-model="form.country" class="input" placeholder="Brasil" /></div>
           <div><label>Confederação</label><input v-model="form.confederation" class="input" placeholder="CBF" /></div>
         </div>
+        <label>Artigo (gramática)</label>
+        <select v-model="form.article" class="input">
+          <option v-for="a in ARTICLES" :key="a.v" :value="a.v">{{ a.l }}</option>
+        </select>
+        <p class="fhint">Usado pra concordância no conteúdo SEO/GEO do hub (ex.: "Sobre <b>a</b> Copa do Mundo", "líder <b>do</b> Brasileirão").</p>
         <label>ESPN league slug (robô)</label>
         <input v-model="form.espnLeagueSlug" class="input mono" placeholder="bra.1 / fifa.world / conmebol.libertadores" />
         <label>Logo</label>
@@ -167,4 +182,5 @@ onMounted(load);
 .mono { font-family: ui-monospace, monospace; font-size: var(--fs-xs); }
 .muted { color: var(--muted); font-size: var(--fs-xs); font-weight: 600; }
 .acts { display: flex; gap: 6px; justify-content: flex-end; }
+.fhint { margin: 2px 0 0; font-size: var(--fs-xs); color: var(--muted); line-height: 1.45; }
 </style>

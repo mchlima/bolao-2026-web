@@ -433,6 +433,8 @@ export interface Competition {
   confederation: string | null;
   logoUrl: string | null;
   logoUrlDark: string | null;
+  // Artigo gramatical do nome ('o'|'a'|'os'|'as'|null) p/ concordância no conteúdo SSR.
+  article?: string | null;
   externalIds: ExternalIds | null;
   // Slug público de URL (/futebol/campeonato/:urlSlug). Stored ou derivado do nome.
   urlSlug?: string;

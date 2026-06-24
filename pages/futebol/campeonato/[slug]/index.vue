@@ -2,7 +2,7 @@
 // HUB do campeonato (rota-base): página editorial da temporada vigente — próximos
 // jogos + últimas notícias + CTA bolão. NÃO é o shell de abas: "todos os jogos" e
 // "tabela" são sub-rotas acessadas pelo menu (/jogos, /tabela).
-import type { ActiveSeason, Competition, Match, NewsCard, Paginated } from '~/types/api';
+import type { ActiveSeason, Competition, Match, NewsCard, Paginated, StageStandings } from '~/types/api';
 
 const route = useRoute();
 const slug = route.params.slug as string;
@@ -34,6 +34,18 @@ const { data: newsData } = await useAsyncData(`campeonato-hub-news-${slug}`, () 
     .catch(() => [] as NewsCard[]),
 );
 const news = computed<NewsCard[]>(() => newsData.value ?? []);
+
+// Classificação da season — só pra alimentar o bloco de overview SEO/GEO (nº de
+// times, líder atual). Degrada pra null sem quebrar o hub.
+const { data: standingsData } = await useAsyncData(
+  `campeonato-hub-standings-${slug}`,
+  () =>
+    seasonId.value
+      ? useApi()<StageStandings[]>(`/seasons/${seasonId.value}/standings`).catch(() => null)
+      : Promise.resolve(null),
+  { watch: [seasonId] },
+);
+const standings = computed<StageStandings[] | null>(() => standingsData.value ?? null);
 
 useRealtime(
   () => (seasonId.value ? [`tournament:${seasonId.value}`] : []),
@@ -101,6 +113,8 @@ useHead({
       </div>
       <NewsCardList :items="news" featured />
     </section>
+
+    <CompetitionOverviewSeo :comp="comp ?? null" :season="season" :standings="standings" :upcoming="upcoming" />
   </div>
 </template>
 
