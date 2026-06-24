@@ -66,12 +66,35 @@ const { data, pending } = useAsyncData(
 
 const points = computed(() => data.value?.points ?? []);
 const total = computed(() => data.value?.total ?? 0);
-const max = computed(() => Math.max(1, ...points.value.map((p) => p.count)));
+const peak = computed(() => Math.max(0, ...points.value.map((p) => p.count)));
+const avg = computed(() =>
+  points.value.length ? Math.round(total.value / points.value.length) : 0,
+);
+
+// Topo "redondo" do eixo Y → barras nunca encostam no teto e os rótulos do eixo
+// ficam em números limpos (padrão de dashboard).
+function niceCeil(n: number): number {
+  if (n <= 5) return Math.max(1, n);
+  const pow = Math.pow(10, Math.floor(Math.log10(n)));
+  const step = pow / 2;
+  return Math.ceil(n / step) * step;
+}
+const top = computed(() => niceCeil(peak.value || 1));
+const yticks = computed(() => {
+  const t = top.value;
+  return [1, 0.75, 0.5, 0.25, 0].map((f) => ({
+    pct: f * 100,
+    label: f === 0 ? '0' : String(Math.round(t * f)),
+  }));
+});
 
 function barH(count: number): string {
   if (count <= 0) return '0%';
-  return `${Math.max(3, Math.round((count / max.value) * 100))}%`;
+  return `${Math.max(2.5, (count / top.value) * 100)}%`;
 }
+
+// hover (crosshair + tooltip)
+const active = ref(-1);
 
 const dt = (s: string) => {
   const [datePart, timePart] = s.split(' ');
@@ -83,28 +106,31 @@ function xlabel(bucket: string): string {
   const d = dt(bucket);
   if (granularity.value === 'hour') return `${String(d.getHours()).padStart(2, '0')}h`;
   if (granularity.value === 'month') return d.toLocaleDateString('pt-BR', { month: 'short' });
-  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: granularity.value === 'week' ? '2-digit' : undefined });
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
-function tip(p: { bucket: string; count: number }): string {
-  const d = dt(p.bucket);
-  const n = `${p.count} ${p.count === 1 ? 'palpite' : 'palpites'}`;
-  if (granularity.value === 'hour') return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} ${String(d.getHours()).padStart(2, '0')}:00: ${n}`;
-  if (granularity.value === 'month') return `${d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}: ${n}`;
-  if (granularity.value === 'week') return `Semana de ${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}: ${n}`;
-  return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}: ${n}`;
+function tipLabel(bucket: string): string {
+  const d = dt(bucket);
+  if (granularity.value === 'hour') return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} · ${String(d.getHours()).padStart(2, '0')}:00`;
+  if (granularity.value === 'month') return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  if (granularity.value === 'week') return `Semana de ${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`;
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
-// Mostra ~12 rótulos no máximo, pra não embolar quando há muitos dias.
-const labelStep = computed(() => Math.max(1, Math.ceil(points.value.length / 12)));
-const showLabel = (i: number) =>
-  i % labelStep.value === 0 || i === points.value.length - 1;
+// Mostra TODAS as datas no eixo X (sem intercalar).
 </script>
 
 <template>
   <div class="card chart">
-    <div class="ch-head">
-      <div class="ch-tt">
-        <h3 class="font-display">Palpites</h3>
-        <span class="ch-total"><b class="font-numeric">{{ total }}</b> no período</span>
+    <header class="ch-head">
+      <div class="ch-kpi">
+        <span class="ch-eyebrow">Palpites</span>
+        <div class="ch-figure">
+          <b class="ch-num font-numeric">{{ total.toLocaleString('pt-BR') }}</b>
+          <span class="ch-unit">no período</span>
+        </div>
+        <div v-if="total" class="ch-meta">
+          <span class="ch-chip"><i>pico</i> <b class="font-numeric">{{ peak }}</b></span>
+          <span class="ch-chip"><i>média</i> <b class="font-numeric">{{ avg }}</b></span>
+        </div>
       </div>
       <div class="seg" role="tablist">
         <button
@@ -120,117 +146,204 @@ const showLabel = (i: number) =>
           {{ g.l }}
         </button>
       </div>
-    </div>
+    </header>
 
     <div v-if="pending && !data" class="ch-empty">Carregando…</div>
     <div v-else-if="!total" class="ch-empty">Sem palpites no período.</div>
-    <div v-else class="ch-plot" :class="{ loading: pending }">
-      <div v-for="(p, i) in points" :key="p.bucket" class="ch-col" :title="tip(p)">
-        <div class="ch-bar-wrap">
-          <span v-if="p.count > 0" class="ch-val font-numeric">{{ p.count }}</span>
-          <div class="ch-bar" :style="{ height: barH(p.count) }" />
+    <div v-else class="ch-body">
+      <div class="ch-yaxis" aria-hidden="true">
+        <span v-for="t in yticks" :key="t.pct" class="ch-yt">{{ t.label }}</span>
+      </div>
+      <div class="ch-grid" aria-hidden="true">
+        <span v-for="t in yticks" :key="t.pct" class="ch-gl" :style="{ bottom: t.pct + '%' }" />
+      </div>
+      <div class="ch-plot" :class="{ loading: pending }" @mouseleave="active = -1">
+        <div
+          v-for="(p, i) in points"
+          :key="p.bucket"
+          class="ch-col"
+          :class="{ act: active === i, dim: active !== -1 && active !== i }"
+          @mouseenter="active = i"
+        >
+          <div class="ch-track">
+            <div class="ch-bar" :style="{ height: barH(p.count) }" />
+          </div>
+          <div v-if="active === i" class="ch-tip" role="tooltip">
+            <span class="ch-tip-v font-numeric">{{ p.count }}</span>
+            <span class="ch-tip-u">{{ p.count === 1 ? 'palpite' : 'palpites' }}</span>
+            <span class="ch-tip-d">{{ tipLabel(p.bucket) }}</span>
+          </div>
         </div>
-        <span class="ch-xl" :class="{ show: showLabel(i) }">{{ xlabel(p.bucket) }}</span>
+      </div>
+      <div class="ch-xaxis">
+        <span
+          v-for="(p, i) in points"
+          :key="p.bucket"
+          class="ch-xl show"
+          :class="{ act: active === i }"
+        >{{ xlabel(p.bucket) }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.chart { padding: 18px; margin-bottom: 16px; }
+.chart { padding: 20px 22px; margin-bottom: 16px; }
+
+/* ── header / KPI ── */
 .ch-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
-.ch-tt { display: flex; flex-direction: column; gap: 2px; }
-.ch-tt h3 { font-weight: 600; font-size: var(--fs-base); text-transform: uppercase; }
-.ch-total { font-size: var(--fs-sm); color: var(--muted); font-weight: 600; }
-.ch-total b { color: var(--text); font-size: var(--fs-base); margin-right: 2px; }
+.ch-kpi { display: flex; flex-direction: column; gap: 5px; }
+.ch-eyebrow {
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.ch-figure { display: flex; align-items: baseline; gap: 7px; }
+.ch-num { font-size: var(--fs-3xl); line-height: 1; font-weight: 800; letter-spacing: -0.02em; }
+.ch-unit { font-size: var(--fs-xs); font-weight: 600; color: var(--muted); }
+.ch-meta { display: flex; gap: 6px; margin-top: 1px; }
+.ch-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  font-size: var(--fs-2xs);
+}
+.ch-chip i { font-style: normal; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+.ch-chip b { color: var(--text); font-weight: 800; }
 
-.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg-base); }
+/* ── segmented control ── */
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; padding: 2px; background: var(--bg-base); gap: 1px; }
 .seg-b {
-  padding: 7px 14px;
+  padding: 6px 13px;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   color: var(--muted);
   font-size: var(--fs-xs);
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.14s, color 0.14s, box-shadow 0.14s;
 }
-.seg-b + .seg-b { border-left: 1px solid var(--border); }
 .seg-b:hover { color: var(--text); }
-.seg-b.on { background: var(--azure); color: #fff; }
-.seg-b:disabled { opacity: 0.34; cursor: not-allowed; }
+.seg-b.on { background: var(--bg-surface); color: var(--azure); box-shadow: 0 1px 3px rgba(15, 22, 32, 0.1); }
+.seg-b:disabled { opacity: 0.3; cursor: not-allowed; }
 .seg-b:disabled:hover { color: var(--muted); }
 
-.ch-empty {
-  height: 180px;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  font-size: var(--fs-sm);
-}
-.ch-plot {
+.ch-empty { height: 200px; display: grid; place-items: center; color: var(--muted); font-size: var(--fs-sm); }
+
+/* ── plot ── */
+.ch-body { position: relative; padding-left: 30px; }
+.ch-yaxis {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 240px;
+  width: 28px;
   display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   align-items: flex-end;
+  padding-right: 6px;
+}
+.ch-yt { font-size: var(--fs-2xs); font-weight: 600; color: var(--muted); opacity: 0.7; line-height: 1; }
+.ch-grid { position: absolute; left: 30px; right: 0; top: 0; height: 240px; pointer-events: none; }
+.ch-gl { position: absolute; left: 0; right: 0; height: 1px; background: var(--border); opacity: 0.55; }
+.ch-gl:first-child { opacity: 0; }            /* topo limpo */
+.ch-gl:last-child { opacity: 1; height: 1.5px; background: color-mix(in srgb, var(--border) 130%, var(--muted)); }
+
+.ch-plot {
+  position: relative;
+  display: flex;
+  align-items: stretch;
   gap: 4px;
-  height: 220px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 2px;
+  height: 240px;
   transition: opacity 0.15s ease;
 }
-/* Refetch ao trocar de período: mantém o gráfico (esmaecido) em vez de piscar. */
-.ch-plot.loading {
-  opacity: 0.5;
-}
+.ch-plot.loading { opacity: 0.5; }
 .ch-col {
-  flex: 1 0 auto;
-  min-width: 16px;
-  height: 100%;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  transition: opacity 0.14s;
 }
-.ch-bar-wrap {
+.ch-col.dim { opacity: 0.42; }
+.ch-track {
   flex: 1;
   width: 100%;
   min-height: 0;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  position: relative;
+  align-items: flex-end;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.14s;
 }
-.ch-val {
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  color: var(--muted);
-  margin-bottom: 3px;
-  opacity: 0;
-  transition: opacity 0.12s;
-}
-.ch-col:hover .ch-val { opacity: 1; }
+.ch-col.act .ch-track { background: color-mix(in srgb, var(--azure) 8%, transparent); }
 .ch-bar {
   width: 100%;
-  max-width: 34px;
-  border-radius: 5px 5px 0 0;
-  background: linear-gradient(180deg, var(--azure), color-mix(in srgb, var(--azure) 55%, transparent));
-  transition: height 0.18s ease;
+  max-width: 30px;
+  border-radius: 5px 5px 2px 2px;
+  background: linear-gradient(180deg, var(--azure), color-mix(in srgb, var(--azure) 38%, transparent));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 30%, transparent);
+  transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1), filter 0.14s;
+  animation: bargrow 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.ch-col:hover .ch-bar { filter: brightness(1.08); }
+.ch-col.act .ch-bar { filter: brightness(1.06) saturate(1.1); }
+@keyframes bargrow { from { transform: scaleY(0.001); } to { transform: scaleY(1); } }
+.ch-bar { transform-origin: bottom; }
+
+/* eixo X abaixo do plot (igual ao gráfico de gasto): "dd/mm" embaixo, fora da barra */
+.ch-xaxis { display: flex; margin-top: 8px; }
 .ch-xl {
-  margin-top: 7px;
-  font-size: var(--fs-xs);
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  font-size: var(--fs-2xs);
   font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
   visibility: hidden;
 }
 .ch-xl.show { visibility: visible; }
+.ch-xl.act { color: var(--text); font-weight: 700; }
+
+/* ── tooltip (fixo no topo do plot p/ nunca cortar mesmo com barra alta) ── */
+.ch-tip {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 11px;
+  background: var(--text);
+  color: var(--bg-surface);
+  border-radius: 9px;
+  box-shadow: 0 10px 26px -8px rgba(15, 22, 32, 0.55);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+  animation: tipin 0.12s ease both;
+}
+.ch-tip-v { font-size: var(--fs-lg); font-weight: 800; line-height: 1; }
+.ch-tip-u { font-size: var(--fs-2xs); opacity: 0.7; text-transform: uppercase; letter-spacing: 0.05em; }
+.ch-tip-d { font-size: var(--fs-2xs); opacity: 0.85; margin-top: 2px; }
+@keyframes tipin { from { opacity: 0; transform: translate(-50%, -4px); } to { opacity: 1; transform: translate(-50%, 0); } }
 </style>

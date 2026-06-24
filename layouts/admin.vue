@@ -226,6 +226,8 @@ function logout() {
         </span>
       </NuxtLink>
 
+      <AdminTopPresence class="top-presence" />
+
       <div class="top-actions">
         <NuxtLink to="/home" class="ghost-link">Ver site</NuxtLink>
         <div class="menu">
@@ -362,11 +364,21 @@ function logout() {
   text-transform: uppercase;
   margin-top: 3px;
 }
+/* Presença ao vivo centralizada no topbar (independe das larguras dos lados). */
+.top-presence {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
 .top-actions {
   margin-left: auto;
   display: flex;
   align-items: center;
   gap: 12px;
+}
+/* Em telas estreitas o centro disputa espaço com brand+avatar → esconde. */
+@media (max-width: 680px) {
+  .top-presence { display: none; }
 }
 .ghost-link {
   font-size: var(--fs-sm);
