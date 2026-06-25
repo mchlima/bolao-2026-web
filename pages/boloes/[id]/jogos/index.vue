@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Match, Paginated, Prediction } from '~/types/api';
-// Pool "Resultados": live + finished matches, each scoped to the pool. View only
-// — predicting is global (done on the tournament). Tap a match → the pool's
-// ranking for that match (PoolMatchView). The slim header + tabs live in the shell.
+// Pool "Jogos": TODOS os jogos da temporada (ao vivo → próximos → encerrados),
+// cada um escopado ao bolão. View only — palpitar é global (no torneio). Tocar num
+// jogo → ranking do bolão naquela partida (PoolMatchView) + abas, inclusive Chat.
 const route = useRoute();
 const id = route.params.id as string;
 const auth = useAuthStore();
@@ -59,26 +59,33 @@ const predMap = computed<Record<string, Prediction>>(() => {
   return m;
 });
 
-// Só os jogos que PONTUARAM na temporada atual: a pontuação conta jogos com
-// kickoffAt > startAt (e <= endAt quando a temporada está encerrada). Temporada
-// não iniciada (DRAFT/sem startAt) não pontua nada → lista vazia. Mesma janela
-// usada no ranking (rankings.service: gt startAt / lte endAt).
-const RANK: Record<string, number> = { LIVE: 0, FINISHED: 1 };
+// TODOS os jogos da temporada do bolão (não só os que já pontuaram), na ordem
+// "agora & a seguir": AO VIVO primeiro, depois os PRÓXIMOS (mais cedo primeiro) e
+// por fim os ENCERRADOS (mais recentes primeiro). A janela de pontuação
+// (kickoffAt > startAt, <= endAt) ainda delimita quais jogos são DESTE run — mesma
+// janela do ranking (rankings.service). Temporada não iniciada (DRAFT/sem startAt)
+// não tem jogos a listar.
+// Grupos de status: 0 = ao vivo · 1 = a jogar (agendado/adiado) · 2 = encerrado.
+const STATUS_GROUP = (s: string): number =>
+  s === 'LIVE' ? 0 : s === 'FINISHED' || s === 'CANCELLED' ? 2 : 1;
 const results = computed<Match[]>(() => {
   const run = pool.value?.currentRun ?? null;
   if (!run || run.status === 'DRAFT' || !run.startAt) return [];
   const start = new Date(run.startAt).getTime();
   const end = run.endAt ? new Date(run.endAt).getTime() : null;
   return (data.value?.matches ?? [])
-    .filter((m) => m.status === 'LIVE' || m.status === 'FINISHED')
     .filter((m) => {
       const k = new Date(m.kickoffAt).getTime();
       return k > start && (end === null || k <= end);
     })
     .sort((a, b) => {
-      const r = (RANK[a.status] ?? 9) - (RANK[b.status] ?? 9);
-      if (r) return r;
-      return new Date(b.kickoffAt).getTime() - new Date(a.kickoffAt).getTime();
+      const ga = STATUS_GROUP(a.status);
+      const gb = STATUS_GROUP(b.status);
+      if (ga !== gb) return ga - gb;
+      const ka = new Date(a.kickoffAt).getTime();
+      const kb = new Date(b.kickoffAt).getTime();
+      // encerrados: mais recente primeiro; ao vivo e a jogar: mais cedo primeiro.
+      return ga === 2 ? kb - ka : ka - kb;
     });
 });
 </script>
@@ -111,8 +118,8 @@ const results = computed<Match[]>(() => {
     <EmptyState
       v-else-if="!results.length"
       icon="ball"
-      title="Nenhum jogo pontuou ainda"
-      description="Os resultados desta temporada aparecem aqui conforme as partidas acontecem. Crave os placares dos próximos jogos para pontuar com a galera."
+      title="Nenhum jogo nesta temporada ainda"
+      description="Os jogos do bolão aparecem aqui — ao vivo e próximos no topo, encerrados embaixo. Crave os placares dos próximos jogos para pontuar com a galera."
     >
       <template #action>
         <NuxtLink to="/boloes/palpites" class="btn btn-gold">Fazer meus palpites</NuxtLink>
