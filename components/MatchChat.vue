@@ -45,6 +45,20 @@ function newNonce(): string {
 function timeLabel(iso: string): string {
   return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
+function isMine(m: ChatMessage): boolean {
+  return !!myId.value && m.author.id === myId.value;
+}
+// Mostra avatar + nome só no 1º de uma sequência do mesmo autor (agrupa as seguidas).
+function showMeta(i: number): boolean {
+  const prev = messages.value[i - 1];
+  return !prev || prev.author.id !== messages.value[i].author.id;
+}
+// Cor estável por usuário p/ o nome (estilo chat de grupo), derivada do id.
+function nameColor(uid: string): string {
+  let h = 0;
+  for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) % 360;
+  return `hsl(${h} 55% 38%)`;
+}
 
 // ─────────────────────────────────────────────────────────── scroll
 function nearBottom(): boolean {
@@ -234,65 +248,84 @@ watch(
     </div>
 
     <template v-else>
-      <!-- presença ao vivo na sala -->
-      <div v-if="presence > 0" class="cpresence">
-        <span class="cp-dot" aria-hidden="true" />
-        {{ presence }} {{ presence === 1 ? 'pessoa' : 'pessoas' }} na sala
-      </div>
+      <div class="cbox">
+        <!-- cabeçalho: título + presença ao vivo -->
+        <header class="cbar">
+          <span class="cbar-title">Bate-papo da partida</span>
+          <span v-if="presence > 0" class="cbar-presence">
+            <span class="cp-dot" aria-hidden="true" />
+            {{ presence }} online
+          </span>
+        </header>
 
-      <!-- LISTA -->
-      <div ref="listRef" class="clist">
-        <div v-if="loading && !loaded" class="cloading">
-          <span class="spin" aria-hidden="true" /> Carregando o chat…
-        </div>
-
-        <button v-if="hasMore" class="cmore" :disabled="loadingOlder" @click="loadOlder">
-          {{ loadingOlder ? 'Carregando…' : 'Ver mensagens anteriores' }}
-        </button>
-
-        <p v-if="loaded && !messages.length" class="cempty">
-          Ainda não tem ninguém no papo. Seja o primeiro a comentar 👋
-        </p>
-
-        <div
-          v-for="m in messages"
-          :key="m.id"
-          class="cmsg"
-          :class="{ mine: m.author.id === myId, pending: m.id.startsWith('tmp-') }"
-        >
-          <UserAvatar :name="m.author.name" :src="m.author.avatarUrl" :size="32" class="cmsg-av" />
-          <div class="cmsg-body">
-            <div class="cmsg-head">
-              <span class="cmsg-name">{{ m.author.name }}</span>
-              <span class="cmsg-time">{{ timeLabel(m.createdAt) }}</span>
-              <button v-if="canDelete(m)" class="cmsg-del" title="Apagar" @click="remove(m)">
-                <AppIcon name="trash" :size="13" :stroke="2" />
-              </button>
-            </div>
-            <p class="cmsg-text">{{ m.text }}</p>
+        <!-- LISTA -->
+        <div ref="listRef" class="clist">
+          <div v-if="loading && !loaded" class="cloading">
+            <span class="spin" aria-hidden="true" /> Carregando o chat…
           </div>
-        </div>
-        <div ref="endRef" />
-      </div>
 
-      <!-- COMPOSER / sala fechada -->
-      <form v-if="open" class="ccompose" @submit.prevent="send">
-        <textarea
-          v-model="text"
-          class="input cinput"
-          rows="1"
-          maxlength="2000"
-          placeholder="Escreva uma mensagem…"
-          @keydown="onKeydown"
-        />
-        <button class="btn btn-gold csend" :disabled="sending || !text.trim()" aria-label="Enviar">
-          <AppIcon name="arrowRight" :size="18" :stroke="2.4" />
-        </button>
-      </form>
-      <p v-else-if="loaded" class="cclosed">
-        <AppIcon name="lock" :size="13" :stroke="2" />
-        O chat abre no dia do jogo. Volte na hora da partida para comentar.
-      </p>
+          <button v-if="hasMore" class="cmore" :disabled="loadingOlder" @click="loadOlder">
+            {{ loadingOlder ? 'Carregando…' : 'Ver mensagens anteriores' }}
+          </button>
+
+          <div v-if="loaded && !messages.length" class="cempty">
+            <span class="cempty-emoji" aria-hidden="true">💬</span>
+            <p>Ainda não tem ninguém no papo.<br >Seja o primeiro a comentar!</p>
+          </div>
+
+          <div
+            v-for="(m, i) in messages"
+            :key="m.id"
+            class="cmsg"
+            :class="{ mine: isMine(m), grouped: !showMeta(i), pending: m.id.startsWith('tmp-') }"
+          >
+            <div class="cmsg-avwrap">
+              <UserAvatar
+                v-if="!isMine(m) && showMeta(i)"
+                :name="m.author.name"
+                :src="m.author.avatarUrl"
+                :size="30"
+              />
+            </div>
+            <div class="cmsg-content">
+              <span
+                v-if="!isMine(m) && showMeta(i)"
+                class="cmsg-name"
+                :style="{ color: nameColor(m.author.id) }"
+              >{{ m.author.name }}</span>
+              <div class="cmsg-bubble">
+                <p class="cmsg-text">{{ m.text }}</p>
+                <span class="cmsg-meta">
+                  <span class="cmsg-time">{{ timeLabel(m.createdAt) }}</span>
+                  <button v-if="canDelete(m)" class="cmsg-del" title="Apagar mensagem" @click="remove(m)">
+                    <AppIcon name="trash" :size="11" :stroke="2" />
+                  </button>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div ref="endRef" />
+        </div>
+
+        <!-- COMPOSER / sala fechada -->
+        <form v-if="open" class="ccompose" @submit.prevent="send">
+          <textarea
+            v-model="text"
+            class="cinput"
+            rows="1"
+            maxlength="2000"
+            placeholder="Escreva uma mensagem…"
+            @keydown="onKeydown"
+          />
+          <button class="csend" :disabled="sending || !text.trim()" aria-label="Enviar">
+            <AppIcon name="arrowRight" :size="18" :stroke="2.6" />
+          </button>
+        </form>
+        <div v-else-if="loaded" class="cclosed">
+          <AppIcon name="lock" :size="14" :stroke="2" />
+          <span>O chat abre no dia do jogo. Volte na hora da partida para comentar.</span>
+        </div>
+      </div>
     </template>
   </section>
 </template>
@@ -331,47 +364,95 @@ watch(
   max-width: 300px;
 }
 
-/* presença ao vivo ("X na sala") */
-.cpresence {
+/* a CAIXA do chat */
+.cbox {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 22, 32, 0.05);
+}
+
+/* cabeçalho com título + presença */
+.cbar {
   display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-base);
+}
+.cbar-title {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.cbar-presence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--fs-xs);
   font-weight: 700;
-  color: var(--muted);
-  padding: 2px 2px 0;
+  color: var(--emerald);
 }
 .cp-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: var(--emerald);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--emerald) 22%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--emerald) 20%, transparent);
+  animation: cpulse 2s ease-in-out infinite;
+}
+@keyframes cpulse {
+  50% {
+    opacity: 0.45;
+  }
 }
 
-/* lista de mensagens — bloco com rolagem própria */
+/* lista de mensagens — rolagem própria */
 .clist {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: min(58vh, 520px);
+  gap: 9px;
+  max-height: min(56vh, 460px);
   overflow-y: auto;
-  padding: 4px 2px 2px;
+  padding: 14px;
   scrollbar-width: thin;
 }
 .cloading,
 .cempty {
+  color: var(--muted);
   text-align: center;
+  padding: 26px 8px;
+}
+.cempty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   font-size: var(--fs-sm);
   font-weight: 600;
-  color: var(--muted);
-  padding: 18px 8px;
+  line-height: 1.5;
+}
+.cempty p {
+  margin: 0;
+}
+.cempty-emoji {
+  font-size: 32px;
+  opacity: 0.9;
 }
 .cloading {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
 }
 .spin {
   width: 14px;
@@ -396,6 +477,7 @@ watch(
   font-size: var(--fs-xs);
   border-radius: 999px;
   padding: 6px 14px;
+  margin-bottom: 2px;
   cursor: pointer;
 }
 .cmore:hover {
@@ -403,101 +485,165 @@ watch(
   border-color: color-mix(in srgb, var(--gold) 45%, var(--border));
 }
 
-/* mensagem */
+/* mensagem — bolha à esquerda (outros) ou à direita (minhas) */
 .cmsg {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 9px;
-  align-items: start;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
 }
-.cmsg-av {
-  margin-top: 2px;
+.cmsg.mine {
+  flex-direction: row-reverse;
 }
-.cmsg-body {
-  min-width: 0;
-  background: var(--bg-base);
-  border: 1px solid var(--border);
-  border-radius: 4px 13px 13px 13px;
-  padding: 8px 12px;
-}
-.cmsg.mine .cmsg-body {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 12%, var(--bg-surface)), var(--bg-surface));
-  border-color: color-mix(in srgb, var(--gold) 30%, var(--border));
+/* consecutivas do mesmo autor ficam mais juntas */
+.cmsg.grouped {
+  margin-top: -5px;
 }
 .cmsg.pending {
-  opacity: 0.6;
+  opacity: 0.55;
 }
-.cmsg-head {
+/* coluna do avatar — reservada mesmo quando agrupado, p/ alinhar as bolhas */
+.cmsg-avwrap {
+  width: 30px;
+  flex: none;
+}
+.cmsg.mine .cmsg-avwrap {
+  display: none;
+}
+.cmsg-content {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  max-width: 80%;
+}
+.cmsg.mine .cmsg-content {
+  align-items: flex-end;
 }
 .cmsg-name {
-  font-size: var(--fs-xs);
+  font-size: 11px;
   font-weight: 800;
-  color: var(--text);
+  line-height: 1;
+  padding-left: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
-.cmsg-time {
-  font-size: var(--fs-2xs, 0.6875rem);
-  font-weight: 600;
-  color: var(--muted);
-  flex: none;
+.cmsg-bubble {
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 14px 14px 14px 5px;
+  padding: 7px 11px 5px;
 }
-.cmsg-del {
-  margin-left: auto;
-  border: none;
-  background: none;
-  padding: 0;
-  color: var(--muted);
-  cursor: pointer;
-  display: inline-flex;
-  flex: none;
-}
-.cmsg-del:hover {
-  color: var(--scarlet);
+.cmsg.mine .cmsg-bubble {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--gold) 22%, var(--bg-surface)),
+    color-mix(in srgb, var(--gold) 11%, var(--bg-surface))
+  );
+  border-color: color-mix(in srgb, var(--gold) 38%, var(--border));
+  border-radius: 14px 14px 5px 14px;
 }
 .cmsg-text {
   margin: 0;
   font-size: var(--fs-sm);
-  line-height: 1.45;
+  line-height: 1.4;
   color: var(--text);
   white-space: pre-wrap;
   word-break: break-word;
 }
+.cmsg-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 1px;
+}
+.cmsg-time {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.cmsg.mine .cmsg-time {
+  color: color-mix(in srgb, var(--text) 42%, transparent);
+}
+.cmsg-del {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  opacity: 0.5;
+  cursor: pointer;
+  display: inline-flex;
+}
+.cmsg-del:hover {
+  color: var(--scarlet);
+  opacity: 1;
+}
 
-/* composer */
+/* composer — pílula + botão circular */
 .ccompose {
   display: flex;
   align-items: flex-end;
   gap: 8px;
+  padding: 10px 12px;
   border-top: 1px solid var(--border);
-  padding-top: 10px;
+  background: var(--bg-surface);
 }
 .cinput {
   flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg-base);
+  padding: 9px 14px;
+  font: inherit;
+  font-size: var(--fs-sm);
+  line-height: 1.4;
+  color: var(--text);
   resize: none;
   max-height: 120px;
-  line-height: 1.4;
+}
+.cinput::placeholder {
+  color: var(--muted);
+}
+.cinput:focus {
+  outline: none;
+  background: var(--bg-surface);
+  border-color: color-mix(in srgb, var(--gold) 55%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 16%, transparent);
 }
 .csend {
   flex: none;
-  width: 44px;
-  height: 44px;
-  padding: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--gold);
+  color: #0a0e14;
   display: grid;
   place-items: center;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.08s;
+}
+.csend:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.csend:active:not(:disabled) {
+  transform: scale(0.92);
+}
+.csend:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: default;
 }
 .cclosed {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
+  padding: 14px;
   border-top: 1px solid var(--border);
-  padding: 14px 8px 4px;
+  background: var(--bg-base);
   font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--muted);
