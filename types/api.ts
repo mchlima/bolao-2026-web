@@ -1006,8 +1006,12 @@ export interface ChatListResult {
   messages: ChatMessage[]; // ordem cronológica (antiga → nova)
   open: boolean; // janela de escrita aberta agora
   hasMore: boolean; // há mensagens mais antigas além desta página
+  canModerate: boolean; // viewer pode apagar qualquer msg (dono/admin do bolão ou admin global)
+  presence: number; // pessoas na sala agora ("X na sala")
 }
-// Payload empurrado pelo SSE na room do chat (append num 'msg', remove num 'del').
+// Payload empurrado pelo SSE na room do chat (append num 'msg', remove num 'del',
+// atualiza o contador num 'presence').
 export type ChatEvent =
   | { type: 'msg'; message: ChatMessage }
-  | { type: 'del'; id: string };
+  | { type: 'del'; id: string }
+  | { type: 'presence'; count: number };

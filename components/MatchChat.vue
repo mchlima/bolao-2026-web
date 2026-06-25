@@ -20,6 +20,8 @@ const base = computed(() => `/pools/${props.poolId}/matches/${props.matchId}/cha
 const messages = ref<ChatMessage[]>([]);
 const open = ref(false);
 const hasMore = ref(false);
+const canModerate = ref(false); // dono/admin do bolão ou admin global → apaga qualquer msg
+const presence = ref(0); // "X na sala" (atualizado ao vivo via evento 'presence')
 const loaded = ref(false);
 const loading = ref(false);
 const loadingOlder = ref(false);
@@ -66,6 +68,8 @@ async function load(): Promise<void> {
     messages.value = [...res.messages].sort(byCreated);
     open.value = res.open;
     hasMore.value = res.hasMore;
+    canModerate.value = res.canModerate;
+    presence.value = res.presence;
     loaded.value = true;
     await scrollToEnd(true);
   } catch (e) {
@@ -82,6 +86,8 @@ async function reconcile(): Promise<void> {
   try {
     const res = await api<ChatListResult>(base.value);
     open.value = res.open;
+    canModerate.value = res.canModerate;
+    presence.value = res.presence;
     const seen = new Set(messages.value.map((m) => m.id));
     const fresh = res.messages.filter((m) => !seen.has(m.id));
     if (fresh.length) {
@@ -139,6 +145,7 @@ function onEvent(data?: unknown): void {
   const ev = data as ChatEvent;
   if (ev.type === 'msg') appendMessage(ev.message);
   else if (ev.type === 'del') removeLocal(ev.id);
+  else if (ev.type === 'presence') presence.value = ev.count;
 }
 // Assina a room só quando a aba está aberta e o usuário logado (gating zera o custo
 // nas outras abas). onEvent recebe o payload da mensagem, ou nada na reconexão.
@@ -177,9 +184,10 @@ async function send(): Promise<void> {
 }
 
 function canDelete(m: ChatMessage): boolean {
-  // A UI mostra apagar p/ o AUTOR; dono/admin do bolão e admin global também são
-  // autorizados pelo backend (moderação dedicada entra numa próxima leva).
-  return !!myId.value && m.author.id === myId.value && !m.id.startsWith('tmp-');
+  if (m.id.startsWith('tmp-')) return false; // mensagem otimista ainda não confirmada
+  // O AUTOR apaga a própria; dono/admin do bolão e admin global (canModerate)
+  // apagam qualquer uma. O backend reautoriza em ambos os casos.
+  return canModerate.value || (!!myId.value && m.author.id === myId.value);
 }
 async function remove(m: ChatMessage): Promise<void> {
   if (!globalThis.confirm?.('Apagar esta mensagem?')) return;
@@ -226,6 +234,12 @@ watch(
     </div>
 
     <template v-else>
+      <!-- presença ao vivo na sala -->
+      <div v-if="presence > 0" class="cpresence">
+        <span class="cp-dot" aria-hidden="true" />
+        {{ presence }} {{ presence === 1 ? 'pessoa' : 'pessoas' }} na sala
+      </div>
+
       <!-- LISTA -->
       <div ref="listRef" class="clist">
         <div v-if="loading && !loaded" class="cloading">
@@ -315,6 +329,24 @@ watch(
   gap: 8px;
   width: 100%;
   max-width: 300px;
+}
+
+/* presença ao vivo ("X na sala") */
+.cpresence {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--muted);
+  padding: 2px 2px 0;
+}
+.cp-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--emerald) 22%, transparent);
 }
 
 /* lista de mensagens — bloco com rolagem própria */
