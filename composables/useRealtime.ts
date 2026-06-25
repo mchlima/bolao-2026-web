@@ -31,12 +31,14 @@
  */
 interface Sub {
   rooms: Set<string>;
-  cb: () => void;
+  // Called with a payload when an event carries one (chat messages), or with no
+  // argument on a "resync" (reconnect / focus) — subscribers refetch in that case.
+  cb: (data?: unknown) => void;
 }
 
 // Cross-tab bus messages (BroadcastChannel does not echo to the sender).
 type BusMsg =
-  | { t: 'ev'; room: string } // leader → relays a room-scoped event
+  | { t: 'ev'; room: string; data?: unknown } // leader → relays a room-scoped event (+ optional payload)
   | { t: 'evAll' } // leader → relays a "refresh everything" signal
   | { t: 'rooms'; id: string; rooms: string; v: boolean } // a tab's local rooms (csv) + visibility
   | { t: 'query' } // leader → asks every tab to (re)announce its rooms
@@ -92,17 +94,18 @@ function effectiveRooms(): string[] {
   return [...s].sort();
 }
 
-// An event names its room — fire only the callbacks watching it.
-function dispatch(room: string): void {
-  for (const sub of subs) if (sub.rooms.has(room)) sub.cb();
+// An event names its room — fire only the callbacks watching it. An optional
+// payload (chat message) is forwarded; absent payload = a plain change signal.
+function dispatch(room: string, data?: unknown): void {
+  for (const sub of subs) if (sub.rooms.has(room)) sub.cb(data);
 }
 function dispatchAll(): void {
   for (const sub of subs) sub.cb();
 }
 
 // Leader relays events to follower tabs (no-op in direct mode).
-function relay(room: string): void {
-  bc?.postMessage({ t: 'ev', room } satisfies BusMsg);
+function relay(room: string, data?: unknown): void {
+  bc?.postMessage({ t: 'ev', room, data } satisfies BusMsg);
 }
 function relayAll(): void {
   bc?.postMessage({ t: 'evAll' } satisfies BusMsg);
@@ -170,8 +173,8 @@ function openStream(): void {
       const d = JSON.parse(ev.data);
       if (d?.ping) return;
       if (typeof d?.room === 'string') {
-        dispatch(d.room);
-        relay(d.room);
+        dispatch(d.room, d.data);
+        relay(d.room, d.data);
         return;
       }
     } catch {
@@ -309,7 +312,7 @@ function onBus(ev: MessageEvent): void {
   if (!m || typeof m.t !== 'string') return;
   switch (m.t) {
     case 'ev':
-      dispatch(m.room);
+      dispatch(m.room, m.data);
       break;
     case 'evAll':
       dispatchAll();
@@ -384,7 +387,7 @@ function init(): void {
   }
 }
 
-export function useRealtime(rooms: () => string[], onEvent: () => void) {
+export function useRealtime(rooms: () => string[], onEvent: (data?: unknown) => void) {
   if (import.meta.server) return;
   base = useRuntimeConfig().public.apiBase;
   const sub: Sub = { rooms: new Set(), cb: onEvent };

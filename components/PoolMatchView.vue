@@ -50,6 +50,7 @@ function onRefresh() {
       v-else
       :match="match"
       :ranking="ranking"
+      :pool-id="poolId"
       title="Ranking da partida · membros"
       back-label="Resultados"
       @back="emit('back')"

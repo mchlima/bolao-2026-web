@@ -985,3 +985,29 @@ export interface MatchNote {
   authorId: string | null;
   createdAt: string;
 }
+
+// ─────────────────────────────────────────────────────────── Chat da partida
+// Sala de chat escopada ao bolão (poolId + matchId). O histórico vem do banco
+// (GET /pools/:poolId/matches/:matchId/chat); as mensagens novas chegam ao vivo
+// pelo SSE (ChatEvent na room pool:<p>:match:<m>:chat). Ver MatchChat.vue.
+export interface ChatAuthor {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+}
+export interface ChatMessage {
+  id: string;
+  text: string;
+  createdAt: string; // ISO
+  nonce: string | null; // eco do nonce do cliente p/ casar a mensagem otimista
+  author: ChatAuthor;
+}
+export interface ChatListResult {
+  messages: ChatMessage[]; // ordem cronológica (antiga → nova)
+  open: boolean; // janela de escrita aberta agora
+  hasMore: boolean; // há mensagens mais antigas além desta página
+}
+// Payload empurrado pelo SSE na room do chat (append num 'msg', remove num 'del').
+export type ChatEvent =
+  | { type: 'msg'; message: ChatMessage }
+  | { type: 'del'; id: string };

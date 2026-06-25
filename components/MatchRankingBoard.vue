@@ -12,6 +12,9 @@ const props = withDefaults(
     title?: string;
     backLabel?: string;
     hideBack?: boolean;
+    // Quando presente, a partida está sendo vista DENTRO de um bolão → habilita a
+    // aba "Chat" (sala escopada a esse bolão). Ausente no contexto de torneio.
+    poolId?: string;
   }>(),
   { title: 'Ranking da partida', backLabel: 'Voltar', hideBack: false },
 );
@@ -111,8 +114,12 @@ const statsAvailable = computed(() => (props.match._count?.stats ?? 0) > 0);
 // (the tournament match route fills it with the group table / bracket).
 const slots = useSlots();
 const hasClassificacao = computed(() => !!slots.classificacao);
+// Chat ao vivo da partida: só no contexto de bolão (sala dos membros), logo após
+// "Bolão" para dar destaque ao engajamento.
+const chatAvailable = computed(() => !!props.poolId);
 const matchTabs = computed(() => {
   const tabs = [{ key: 'bolao', label: 'Bolão' }];
+  if (chatAvailable.value) tabs.push({ key: 'chat', label: 'Chat' });
   if (lineupAvailable.value) tabs.push({ key: 'escalacao', label: 'Escalação' });
   if (timelineAvailable.value) tabs.push({ key: 'tempo', label: 'Narração' });
   if (statsAvailable.value) tabs.push({ key: 'stats', label: 'Estatísticas' });
@@ -122,6 +129,7 @@ const matchTabs = computed(() => {
 });
 const activeTab = computed(() => {
   const aba = route.params.aba;
+  if (aba === 'chat' && chatAvailable.value) return 'chat';
   if (aba === 'escalacao' && lineupAvailable.value) return 'escalacao';
   if (aba === 'tempo' && timelineAvailable.value) return 'tempo';
   if (aba === 'stats' && statsAvailable.value) return 'stats';
@@ -132,6 +140,13 @@ const activeTab = computed(() => {
 // Surface the active tab so the context wrapper can gate its ranking refetch to
 // the "bolão" tab (the hero/score stays always-on; the ranking is tab-scoped).
 watch(activeTab, (t) => emit('tab', t), { immediate: true });
+// O chat é logado/efêmero — não deve ser indexado (ver diretriz de SEO/GEO). Marca
+// noindex só enquanto a aba Chat está ativa; as demais abas seguem como estão.
+useHead(
+  computed(() => ({
+    meta: activeTab.value === 'chat' ? [{ name: 'robots', content: 'noindex' }] : [],
+  })),
+);
 // The match path minus any trailing tab segment — the base to build tab links
 // from. Works for every route that renders the board (tournament / standalone /
 // pool), since it's derived from the current path rather than hard-coded.
@@ -500,6 +515,14 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
         </template>
       </div>
 
+      <div v-show="activeTab === 'chat'" class="lntab">
+        <MatchChat
+          v-if="poolId"
+          :pool-id="poolId"
+          :match-id="match.id"
+          :active="activeTab === 'chat'"
+        />
+      </div>
       <div v-show="activeTab === 'escalacao'" class="lntab">
         <MatchLineup :match="match" :active="activeTab === 'escalacao'" />
       </div>
