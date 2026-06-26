@@ -249,7 +249,8 @@ async function savePrediction() {
       method: 'POST',
       body: { matchId: match.value.id, homeScore: ph.value, awayScore: pa.value },
     });
-    track('palpite', { match_id: match.value.id, novo: !me.value?.prediction });
+    // Conta como conversão só o PRIMEIRO palpite do jogo — ajustes não disparam.
+    if (!me.value?.prediction) track('palpite', { match_id: match.value.id });
     ui.toast('success', 'Palpite salvo ✓');
     emit('refresh');
   } catch (e) {

@@ -50,6 +50,7 @@ const emit = defineEmits<{ saved: [{ matchId: string; homeScore: number; awaySco
 
 const ui = useUiStore();
 const tz = useTz();
+const { track } = useTrack();
 
 const STATUS_LABEL: Record<string, string> = {
   SCHEDULED: 'Agendada', LIVE: 'Ao vivo', FINISHED: 'Encerrada',
@@ -168,11 +169,13 @@ function dirty(r: PredRow): boolean {
 async function save(r: PredRow) {
   const d = draft[r.match.id];
   if (!d || d.home === null || d.away === null) return;
+  const novo = !predOf(r); // 1º palpite deste jogo (não é ajuste do auto-save)
   savingId.value = r.match.id;
   try {
     const res = await props.saveFn(r, d.home, d.away);
     savedLocal[r.match.id] = { homeScore: res.homeScore, awayScore: res.awayScore, score: res.score };
     emit('saved', { matchId: r.match.id, homeScore: res.homeScore, awayScore: res.awayScore, score: res.score });
+    if (novo) track('palpite', { match_id: r.match.id });
     ui.toast('success', props.savedMessage);
   } catch (e) {
     ui.toast('error', (e as { data?: { message?: string } })?.data?.message ?? 'Erro ao salvar');
