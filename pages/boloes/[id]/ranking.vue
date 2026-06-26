@@ -35,6 +35,7 @@ useRealtime(
       :data="ranking"
       :title="pool?.name ?? 'Bolão'"
       :subtitle="pool?.tournament?.name"
+      detailed
     />
     <p v-else class="muted load">Ranking indisponível.</p>
   </section>
