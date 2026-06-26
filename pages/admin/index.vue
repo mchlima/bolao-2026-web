@@ -2,9 +2,11 @@
 definePageMeta({ layout: 'admin', middleware: 'admin' });
 
 // Período selecionado (reflete no gráfico). Padrão: mês atual desde o dia 1 → hoje.
+// "hoje" no fuso de NEGÓCIO (não no do runtime/SSR=UTC), senão às 21h SP entra um
+// dia extra no gráfico — ver businessTz.
 const ymd = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-const _now = new Date();
+const _now = nowInBusinessTz();
 const range = ref({
   from: ymd(new Date(_now.getFullYear(), _now.getMonth(), 1)),
   to: ymd(_now),

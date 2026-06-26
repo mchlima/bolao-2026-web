@@ -20,7 +20,9 @@ interface Preset {
   range: () => { from: string; to: string };
 }
 const presets = computed<Preset[]>(() => {
-  const now = new Date();
+  // "hoje" no fuso de NEGÓCIO (não no do runtime/navegador) p/ os presets baterem
+  // com os buckets do backend e não virar o dia às 21h SP — ver businessTz.
+  const now = nowInBusinessTz();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const firstThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const firstLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
