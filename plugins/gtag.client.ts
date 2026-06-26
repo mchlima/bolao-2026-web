@@ -12,23 +12,50 @@ const isTracked = (path: string) => path !== '/admin' && !path.startsWith('/admi
 
 export default defineNuxtPlugin(() => {
   const router = useRouter();
+  const auth = useAuthStore();
   const w = window as unknown as { gtag?: (...args: unknown[]) => void };
 
-  // Tráfego interno (não contar a própria navegação) é gerenciado NO GA4: regra
-  // de "Tráfego interno" por IP + filtro "Internal Traffic". Aqui mandamos o
-  // page_view normalmente; o GA4 marca/exclui quando o IP bate.
   const send = (route: RouteLocationNormalized) => {
     if (!isTracked(route.path)) return;
-    w.gtag?.('event', 'page_view', {
+    const params: Record<string, unknown> = {
       page_path: route.fullPath,
       page_location: window.location.href,
       page_title: document.title,
-    });
+    };
+    // Admin → marca `traffic_type:'internal'`; o filtro "Internal Traffic" do GA4
+    // exclui (mesmo parâmetro/filtro que os eventos — controle no painel).
+    if (auth.isAdmin) params.traffic_type = 'internal';
+    w.gtag?.('event', 'page_view', params);
   };
 
-  // Initial load (replaces the page view the gtag config call used to auto-send).
   let lastPath = router.currentRoute.value.fullPath;
-  send(router.currentRoute.value);
+
+  // O 1º page_view ESPERA o /auth/me resolver. Numa sessão de admin, disparar
+  // antes de saber que é admin mandaria a page view SEM a marca interna (a causa
+  // de o page_view de admin escapar do filtro). Fallback de 4s caso o /me trave.
+  let firstSent = false;
+  const sendFirst = () => {
+    if (firstSent) return;
+    firstSent = true;
+    send(router.currentRoute.value);
+  };
+  if (auth.isAuthenticated && !auth.user) {
+    const stop = watch(
+      () => auth.user,
+      (u) => {
+        if (u) {
+          stop();
+          sendFirst();
+        }
+      },
+    );
+    setTimeout(() => {
+      stop();
+      sendFirst();
+    }, 4000);
+  } else {
+    sendFirst();
+  }
 
   router.afterEach((to) => {
     if (to.fullPath === lastPath) return;
