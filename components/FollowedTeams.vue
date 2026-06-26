@@ -6,6 +6,7 @@ import type { Paginated, Team } from '~/types/api';
 const api = useApi();
 const ui = useUiStore();
 const follows = useFollowsStore();
+const { track } = useTrack();
 
 const followed = ref<Team[]>([]);
 const loading = ref(true);
@@ -60,6 +61,7 @@ async function follow(team: Team) {
   busy[team.id] = true;
   try {
     await api(`/me/teams/${team.id}`, { method: 'PUT' });
+    track('seguir_time', { team_id: team.id });
     followed.value = [...followed.value, team].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
     follows.reset(); // match bells re-read team-follow state on next load
     search.value = '';

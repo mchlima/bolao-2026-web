@@ -4,6 +4,7 @@ const code = route.params.code as string;
 const pools = usePools();
 const ui = useUiStore();
 const router = useRouter();
+const { track } = useTrack();
 
 const { data, pending, error } = await useAsyncData(`join-${code}`, () =>
   pools.joinPreview(code),
@@ -18,6 +19,7 @@ async function confirmJoin() {
   joining.value = true;
   try {
     const pool = await pools.join(code);
+    track('entrar_bolao', { pool_id: pool.id });
     ui.toast('success', 'Você entrou no bolão!');
     await router.push(`/boloes/${pool.id}`);
   } catch (e) {

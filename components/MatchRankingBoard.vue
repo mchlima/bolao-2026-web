@@ -22,6 +22,7 @@ const emit = defineEmits<{ back: []; refresh: []; tab: [string] }>();
 
 const auth = useAuthStore();
 const ui = useUiStore();
+const { track } = useTrack();
 
 // Paint the whole match screen with the card's surface color (see
 // body.match-screen in main.css) so short content doesn't leave an empty band
@@ -248,6 +249,7 @@ async function savePrediction() {
       method: 'POST',
       body: { matchId: match.value.id, homeScore: ph.value, awayScore: pa.value },
     });
+    track('palpite', { match_id: match.value.id, novo: !me.value?.prediction });
     ui.toast('success', 'Palpite salvo ✓');
     emit('refresh');
   } catch (e) {

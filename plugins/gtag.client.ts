@@ -12,15 +12,20 @@ const isTracked = (path: string) => path !== '/admin' && !path.startsWith('/admi
 
 export default defineNuxtPlugin(() => {
   const router = useRouter();
+  const auth = useAuthStore();
   const w = window as unknown as { gtag?: (...args: unknown[]) => void };
 
   const send = (route: RouteLocationNormalized) => {
     if (!isTracked(route.path)) return;
-    w.gtag?.('event', 'page_view', {
+    const params: Record<string, unknown> = {
       page_path: route.fullPath,
       page_location: window.location.href,
       page_title: document.title,
-    });
+    };
+    // Admin navegando o site público = tráfego interno; o filtro "Internal
+    // Traffic" do GA4 exclui essas page views dos relatórios.
+    if (auth.isAdmin) params.traffic_type = 'internal';
+    w.gtag?.('event', 'page_view', params);
   };
 
   // Initial load (replaces the page view the gtag config call used to auto-send).

@@ -5,6 +5,7 @@ const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const ui = useUiStore();
+const { track } = useTrack();
 
 const email = ref('');
 const password = ref('');
@@ -20,6 +21,7 @@ async function submit() {
   loading.value = true;
   try {
     await auth.login(email.value, password.value);
+    track('login', { method: 'email' });
     ui.toast('success', 'Bem-vindo de volta!');
     router.push(redirect.value);
   } catch (e) {
@@ -36,6 +38,7 @@ async function onGoogle(idToken: string) {
   loading.value = true;
   try {
     await auth.loginWithGoogle(idToken);
+    track('login', { method: 'google' });
     ui.toast('success', 'Bem-vindo!');
     router.push(redirect.value);
   } catch (e) {

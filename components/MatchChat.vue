@@ -13,6 +13,7 @@ const auth = useAuthStore();
 const ui = useUiStore();
 const api = useApi();
 const authLink = useAuthLink();
+const { track } = useTrack();
 
 const room = computed(() => `pool:${props.poolId}:match:${props.matchId}:chat`);
 const base = computed(() => `/pools/${props.poolId}/matches/${props.matchId}/chat`);
@@ -186,6 +187,7 @@ async function send(): Promise<void> {
   sending.value = true;
   try {
     const saved = await api<ChatMessage>(base.value, { method: 'POST', body: { text: body, nonce } });
+    track('chat_mensagem', { match_id: props.matchId });
     const i = messages.value.findIndex((m) => m.nonce === nonce);
     if (i >= 0) messages.value[i] = saved; // troca a otimista pela salva (id real)
   } catch (e) {

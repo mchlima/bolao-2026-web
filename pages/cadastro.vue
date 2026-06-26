@@ -5,6 +5,7 @@ const auth = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const ui = useUiStore();
+const { track } = useTrack();
 
 const name = ref('');
 const email = ref('');
@@ -31,6 +32,7 @@ async function submit() {
   loading.value = true;
   try {
     await auth.register(name.value, email.value, password.value);
+    track('sign_up', { method: 'email' });
     ui.toast('success', 'Conta criada! Boa sorte nos palpites.');
     router.push(redirect.value);
   } catch (e) {
@@ -47,6 +49,7 @@ async function onGoogle(idToken: string) {
   loading.value = true;
   try {
     await auth.loginWithGoogle(idToken);
+    track('sign_up', { method: 'google' });
     ui.toast('success', 'Conta criada! Boa sorte nos palpites.');
     router.push(redirect.value);
   } catch (e) {
