@@ -11,6 +11,32 @@ const savingTz = ref(false);
 
 const push = usePush();
 
+// Privacidade (SÓ ADMIN): flag por aparelho que IMPEDE o GA4/Clarity de carregar
+// (ver o guard `cravei:notrack` no nuxt.config). Como o loader roda no carregamento
+// da página, alternar recarrega pra aplicar. Serve pra excluir a navegação interna
+// do time sem depender de filtro por IP/parâmetro no painel do GA4.
+const noTrack = ref(false);
+onMounted(() => {
+  try {
+    noTrack.value = localStorage.getItem('cravei:notrack') === '1';
+  } catch {
+    /* storage indisponível */
+  }
+});
+function toggleTrack() {
+  const next = !noTrack.value;
+  try {
+    if (next) localStorage.setItem('cravei:notrack', '1');
+    else localStorage.removeItem('cravei:notrack');
+  } catch {
+    /* storage indisponível */
+  }
+  noTrack.value = next;
+  ui.toast('success', next ? 'Navegação não será registrada neste aparelho.' : 'Registro reativado.');
+  // O loader do Analytics roda no carregamento → recarrega pra valer já nesta sessão.
+  setTimeout(() => location.reload(), 350);
+}
+
 async function onTimezone(tz: string) {
   if (tz === auth.user?.timezone) return;
   savingTz.value = true;
@@ -75,6 +101,25 @@ async function onTimezone(tz: string) {
           <template #fallback><div class="ph" /></template>
         </ClientOnly>
       </div>
+
+      <template v-if="auth.isAdmin">
+        <div class="sep" />
+
+        <div class="field">
+          <span class="field-lbl">Privacidade <span class="tag-admin">Admin</span></span>
+          <p class="hint">
+            Quando ativado, sua navegação neste aparelho não é registrada nas análises
+            (Analytics). Vale só para este navegador/dispositivo — use nos aparelhos do time
+            para não poluir as métricas.
+          </p>
+          <ClientOnly>
+            <button class="pushbtn" :class="{ on: noTrack }" @click="toggleTrack">
+              {{ noTrack ? 'Navegação ignorada — reativar registro' : 'Não registrar minha navegação' }}
+            </button>
+            <template #fallback><div class="ph" /></template>
+          </ClientOnly>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -117,6 +162,16 @@ async function onTimezone(tz: string) {
   margin: -3px 0 2px;
   font-size: var(--fs-xs);
   color: var(--muted);
+}
+.tag-admin {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 22%, transparent);
+  color: color-mix(in srgb, var(--gold) 60%, #0a0e14);
+  font-size: var(--fs-2xs, 11px);
+  font-weight: 800;
+  letter-spacing: 0.04em;
 }
 .seg {
   display: flex;

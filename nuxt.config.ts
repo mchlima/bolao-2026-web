@@ -6,12 +6,17 @@ const GTAG_ID = process.env.NUXT_PUBLIC_GTAG_ID || 'G-9WDG5EDPWF';
 const gtagScripts =
   process.env.NODE_ENV === 'production' && GTAG_ID
     ? [
-        { src: `https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`, async: true },
         {
-          // Defines the global gtag(). Page views (incl. the initial one) are sent
-          // by plugins/gtag.client.ts so it can skip the /admin back-office —
-          // send_page_view:false stops gtag from auto-firing one here.
-          children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GTAG_ID}',{send_page_view:false});`,
+          // Carrega o GA4 (gtag.js) e define o global gtag(). Tudo dentro do guard do
+          // flag `cravei:notrack`: se o aparelho optou por não registrar, o gtag.js
+          // NEM é injetado → zero hit, incluindo os auto-eventos do GA4
+          // (session_start/first_visit/scroll/user_engagement) que disparam sozinhos
+          // e que não dá pra suprimir só não chamando nossos track(). É assim que a
+          // navegação interna (admin) fica de fora sem depender de filtro por
+          // IP/parâmetro no painel — toggle em Configurações (só admin grava o flag).
+          // Page views: send_page_view:false aqui + plugins/gtag.client.ts (pula
+          // o back-office /admin).
+          children: `(function(){try{if(localStorage.getItem('cravei:notrack')==='1')return}catch(e){}window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}window.gtag=gtag;gtag('js',new Date());gtag('config','${GTAG_ID}',{send_page_view:false});var s=document.createElement('script');s.async=1;s.src='https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}';document.head.appendChild(s)})();`,
         },
       ]
     : [];
@@ -26,7 +31,7 @@ const clarityScripts =
   process.env.NODE_ENV === 'production' && CLARITY_ID
     ? [
         {
-          children: `window.__loadClarity=function(){if(window.__clarityLoaded)return;window.__clarityLoaded=1;(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${CLARITY_ID}")};(function(){var p=location.pathname;if(p!=="/admin"&&p.indexOf("/admin/")!==0){window.__loadClarity()}})();`,
+          children: `window.__loadClarity=function(){if(window.__clarityLoaded)return;window.__clarityLoaded=1;(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${CLARITY_ID}")};(function(){try{if(localStorage.getItem('cravei:notrack')==='1')return}catch(e){}var p=location.pathname;if(p!=="/admin"&&p.indexOf("/admin/")!==0){window.__loadClarity()}})();`,
         },
       ]
     : [];
