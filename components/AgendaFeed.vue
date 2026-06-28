@@ -129,6 +129,20 @@ function setDayEl(date: string, el: unknown) {
   else dayEls.delete(date);
 }
 const activeDate = ref(today);
+// Ao abrir, se a lista começa ANTES de hoje (ex.: agenda COMPLETA de um campeonato,
+// que inclui jogos já encerrados), pula direto pro dia de hoje (ou o próximo com
+// jogo) em vez de começar nos jogos antigos. No-op na agenda global (já é de hoje
+// em diante).
+onMounted(() => {
+  nextTick(() => {
+    const gs = groups.value;
+    if (gs.length < 2 || gs[0].date === 'postponed') return;
+    const target = gs.find((g) => g.date !== 'postponed' && g.date >= today)?.date;
+    if (!target || gs[0].date === target) return;
+    activeDate.value = target;
+    dayEls.get(target)?.scrollIntoView({ block: 'start' });
+  });
+});
 function goToDate(date: string) {
   activeDate.value = date;
   dayEls.get(date)?.scrollIntoView({ behavior: 'smooth', block: 'start' });

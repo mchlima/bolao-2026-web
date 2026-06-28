@@ -29,7 +29,7 @@ const columns = computed(() => [
   {
     title: 'Bolão',
     links: [
-      { label: 'Bolão da Copa do Mundo', to: bolaoRoot.value },
+      { label: 'Bolão da Copa do Mundo', to: '/bolao-da-copa-do-mundo-2026' },
       { label: 'Bolão do Brasileirão', to: '/bolao-do-brasileirao' },
       { label: 'Bolão da Libertadores', to: '/bolao-da-libertadores' },
       { label: 'Como funciona', to: '/como-funciona' },

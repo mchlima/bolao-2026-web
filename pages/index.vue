@@ -33,9 +33,17 @@ const followMatches = computed<Match[]>(() => [
   ...(following.value?.others ?? []),
 ]);
 
-const primarySeason = computed(
-  () => (torneios.value ?? []).find((t) => t.status === 'ONGOING') ?? (torneios.value ?? [])[0] ?? null,
-);
+// O destaque (EventSpotlight) é o evento-âncora: a Copa do Mundo. Com mais de uma
+// season ONGOING (ex.: a Libertadores também), preferir a Copa; senão a 1ª ONGOING.
+const primarySeason = computed(() => {
+  const list = torneios.value ?? [];
+  return (
+    list.find((t) => t.status === 'ONGOING' && /copa do mundo/i.test(t.name)) ??
+    list.find((t) => t.status === 'ONGOING') ??
+    list[0] ??
+    null
+  );
+});
 // Destaque do evento ao vivo só quando há torneio ONGOING (migra sozinho de evento).
 const spotlightSeason = computed(() =>
   primarySeason.value && primarySeason.value.status === 'ONGOING' ? primarySeason.value : null,

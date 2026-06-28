@@ -6,14 +6,10 @@ import { faqJsonLd, type FaqQA } from '~/utils/bolaoFaq';
 // Pública (ver guard.global.ts). Dados da Libertadores já no banco (seed-libertadores).
 definePageMeta({ layout: 'default' });
 
+const auth = useAuthStore();
 const siteUrl = String(useRuntimeConfig().public.siteUrl);
 const url = `${siteUrl}/bolao-da-libertadores`;
 const authLink = useAuthLink();
-
-// Bolão público OFICIAL da Libertadores (Pool PUBLIC + run ativo da temporada).
-// Convite permanente — entrar em 1 clique pela página de convite (que cuida do
-// login/cadastro se preciso).
-const officialPool = '/boloes/convite/d5yv4Frc';
 
 const title = 'Bolão da Libertadores 2026 grátis — palpite no mata-mata | Cravei';
 const desc =
@@ -137,10 +133,10 @@ const ranking = [
             cada gol. Sem instalar app, direto no navegador.
           </p>
           <div class="cta">
-            <NuxtLink :to="officialPool" class="btn btn-gold big">
-              Entrar no bolão oficial <AppIcon name="arrowRight" :size="18" :stroke="2.5" />
+            <NuxtLink :to="authLink('/cadastro')" class="btn btn-gold big">
+              Criar bolão grátis <AppIcon name="arrowRight" :size="18" :stroke="2.5" />
             </NuxtLink>
-            <NuxtLink :to="authLink('/cadastro')" class="btn big ghost">Criar meu bolão</NuxtLink>
+            <NuxtLink v-if="!auth.isAuthenticated" :to="authLink('/entrar')" class="btn big ghost">Já tenho conta</NuxtLink>
           </div>
           <p class="trust"><span class="dot-ok" /> Grátis · sem app pra instalar · pronto em 1 minuto</p>
         </div>
@@ -231,8 +227,8 @@ const ranking = [
           <NuxtLink to="/como-funciona">como funciona a pontuação</NuxtLink> em detalhe.
         </p>
         <div class="cta">
-          <NuxtLink :to="officialPool" class="btn btn-primary big">
-            Entrar no bolão da Libertadores <AppIcon name="arrowRight" :size="18" :stroke="2.5" />
+          <NuxtLink :to="authLink('/cadastro')" class="btn btn-primary big">
+            Começar meu bolão <AppIcon name="arrowRight" :size="18" :stroke="2.5" />
           </NuxtLink>
         </div>
       </div>
