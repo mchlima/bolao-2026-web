@@ -5,7 +5,7 @@
 
 // Public sporting content + the landing/auth/howto pages + the news section.
 // Everything else private.
-const PUBLIC_EXACT = new Set(['/', '/entrar', '/cadastro', '/como-funciona', '/bolao-da-copa-do-mundo-2026', '/bolao-do-brasileirao', '/copa-do-mundo-2026']);
+const PUBLIC_EXACT = new Set(['/', '/entrar', '/cadastro', '/como-funciona', '/bolao-da-copa-do-mundo-2026', '/bolao-do-brasileirao', '/bolao-da-libertadores', '/copa-do-mundo-2026']);
 const isPublicPath = (path: string): boolean =>
   PUBLIC_EXACT.has(path) ||
   path === '/futebol' ||
