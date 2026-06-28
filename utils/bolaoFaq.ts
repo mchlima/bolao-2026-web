@@ -8,11 +8,19 @@ export interface FaqQA {
 export const BOLAO_FAQ: FaqQA[] = [
   {
     q: 'O que é o bolão da Copa do Mundo 2026?',
-    a: 'É uma disputa entre amigos em que cada um palpita os placares dos jogos da Copa do Mundo 2026 e ganha pontos pela precisão. No Cravei você cria um bolão privado, convida a turma e vê o ranking se mexer ao vivo a cada gol.',
+    a: 'O bolão da Copa do Mundo 2026 é uma disputa entre amigos em que cada um palpita os placares dos jogos da Copa e ganha pontos pela precisão dos acertos. No Cravei você cria um bolão privado grátis, convida a turma e vê o ranking se mexer ao vivo a cada gol das seleções.',
   },
   {
     q: 'O bolão da Copa é grátis?',
     a: 'Sim. Criar conta, montar bolões e palpitar nos 104 jogos é totalmente grátis no Cravei, direto no navegador e sem precisar instalar aplicativo.',
+  },
+  {
+    q: 'Quando começa a Copa do Mundo 2026?',
+    a: 'A Copa do Mundo 2026 vai de junho a julho de 2026 e é sediada por Estados Unidos, México e Canadá, com 48 seleções e 104 jogos. No Cravei você já pode montar seu bolão e cravar os placares de todas as partidas.',
+  },
+  {
+    q: 'Quantas seleções e jogos tem a Copa do Mundo 2026?',
+    a: 'A Copa do Mundo 2026 tem 48 seleções e 104 jogos no total — a maior da história. No bolão do Cravei você palpita em todos eles, da fase de grupos à final.',
   },
   {
     q: 'Como criar um bolão da Copa do Mundo com os amigos?',
