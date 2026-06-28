@@ -13,10 +13,12 @@ const password = ref('');
 const password2 = ref('');
 const loading = ref(false);
 
-// Only allow internal (relative) redirects — never an external URL.
+// Only allow internal (relative) redirects — never an external URL. Sem convite
+// (sem ?redirect), um cadastro novo vai pro onboarding /comecar (1º palpite), não
+// pra home — convites carregam o próprio redirect e não são afetados.
 const redirect = computed(() => {
   const r = route.query.redirect as string | undefined;
-  return r && r.startsWith('/') ? r : '/';
+  return r && r.startsWith('/') ? r : '/comecar';
 });
 
 const matchState = computed(() => {
