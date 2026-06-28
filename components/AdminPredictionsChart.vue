@@ -1,8 +1,30 @@
 <script setup lang="ts">
-// Gráfico de palpites ao longo do tempo na dashboard do admin. Recebe o período
-// (from/to) do seletor do header e tem alternância de granularidade dia/semana/mês.
-// Busca /admin/dashboard/predictions-series e desenha barras (sem lib externa).
-const props = defineProps<{ from: string; to: string }>();
+// Gráfico de série temporal (barras, sem lib) da dashboard do admin. Recebe o
+// período (from/to) do seletor do header e alterna granularidade hora/dia/semana/mês.
+// Genérico: o `endpoint` e os rótulos são props — serve tanto pra contagem de
+// palpites quanto pra pessoas distintas que palpitaram (mesmo formato de resposta).
+const props = withDefaults(
+  defineProps<{
+    from: string;
+    to: string;
+    /** rota da série (mesmo shape: { total, points:[{bucket,count}] }) */
+    endpoint?: string;
+    /** rótulo do KPI (ex.: "Palpites", "Pessoas que palpitaram") */
+    eyebrow?: string;
+    /** unidade no tooltip (singular/plural) */
+    unit?: string;
+    unitPlural?: string;
+    /** texto do estado vazio */
+    emptyText?: string;
+  }>(),
+  {
+    endpoint: '/admin/dashboard/predictions-series',
+    eyebrow: 'Palpites',
+    unit: 'palpite',
+    unitPlural: 'palpites',
+    emptyText: 'Sem palpites no período.',
+  },
+);
 
 type Gran = 'hour' | 'day' | 'week' | 'month';
 interface Series {
@@ -56,10 +78,10 @@ watch(
 );
 
 const { data, pending } = useAsyncData(
-  'admin-pred-series',
+  `admin-series-${props.endpoint}`,
   () =>
     useApi()<Series>(
-      `/admin/dashboard/predictions-series?from=${props.from}&to=${props.to}&granularity=${granularity.value}`,
+      `${props.endpoint}?from=${props.from}&to=${props.to}&granularity=${granularity.value}`,
     ),
   { lazy: true, watch: [() => props.from, () => props.to, granularity] },
 );
@@ -122,7 +144,7 @@ function tipLabel(bucket: string): string {
   <div class="card chart">
     <header class="ch-head">
       <div class="ch-kpi">
-        <span class="ch-eyebrow">Palpites</span>
+        <span class="ch-eyebrow">{{ eyebrow }}</span>
         <div class="ch-figure">
           <b class="ch-num font-numeric">{{ total.toLocaleString('pt-BR') }}</b>
           <span class="ch-unit">no período</span>
@@ -149,7 +171,7 @@ function tipLabel(bucket: string): string {
     </header>
 
     <div v-if="pending && !data" class="ch-empty">Carregando…</div>
-    <div v-else-if="!total" class="ch-empty">Sem palpites no período.</div>
+    <div v-else-if="!total" class="ch-empty">{{ emptyText }}</div>
     <div v-else class="ch-body">
       <div class="ch-yaxis" aria-hidden="true">
         <span v-for="t in yticks" :key="t.pct" class="ch-yt">{{ t.label }}</span>
@@ -170,7 +192,7 @@ function tipLabel(bucket: string): string {
           </div>
           <div v-if="active === i" class="ch-tip" role="tooltip">
             <span class="ch-tip-v font-numeric">{{ p.count }}</span>
-            <span class="ch-tip-u">{{ p.count === 1 ? 'palpite' : 'palpites' }}</span>
+            <span class="ch-tip-u">{{ p.count === 1 ? unit : unitPlural }}</span>
             <span class="ch-tip-d">{{ tipLabel(p.bucket) }}</span>
           </div>
         </div>

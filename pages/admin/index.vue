@@ -23,6 +23,16 @@ const range = ref({
       </template>
     </AdminPageHeader>
 
+    <AdminPredictionsChart
+      :from="range.from"
+      :to="range.to"
+      endpoint="/admin/dashboard/predictors-series"
+      eyebrow="Pessoas que palpitaram"
+      unit="pessoa"
+      unit-plural="pessoas"
+      empty-text="Ninguém palpitou no período."
+    />
+
     <AdminPredictionsChart :from="range.from" :to="range.to" />
 
     <AdminSpendChart :from="range.from" :to="range.to" />
