@@ -35,6 +35,7 @@ export default defineEventHandler(async (event) => {
     { loc: '/', priority: 1.0, changefreq: 'daily' },
     { loc: '/copa-do-mundo-2026', priority: 0.9, changefreq: 'daily' },
     { loc: '/bolao-da-copa-do-mundo-2026', priority: 0.9, changefreq: 'weekly' },
+    { loc: '/bolao-do-brasileirao', priority: 0.9, changefreq: 'weekly' },
     { loc: '/como-funciona', priority: 0.8, changefreq: 'monthly' },
     { loc: '/futebol', priority: 0.8, changefreq: 'daily' },
     { loc: '/futebol/jogos-de-hoje', priority: 0.8, changefreq: 'daily' },
