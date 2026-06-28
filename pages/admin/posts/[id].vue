@@ -63,7 +63,11 @@ async function load() {
 onMounted(load);
 
 function payload() {
+  // keywords: termos curtos separados por vírgula OU linha. keyTakeaways: frases
+  // inteiras (uma por linha) — NÃO quebrar na vírgula, senão cada vírgula do texto
+  // vira um item e estoura o limite de 10.
   const list = (v: string) => v.split(/[\n,]/).map((t) => t.trim()).filter(Boolean);
+  const lines = (v: string) => v.split('\n').map((t) => t.trim()).filter(Boolean);
   return {
     title: form.title.trim(),
     slug: form.slug.trim(),
@@ -77,7 +81,7 @@ function payload() {
       focusKeyword: form.focusKeyword.trim(),
       imageAlt: form.imageAlt.trim(),
       keywords: list(form.keywords),
-      keyTakeaways: list(form.keyTakeaways),
+      keyTakeaways: lines(form.keyTakeaways),
       faq: form.faq.map((q) => ({ question: q.question.trim(), answer: q.answer.trim() })).filter((q) => q.question && q.answer),
     },
   };
