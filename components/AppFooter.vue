@@ -34,7 +34,7 @@ const columns = computed(() => [
       { label: 'Bolão da Libertadores', to: '/bolao-da-libertadores' },
       { label: 'Bolão da Copa do Brasil', to: '/bolao-da-copa-do-brasil' },
       { label: 'Bolão da Sudamericana', to: '/bolao-da-sudamericana' },
-      { label: 'Bolão da Série B', to: '/bolao-do-brasileirao-serie-b' },
+      { label: 'Bolão do Brasileirão Série B', to: '/bolao-do-brasileirao-serie-b' },
       { label: 'Como funciona', to: '/como-funciona' },
     ],
   },

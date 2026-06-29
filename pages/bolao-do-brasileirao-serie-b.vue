@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { faqJsonLd, type FaqQA } from '~/utils/bolaoFaq';
 
-// Landing de SEO+GEO mirando "bolão da série b" e "bolão do brasileirão série b"
-// (+ variações). Página de conteúdo (a home é app-like). Pública (ver guard.global.ts).
+// Landing de SEO+GEO mirando "bolão do brasileirão série b" (+ "bolão da série b" e
+// variações). Página de conteúdo (a home é app-like). Pública (ver guard.global.ts).
 // Dados da Série B já no banco (seed-serie-b).
 definePageMeta({ layout: 'default' });
 
@@ -11,27 +11,27 @@ const siteUrl = String(useRuntimeConfig().public.siteUrl);
 const url = `${siteUrl}/bolao-do-brasileirao-serie-b`;
 const authLink = useAuthLink();
 
-const title = 'Bolão da Série B 2026 grátis — Brasileirão Série B com os amigos | Cravei';
+const title = 'Bolão do Brasileirão Série B 2026 grátis — palpite com os amigos | Cravei';
 const desc =
-  'Faça seu bolão da Série B 2026 grátis com os amigos: palpite nos 380 jogos do Brasileirão Série B, acompanhe a briga pelo acesso à Série A, pontue pela precisão do placar e veja o ranking ao vivo a cada gol. Sem instalar app.';
+  'Faça seu bolão do Brasileirão Série B 2026 grátis com os amigos: palpite nos 380 jogos da Série B do Campeonato Brasileiro, acompanhe a briga pelo acesso à Série A, pontue pela precisão do placar e veja o ranking ao vivo a cada gol. Sem instalar app.';
 
-// FAQ específico da Série B (texto visível + FAQPage schema). Respostas curtas e
-// autocontidas — formato que tanto o Google quanto as IAs citam (GEO).
+// FAQ específico do Brasileirão Série B (texto visível + FAQPage schema). Respostas
+// curtas e autocontidas — formato que tanto o Google quanto as IAs citam (GEO).
 const FAQ: FaqQA[] = [
   {
-    q: 'O que é o bolão da Série B 2026?',
-    a: 'O bolão da Série B 2026 é uma disputa entre amigos em que cada um palpita os placares dos jogos do Brasileirão Série B e ganha pontos pela precisão dos acertos. No Cravei você cria um bolão privado grátis, convida a turma e vê o ranking se mexer ao vivo a cada gol.',
+    q: 'O que é o bolão do Brasileirão Série B 2026?',
+    a: 'O bolão do Brasileirão Série B 2026 é uma disputa entre amigos em que cada um palpita os placares dos jogos da Série B do Campeonato Brasileiro e ganha pontos pela precisão dos acertos. No Cravei você cria um bolão privado grátis, convida a turma e vê o ranking se mexer ao vivo a cada gol.',
   },
   {
-    q: 'O bolão da Série B é grátis?',
+    q: 'O bolão do Brasileirão Série B é grátis?',
     a: 'Sim. Criar conta, montar bolões e palpitar nas 38 rodadas (380 jogos) do Brasileirão Série B é totalmente grátis no Cravei, direto no navegador e sem precisar instalar aplicativo.',
   },
   {
     q: 'Como criar um bolão do Brasileirão Série B com os amigos?',
-    a: 'Crie sua conta grátis, monte um bolão privado da Série B e compartilhe o link de convite com a galera. Cada pessoa entra, palpita os jogos da rodada e disputa o ranking da temporada.',
+    a: 'Crie sua conta grátis, monte um bolão privado do Brasileirão Série B e compartilhe o link de convite com a galera. Cada pessoa entra, palpita os jogos da rodada e disputa o ranking da temporada.',
   },
   {
-    q: 'Como funciona a pontuação do bolão da Série B?',
+    q: 'Como funciona a pontuação do bolão do Brasileirão Série B?',
     a: 'Você pontua pela precisão do palpite: cravar o placar exato vale mais do que só acertar o time vencedor. O ranking do bolão atualiza ao vivo conforme os gols da rodada acontecem.',
   },
   {
@@ -60,7 +60,7 @@ useHead({
     {
       name: 'keywords',
       content:
-        'bolão da série b, bolão do brasileirão série b, bolão série b 2026, palpites da série b, bolão do acesso, bolão online grátis, bolão entre amigos, ranking ao vivo, bolão de futebol',
+        'bolão do brasileirão série b, bolão da série b, bolão série b 2026, palpites do brasileirão série b, bolão do acesso, bolão online grátis, bolão entre amigos, ranking ao vivo, bolão de futebol',
     },
   ],
   script: [
@@ -73,14 +73,14 @@ useHead({
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
-          { '@type': 'ListItem', position: 2, name: 'Bolão da Série B 2026', item: url },
+          { '@type': 'ListItem', position: 2, name: 'Bolão do Brasileirão Série B 2026', item: url },
         ],
       }),
     },
   ],
 });
 
-// Faixa de números da Série B 2026 — chamativo + fatos (sinal GEO).
+// Faixa de números do Brasileirão Série B 2026 — chamativo + fatos (sinal GEO).
 const stats = [
   { n: '380', l: 'jogos pra palpitar' },
   { n: '20', l: 'clubes na Série B' },
@@ -88,7 +88,7 @@ const stats = [
 ];
 
 const steps = [
-  { n: 1, t: 'Crie seu bolão', d: 'Faça sua conta grátis e monte um bolão privado da Série B 2026 em menos de um minuto.', c: 'var(--emerald)' },
+  { n: 1, t: 'Crie seu bolão', d: 'Faça sua conta grátis e monte um bolão privado do Brasileirão Série B 2026 em menos de um minuto.', c: 'var(--emerald)' },
   { n: 2, t: 'Chame a galera', d: 'Compartilhe o link de convite com os amigos. Cada um entra e palpita os placares dos jogos da rodada.', c: 'var(--gold)' },
   { n: 3, t: 'Suba no ranking', d: 'Pontue pela precisão do placar e veja o ranking se mexer ao vivo a cada gol da rodada.', c: 'var(--azure)' },
 ];
@@ -115,7 +115,7 @@ const ranking = [
     <nav class="crumbs">
       <NuxtLink to="/">Início</NuxtLink>
       <span>›</span>
-      <span>Bolão da Série B 2026</span>
+      <span>Bolão do Brasileirão Série B 2026</span>
     </nav>
 
     <!-- HERO -->
@@ -125,12 +125,12 @@ const ranking = [
       <div class="hero-grid">
         <div class="hero-text">
           <span class="eyebrow"><span class="eb-dot" />Brasileirão Série B · 2026</span>
-          <h1>Bolão da <span class="hl">Série B 2026</span></h1>
+          <h1>Bolão do <span class="hl">Brasileirão Série B 2026</span></h1>
           <p class="lead">
-            Crie seu <strong>bolão da Série B 2026</strong> grátis e dispute com os amigos:
-            palpite nos 380 jogos do <strong>Brasileirão Série B</strong>, acompanhe a briga pelo
-            acesso à Série A, pontue pela precisão do placar e veja o ranking se mexer <b>ao vivo</b>
-            a cada gol. Sem instalar app, direto no navegador.
+            Crie seu <strong>bolão do Brasileirão Série B 2026</strong> grátis e dispute com os
+            amigos: palpite nos 380 jogos da Série B do <strong>Campeonato Brasileiro</strong>,
+            acompanhe a briga pelo acesso à Série A, pontue pela precisão do placar e veja o ranking
+            se mexer <b>ao vivo</b> a cada gol. Sem instalar app, direto no navegador.
           </p>
           <div class="cta">
             <NuxtLink :to="authLink('/cadastro')" class="btn btn-gold big">
@@ -181,13 +181,13 @@ const ranking = [
     </header>
 
     <section class="sec intro">
-      <h2>O que é o bolão da Série B 2026?</h2>
+      <h2>O que é o bolão do Brasileirão Série B 2026?</h2>
       <p>
-        O bolão da Série B 2026 é uma disputa entre amigos em que cada participante
-        <strong>palpita os placares dos jogos</strong> do Brasileirão Série B e ganha pontos pela
-        precisão dos acertos. No Cravei, você monta um bolão privado, convida a turma e acompanha
-        quem está cravando mais — com o ranking atualizando ao vivo a cada gol da rodada, do começo
-        ao fim das 38 rodadas e da disputa pelo acesso à Série A.
+        O bolão do Brasileirão Série B 2026 é uma disputa entre amigos em que cada participante
+        <strong>palpita os placares dos jogos</strong> da Série B do Campeonato Brasileiro e ganha
+        pontos pela precisão dos acertos. No Cravei, você monta um bolão privado, convida a turma e
+        acompanha quem está cravando mais — com o ranking atualizando ao vivo a cada gol da rodada,
+        do começo ao fim das 38 rodadas e da disputa pelo acesso à Série A.
       </p>
     </section>
 
@@ -203,7 +203,7 @@ const ranking = [
     </section>
 
     <section class="sec">
-      <h2>Por que fazer seu bolão da Série B no Cravei</h2>
+      <h2>Por que fazer seu bolão do Brasileirão Série B no Cravei</h2>
       <ul class="reasons">
         <li v-for="r in reasons" :key="r.t" :style="{ '--c': r.c }">
           <span class="r-ic"><AppIcon :name="r.i" :size="20" :stroke="2.1" /></span>
@@ -217,7 +217,7 @@ const ranking = [
     <section class="sec band">
       <div class="glow glow-c" aria-hidden="true" />
       <div class="band-in">
-        <h2>Como criar ou entrar num bolão da Série B</h2>
+        <h2>Como criar ou entrar num bolão do Brasileirão Série B</h2>
         <p>
           Criar conta é grátis. Depois, é só montar um <strong>bolão privado</strong> e compartilhar
           o link de convite — ou entrar num bolão que um amigo criou. Você ainda pode acompanhar a
