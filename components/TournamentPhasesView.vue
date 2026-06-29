@@ -12,8 +12,38 @@ type Phase =
   | { key: string; kind: 'standings'; name: string; stage: StageStandings }
   | { key: string; kind: 'round'; name: string; round: BracketRound };
 
-// The group stage comes first (named after its stage, e.g. "Fase de Grupos"),
-// then each knockout round in order.
+// Earliest kickoff of a phase, in ms (Infinity if it has no scheduled games yet).
+// Used to order phases chronologically — a knockout stage can hold rounds that come
+// BEFORE the group stage (ex.: a fase preliminar da Libertadores, em fev/mar, antes
+// dos grupos), so we can't just render standings-then-bracket.
+function phaseStart(p: Phase): number {
+  let min = Infinity;
+  if (p.kind === 'round') {
+    for (const t of p.round.ties) for (const l of t.legs ?? []) {
+      const ms = Date.parse(l.kickoffAt);
+      if (ms && ms < min) min = ms;
+    }
+    return min;
+  }
+  // Standings (grupos/liga): menor kickoff dos jogos da fase. Pra GROUP, os jogos de
+  // grupo trazem groupName; se nenhum trouxer, cai pro menor de todos (defensivo).
+  const ms = props.matches ?? [];
+  for (const m of ms) {
+    if (p.stage.format === 'GROUP' && !m.groupName) continue;
+    const t = Date.parse(m.kickoffAt);
+    if (t && t < min) min = t;
+  }
+  if (min === Infinity && p.stage.format === 'GROUP') {
+    for (const m of ms) {
+      const t = Date.parse(m.kickoffAt);
+      if (t && t < min) min = t;
+    }
+  }
+  return min;
+}
+
+// Group stage(s) + each knockout round, ordered CHRONOLOGICALLY by first kickoff
+// (stable for equal dates). Phases with no games yet (placeholders) fall to the end.
 const phases = computed<Phase[]>(() => {
   const list: Phase[] = [];
   for (const s of props.standings) {
@@ -24,7 +54,10 @@ const phases = computed<Phase[]>(() => {
       list.push({ key: r.roundId, kind: 'round', name: r.name ?? 'Fase', round: r });
     }
   }
-  return list;
+  return list
+    .map((p, i) => ({ p, i, d: phaseStart(p) }))
+    .sort((a, b) => a.d - b.d || a.i - b.i)
+    .map((x) => x.p);
 });
 
 const index = ref(0);
