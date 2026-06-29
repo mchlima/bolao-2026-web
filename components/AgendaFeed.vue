@@ -149,6 +149,9 @@ onMounted(() => {
     activeDate.value = target;
     spyMutedUntil = Date.now() + 1000;
     dayEls.get(target)?.scrollIntoView({ block: 'start' });
+    // Centraliza a tira explicitamente: se `target` já era o valor inicial de
+    // activeDate (hoje tem jogo), o watch não dispara e o pill ficaria fora de vista.
+    centerPill(target);
   });
 });
 function goToDate(date: string) {
@@ -232,7 +235,7 @@ watch(strip, (s) => {
 // Centra a pílula ativa na tira — scroll SÓ horizontal (scrollBy no próprio .strip),
 // nunca vertical, senão (com a tira fora da tela) puxaria a página de volta pro topo.
 // O atalho LIVE é fixo (fora do scroller) → não precisa centralizar.
-watch(activeDate, (d) => {
+function centerPill(d: string) {
   if (d === 'live') return;
   nextTick(() => {
     const pill = pillEls.get(d);
@@ -242,7 +245,8 @@ watch(activeDate, (d) => {
     const sr = el.getBoundingClientRect();
     el.scrollBy({ left: pr.left - sr.left - (sr.width - pr.width) / 2, behavior: 'smooth' });
   });
-});
+}
+watch(activeDate, (d) => centerPill(d));
 
 // Scroll-spy: a pílula ativa acompanha o dia que está no topo do scroll.
 let io: IntersectionObserver | null = null;
