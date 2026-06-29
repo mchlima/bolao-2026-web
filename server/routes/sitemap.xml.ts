@@ -38,6 +38,8 @@ export default defineEventHandler(async (event) => {
     { loc: '/bolao-do-brasileirao', priority: 0.9, changefreq: 'weekly' },
     { loc: '/bolao-da-libertadores', priority: 0.9, changefreq: 'weekly' },
     { loc: '/bolao-da-copa-do-brasil', priority: 0.9, changefreq: 'weekly' },
+    { loc: '/bolao-da-sudamericana', priority: 0.9, changefreq: 'weekly' },
+    { loc: '/bolao-do-brasileirao-serie-b', priority: 0.9, changefreq: 'weekly' },
     { loc: '/como-funciona', priority: 0.8, changefreq: 'monthly' },
     { loc: '/futebol', priority: 0.8, changefreq: 'daily' },
     { loc: '/futebol/jogos-de-hoje', priority: 0.8, changefreq: 'daily' },
