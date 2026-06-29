@@ -129,6 +129,10 @@ function setDayEl(date: string, el: unknown) {
   else dayEls.delete(date);
 }
 const activeDate = ref(today);
+// Após um scroll PROGRAMÁTICO (mount/clique), silencia o scroll-spy por um instante
+// pra ele não sobrescrever o dia escolhido enquanto o scroll assenta (senão o pill
+// ativo "pula" pro dia vizinho, ex.: marca 27 quando ancorou em 28).
+let spyMutedUntil = 0;
 // Ao abrir, se a lista começa ANTES de hoje (ex.: agenda COMPLETA de um campeonato,
 // que inclui jogos já encerrados), pula direto pro dia de hoje (ou o próximo com
 // jogo) em vez de começar nos jogos antigos. No-op na agenda global (já é de hoje
@@ -143,16 +147,19 @@ onMounted(() => {
     const target = gs.find((g) => g.date !== 'postponed' && g.date >= today)?.date;
     if (!target || gs[0].date === target) return;
     activeDate.value = target;
+    spyMutedUntil = Date.now() + 1000;
     dayEls.get(target)?.scrollIntoView({ block: 'start' });
   });
 });
 function goToDate(date: string) {
   activeDate.value = date;
+  spyMutedUntil = Date.now() + 1000;
   dayEls.get(date)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 // Atalho LIVE → rola pro bloco "Ao vivo" (no começo da listagem).
 function goLive() {
   activeDate.value = 'live';
+  spyMutedUntil = Date.now() + 1000;
   dayEls.get('live')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -243,6 +250,9 @@ onMounted(() => {
   if (typeof IntersectionObserver === 'undefined') return;
   io = new IntersectionObserver(
     (entries) => {
+      // Logo após um scroll programático, ignora — o scroll ainda está assentando e
+      // o spy marcaria o dia vizinho por engano.
+      if (Date.now() < spyMutedUntil) return;
       const top = entries
         .filter((e) => e.isIntersecting)
         .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0];
