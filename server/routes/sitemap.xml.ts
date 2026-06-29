@@ -41,6 +41,8 @@ export default defineEventHandler(async (event) => {
     { loc: '/bolao-da-sudamericana', priority: 0.9, changefreq: 'weekly' },
     { loc: '/bolao-do-brasileirao-serie-b', priority: 0.9, changefreq: 'weekly' },
     { loc: '/como-funciona', priority: 0.8, changefreq: 'monthly' },
+    { loc: '/sobre', priority: 0.5, changefreq: 'monthly' },
+    { loc: '/autor/redacao', priority: 0.4, changefreq: 'weekly' },
     { loc: '/futebol', priority: 0.8, changefreq: 'daily' },
     { loc: '/futebol/jogos-de-hoje', priority: 0.8, changefreq: 'daily' },
     { loc: '/futebol/agenda', priority: 0.8, changefreq: 'hourly' },

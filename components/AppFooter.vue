@@ -75,6 +75,10 @@ const columns = computed(() => [
       </div>
 
       <div class="foot-bottom">
+        <nav class="fb-legal-nav">
+          <NuxtLink to="/sobre" class="fb-legal-link">Sobre o Cravei</NuxtLink>
+          <NuxtLink to="/autor/redacao" class="fb-legal-link">Redação</NuxtLink>
+        </nav>
         <p class="fb-disc">
           Plataforma independente. Sem qualquer vínculo, patrocínio ou endosso da FIFA ou de
           entidades organizadoras. Marcas e nomes de competições citados pertencem aos seus
@@ -162,6 +166,9 @@ const columns = computed(() => [
   padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
+.fb-legal-nav { flex-basis: 100%; display: flex; gap: 18px; margin-bottom: 4px; }
+.fb-legal-link { font-size: var(--fs-xs); font-weight: 700; color: #9aa3b4; text-decoration: none; }
+.fb-legal-link:hover { color: #fff; }
 .fb-disc { margin: 0; max-width: 70ch; font-size: var(--fs-xs); line-height: 1.55; color: #6f7888; }
 .fb-copy { flex: none; font-size: var(--fs-xs); font-weight: 700; color: #8b94a6; white-space: nowrap; }
 

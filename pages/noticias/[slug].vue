@@ -14,6 +14,13 @@ if (error.value || !article.value) {
 
 const a = article.value;
 const url = `${siteUrl}/noticias/${slug}`;
+// Imagem do NewsArticle: a capa quando há, senão o OG global (garante thumbnail no
+// Top stories/Discover, que exigem image). Logo do publisher = mesmo asset do
+// Organization JSON-LD da home (pwa-512x512.png).
+const ogImage = `${siteUrl}/og-cover.png`;
+// Google News trunca headline em 110 chars; cortamos no schema (o <h1> visível
+// segue com o título completo).
+const ldHeadline = a.title.length > 110 ? `${a.title.slice(0, 107).trimEnd()}…` : a.title;
 // Se a capa falhar ao carregar (404/objeto removido do R2), some com a figure em
 // vez de mostrar alt-text/ícone quebrado.
 const coverFailed = ref(false);
@@ -76,7 +83,7 @@ useHead({
         '@graph': [
           {
             '@type': 'NewsArticle',
-            headline: a.title,
+            headline: ldHeadline,
             description: a.metaDescription || a.dek,
             articleBody: a.body,
             datePublished: a.publishedAt,
@@ -84,10 +91,16 @@ useHead({
             articleSection: a.category?.name || undefined,
             keywords: [a.focusKeyword, ...a.keywords].filter(Boolean),
             inLanguage: 'pt-BR',
+            image: [a.coverUrl || ogImage],
             mainEntityOfPage: { '@type': 'WebPage', '@id': url },
             url,
-            author: { '@type': 'Organization', name: 'Cravei', url: siteUrl },
-            publisher: { '@type': 'Organization', name: 'Cravei', url: siteUrl },
+            author: { '@type': 'Organization', name: 'Redação Cravei', url: `${siteUrl}/autor/redacao` },
+            publisher: {
+              '@type': 'Organization',
+              name: 'Cravei',
+              url: siteUrl,
+              logo: { '@type': 'ImageObject', url: `${siteUrl}/pwa-512x512.png` },
+            },
           },
           ...(a.faq.length
             ? [
@@ -128,7 +141,8 @@ useHead({
 
     <p v-if="a.dek" class="art-dek">{{ a.dek }}</p>
     <div class="art-meta">
-      <time :datetime="a.publishedAt">{{ fmtDate(a.publishedAt) }}</time>
+      <NuxtLink to="/autor/redacao" class="art-author">Por Redação Cravei</NuxtLink>
+      <time :datetime="a.publishedAt">· {{ fmtDate(a.publishedAt) }}</time>
       <span v-if="a.source">· {{ a.source }}</span>
       <span>· {{ readingMins }} min de leitura</span>
       <button class="share-btn" type="button" @click="share">
@@ -166,6 +180,8 @@ useHead({
 .art { width: 100%; padding: 8px 16px 48px; }
 .art-dek { font-size: var(--fs-lg); line-height: 1.5; color: var(--text); opacity: 0.9; margin: 0 0 14px; }
 .art-meta { font-size: var(--fs-sm); color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-bottom: 18px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+.art-author { font-weight: 700; color: var(--text); text-decoration: none; }
+.art-author:hover { color: var(--azure); }
 .share-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 700; color: var(--azure); background: none; border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; }
 .share-btn:hover { border-color: var(--azure); background: color-mix(in srgb, var(--azure) 10%, transparent); }
 .art-cover { margin: 0 auto 28px; max-width: 860px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 16px; background: var(--bg-base); }
