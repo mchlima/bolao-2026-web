@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BracketRound, BracketStage, Match, StageStandings } from '~/types/api';
+import type { BracketLeg, BracketRound, BracketStage, Match, StageStandings } from '~/types/api';
 
 const props = defineProps<{
   standings: StageStandings[]; // LEAGUE/GROUP stages → classification phase(s)
@@ -30,6 +30,31 @@ const phases = computed<Phase[]>(() => {
 const index = ref(0);
 const dir = ref<'next' | 'prev'>('next');
 const current = computed(() => phases.value[index.value] ?? null);
+
+// Fase ATUAL por padrão: a 1ª com jogo AO VIVO; senão a 1ª com jogo POR VIR (a
+// "frente" do torneio — ex.: grupos encerrados → cai nas oitavas); senão a última
+// (tudo encerrado). Inicializa uma vez só; depois o usuário navega pelas setas.
+function roundLegs(p: Phase): BracketLeg[] {
+  return p.kind === 'round' ? p.round.ties.flatMap((t) => t.legs ?? []) : [];
+}
+const defaultIndex = computed(() => {
+  const ph = phases.value;
+  if (!ph.length) return 0;
+  const live = ph.findIndex((p) => roundLegs(p).some((l) => l.status === 'LIVE'));
+  if (live >= 0) return live;
+  const upcoming = ph.findIndex((p) => roundLegs(p).some((l) => l.status === 'SCHEDULED'));
+  if (upcoming >= 0) return upcoming;
+  // Mata-mata todo encerrado (há rodada com jogo FINISHED) → última fase; senão
+  // (sem mata-mata em andamento, ex.: liga/grupos) → 1ª fase.
+  const koPlayed = ph.some((p) => roundLegs(p).some((l) => l.status === 'FINISHED'));
+  return koPlayed ? ph.length - 1 : 0;
+});
+let phaseInited = false;
+watchEffect(() => {
+  if (phaseInited || !phases.value.length) return;
+  phaseInited = true;
+  index.value = defaultIndex.value;
+});
 
 // Provisional bracket projection (fills empty slots from the current standings).
 const projection = ref(true);

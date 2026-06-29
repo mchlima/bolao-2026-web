@@ -134,7 +134,10 @@ const activeDate = ref(today);
 // jogo) em vez de começar nos jogos antigos. No-op na agenda global (já é de hoje
 // em diante).
 onMounted(() => {
-  nextTick(() => {
+  // rAF: espera o layout assentar e a tira ser MEDIDA (--strip-h) antes de posicionar —
+  // o scroll-margin-top do dia depende dela, senão a âncora cai alguns px fora de "hoje".
+  requestAnimationFrame(() => {
+    syncStripH();
     const gs = groups.value;
     if (gs.length < 2 || gs[0].date === 'postponed') return;
     const target = gs.find((g) => g.date !== 'postponed' && g.date >= today)?.date;
