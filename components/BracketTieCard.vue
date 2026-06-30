@@ -42,19 +42,23 @@ function score(side: 'home' | 'away'): number | null {
 const isWinner = (side: 'home' | 'away') =>
   !!props.tie.winnerTeamId && props.tie.winnerTeamId === props.tie[side]?.id;
 
+// Placar de pênaltis orientado ao home/away DESTE confronto (vale ao vivo e no fim).
+const penScore = computed(() => {
+  const leg = props.tie.legs.find((l) => l.homePenalties != null && l.awayPenalties != null);
+  if (!leg || leg.homePenalties == null || leg.awayPenalties == null) return null;
+  const hIsHome = leg.homeTeam?.id === props.tie.home?.id;
+  return {
+    ph: hIsHome ? leg.homePenalties : leg.awayPenalties,
+    pa: hIsHome ? leg.awayPenalties : leg.homePenalties,
+  };
+});
 const resolutionNote = computed(() => {
   const r = props.tie.resolution;
-  if (r === 'PENALTIES') {
-    const leg = props.tie.legs.find((l) => l.homePenalties != null);
-    if (leg && leg.homePenalties != null && leg.awayPenalties != null) {
-      const hIsHome = leg.homeTeam?.id === props.tie.home?.id;
-      const ph = hIsHome ? leg.homePenalties : leg.awayPenalties;
-      const pa = hIsHome ? leg.awayPenalties : leg.homePenalties;
-      return `nos pênaltis (${ph}-${pa})`;
-    }
-    return 'nos pênaltis';
-  }
+  const pen = penScore.value;
+  if (r === 'PENALTIES') return pen ? `nos pênaltis (${pen.ph}-${pen.pa})` : 'nos pênaltis';
   if (r === 'EXTRA_TIME') return 'após prorrogação';
+  // Disputa em andamento (ainda sem vencedor): placar de pênaltis ao vivo.
+  if (!r && pen) return `pênaltis ${pen.ph}-${pen.pa}`;
   return null;
 });
 
