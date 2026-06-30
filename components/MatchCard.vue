@@ -31,7 +31,11 @@ function isScored(m: Match): boolean {
   return m.status === 'LIVE' || m.status === 'FINISHED';
 }
 function scoreText(m: Match): string {
-  return `${m.homeScore ?? 0} - ${m.awayScore ?? 0}`;
+  const base = `${m.homeScore ?? 0} - ${m.awayScore ?? 0}`;
+  // Disputa de pênaltis (mata-mata): anexa o placar das cobranças quando há.
+  if (m.homePenalties != null && m.awayPenalties != null)
+    return `${base} (${m.homePenalties}-${m.awayPenalties} pên.)`;
+  return base;
 }
 function timeText(m: Match): string {
   return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: tz.value }).format(new Date(m.kickoffAt));

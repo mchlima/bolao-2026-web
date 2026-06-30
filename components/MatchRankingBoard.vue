@@ -214,6 +214,11 @@ const homeWins = computed(
 const awayWins = computed(
   () => playing.value && (match.value.awayScore ?? 0) > (match.value.homeScore ?? 0),
 );
+// Disputa de pênaltis: mostra o placar (corre ao vivo durante a disputa, fica no
+// final). Só quando a ESPN reportou cobranças pra esta partida.
+const hasPenalties = computed(
+  () => match.value.homePenalties != null && match.value.awayPenalties != null,
+);
 const homeName = computed(() => match.value.homeTeam?.name ?? match.value.homeSourceLabel ?? 'A definir');
 const awayName = computed(() => match.value.awayTeam?.name ?? match.value.awaySourceLabel ?? 'A definir');
 
@@ -334,6 +339,11 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
             <TeamBadge :team="match.awayTeam" :placeholder="match.awaySourceLabel" :size="58" />
             <span class="tname">{{ awayName }}</span>
           </div>
+        </div>
+        <!-- placar da disputa de pênaltis (ao vivo e final) -->
+        <div v-if="hasPenalties" class="pens">
+          <span class="pens-l">Pênaltis</span>
+          <span class="font-numeric pens-s">{{ match.homePenalties }}<span class="pens-x">-</span>{{ match.awayPenalties }}</span>
         </div>
         <!-- live/status chip, centered under the score -->
         <div class="rstate">
@@ -833,6 +843,27 @@ const isMe = (e: RankingEntry) => !!me.value && e.user.id === me.value.user.id;
   gap: 10px;
 }
 .colon { color: var(--muted); }
+
+/* Placar da disputa de pênaltis, centrado sob o placar. */
+.pens {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.pens-l {
+  font-size: var(--fs-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.pens-s { font-size: var(--fs-lg); font-weight: 800; color: var(--gold, #f4b81e); }
+.pens-x { color: var(--muted); margin: 0 2px; }
+.result-head.has-photo .pens-l,
+.result-head.has-photo .pens-x { color: rgba(255, 255, 255, 0.75); }
+.result-head.has-photo .pens-s { color: #ffd66b; }
 
 .body {
   position: relative;

@@ -601,6 +601,10 @@ export interface Match {
   status: MatchStatus;
   homeScore: number | null;
   awayScore: number | null;
+  // Placar da disputa de pênaltis (mata-mata). Corre ao vivo durante a disputa e
+  // fica como resultado final; null quando não houve pênaltis.
+  homePenalties: number | null;
+  awayPenalties: number | null;
   phaseLabel: string | null;
   groupName: string | null;
   liveClock: string | null; // ESPN live clock while LIVE, e.g. "67'"
